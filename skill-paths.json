@@ -1,0 +1,7 @@
+{
+  "skillDirs": [
+    "./skills",
+    "../claudeEnv/claude-scientific-skills/scientific-skills",
+    "../claudeEnv/skills/skills"
+  ]
+}
