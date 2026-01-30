@@ -5,26 +5,32 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "paper": "dist/index.js"
+    "paper": "dist/index.js",
+    "paper-voice": "dist/voice.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "voice": "node dist/voice.js",
+    "voice:test": "node dist/test-asr.js",
     "dev": "tsc && node dist/index.js"
   },
   "dependencies": {
     "@mariozechner/pi-ai": "^0.50.4",
     "@mariozechner/pi-coding-agent": "^0.50.4",
     "dotenv": "^16.0.0",
+    "node-record-lpcm16": "^1.0.1",
     "undici": "^7.19.2",
     "winston": "^3.11.0",
-    "winston-daily-rotate-file": "^5.0.0"
+    "winston-daily-rotate-file": "^5.0.0",
+    "ws": "^8.19.0"
   },
   "engines": {
     "node": ">=20.11.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/ws": "^8.18.1",
     "typescript": "^5.5.0"
   }
 }
