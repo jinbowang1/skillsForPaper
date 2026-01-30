@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import "dotenv/config";
+import { ROOT_DIR } from "./config.js"; // config.ts loads .env from project root
 import { ProxyAgent, setGlobalDispatcher } from "undici";
 import {
   createAgentSession,
@@ -13,6 +13,19 @@ import {
 } from "@mariozechner/pi-coding-agent";
 import { createResourceLoader } from "./resource-loader.js";
 import { logger } from "./logger.js";
+import { loadMemory } from "./config.js";
+
+function printWelcome() {
+  const memory = loadMemory();
+  const nameMatch = memory.match(/姓名：(.+)$/m);
+  const name = nameMatch?.[1]?.trim() || "";
+  const greeting = name ? `${name}，` : "";
+
+  console.log();
+  console.log(`  ${greeting}大师兄在。有活儿直接说。`);
+  console.log(`  输入 /skills 看看我都会啥。`);
+  console.log();
+}
 
 // Set up global proxy for Node.js fetch (undici)
 const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
@@ -22,7 +35,8 @@ if (proxyUrl) {
 }
 
 async function main() {
-  const cwd = process.cwd();
+  // Always work from project root so files land in the right place
+  const cwd = ROOT_DIR;
   const agentDir = getAgentDir();
 
   logger.info("=== skillsForPaper starting ===");
@@ -42,8 +56,32 @@ async function main() {
   // Model registry
   const modelRegistry = new ModelRegistry(authStorage);
 
+  // Register MiniMax as custom provider (Anthropic-compatible API)
+  const minimaxKey = process.env.MINIMAX_API_KEY;
+  if (minimaxKey) {
+    modelRegistry.registerProvider("minimax", {
+      baseUrl: "https://api.minimaxi.com/anthropic",
+      apiKey: minimaxKey,
+      api: "anthropic-messages",
+      authHeader: true,
+      models: [
+        {
+          id: "MiniMax-M2.1",
+          name: "MiniMax M2.1",
+          reasoning: true,
+          input: ["text", "image"],
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+          contextWindow: 1000000,
+          maxTokens: 128000,
+        },
+      ],
+    });
+    logger.info("MiniMax M2.1 provider registered");
+  }
+
   // Settings & session
   const settingsManager = SettingsManager.create(cwd, agentDir);
+  settingsManager.setQuietStartup(true); // Don't show 150+ skill paths on startup
   const sessionManager = SessionManager.create(cwd);
 
   // Resource loader with multi-directory skill loading + system prompt
@@ -69,6 +107,9 @@ async function main() {
   });
 
   logger.info(`Session created: ${session.sessionId}`);
+
+  // Print static welcome (no API call)
+  printWelcome();
 
   // Run interactive TUI
   const interactive = new InteractiveMode(session, {

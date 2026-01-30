@@ -21,7 +21,7 @@ export function createResourceLoader(cwd: string, agentDir?: string) {
     cwd,
     agentDir,
     additionalSkillPaths: skillDirs,
-    systemPrompt: buildSystemPrompt(),
+    appendSystemPrompt: buildSystemPrompt(),
     skillsOverride: (base) => {
       // Deduplicate: when multiple dirs have same-name skill,
       // keep the first one encountered (skillDirs order matters,

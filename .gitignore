@@ -8,3 +8,5 @@ output/*
 *.tsbuildinfo
 .idea/
 logs/*.json
+.pi/*
+!.pi/extensions/

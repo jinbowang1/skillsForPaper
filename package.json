@@ -4,11 +4,13 @@
   "description": "学术论文写作 Agent — 基于 pi-coding-agent",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "paper": "dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
-    "start": "HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 node dist/index.js",
-    "start:direct": "node dist/index.js",
-    "dev": "tsc && HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890 node dist/index.js"
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js"
   },
   "dependencies": {
     "@mariozechner/pi-ai": "^0.50.4",
@@ -17,6 +19,9 @@
     "undici": "^7.19.2",
     "winston": "^3.11.0",
     "winston-daily-rotate-file": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20.11.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

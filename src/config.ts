@@ -1,11 +1,14 @@
-import "dotenv/config";
 import { readFileSync, existsSync } from "fs";
 import path from "path";
+import dotenv from "dotenv";
 
 const PROJECT_ROOT = path.resolve(
   import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname),
   ".."
 );
+
+// Load .env from project root (not cwd), so `paper` command works from any directory
+dotenv.config({ path: path.join(PROJECT_ROOT, ".env") });
 
 export interface SkillPathsConfig {
   skillDirs: string[];
@@ -36,6 +39,16 @@ export function loadMemory(): string {
   if (!existsSync(memoryPath)) return "";
   return readFileSync(memoryPath, "utf-8");
 }
+
+/** Read SOUL.md content, or return empty string if not found */
+export function loadSoul(): string {
+  const soulPath = path.join(PROJECT_ROOT, "memory", "SOUL.md");
+  if (!existsSync(soulPath)) return "";
+  return readFileSync(soulPath, "utf-8");
+}
+
+/** Path to MEMORY.md */
+export const MEMORY_PATH = path.join(PROJECT_ROOT, "memory", "MEMORY.md");
 
 /** Project-level output directory */
 export const OUTPUT_DIR = path.join(PROJECT_ROOT, "output");
