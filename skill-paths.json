@@ -1,7 +1,5 @@
 {
   "skillDirs": [
-    "./skills",
-    "./skills/scientific-skills",
-    "./skills/general-skills"
+    "./skills"
   ]
 }

@@ -1,6 +1,9 @@
+import { mkdirSync } from "fs";
 import winston from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 import { LOGS_DIR } from "./config.js";
+
+mkdirSync(LOGS_DIR, { recursive: true });
 
 const transport = new DailyRotateFile({
   dirname: LOGS_DIR,
