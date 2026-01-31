@@ -16,8 +16,8 @@
     "dev": "tsc && node dist/index.js"
   },
   "dependencies": {
-    "@mariozechner/pi-ai": "^0.50.4",
-    "@mariozechner/pi-coding-agent": "^0.50.4",
+    "@mariozechner/pi-ai": "^0.50.7",
+    "@mariozechner/pi-coding-agent": "^0.50.7",
     "dotenv": "^16.0.0",
     "node-record-lpcm16": "^1.0.1",
     "undici": "^7.19.2",

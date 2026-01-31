@@ -1,8 +1,8 @@
 /**
- * voice-input — 语音输入扩展
+ * voice-input — 语音输入扩展（一键录音，Enter 停止）
  *
- * 按 Ctrl+Shift+V 启动麦克风录音，实时 ASR 转写（Qwen3-ASR），
- * 结果直接填入编辑器输入框。按 Enter 停止并确认，Esc 取消。
+ * 按 Alt+V 或输入 /voice 立即开始录音，
+ * 说完后按 Enter 停止并填入编辑器，Esc 取消。
  *
  * 所有重依赖（ws、node-record-lpcm16）延迟到用户触发时才加载，
  * 避免 jiti 环境下顶层 import 失败导致扩展无法注册。
@@ -138,7 +138,9 @@ class AsrClient extends EventEmitter {
       this.ws.on("close", (code: number, reason: any) => {
         clearTimeout(connectTimeout);
         if (code !== 1000) {
-          this.emit("error", new Error(`WS closed: ${code} ${reason?.toString()}`));
+          const err = new Error(`WS closed: ${code} ${reason?.toString()}`);
+          this.emit("error", err);
+          reject(err);
         }
       });
     });
@@ -154,7 +156,10 @@ class AsrClient extends EventEmitter {
 
   finish(): Promise<string> {
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("finish timeout")), 10000);
+      const timeout = setTimeout(() => {
+        this.close();
+        reject(new Error("finish timeout"));
+      }, 10000);
       this.once("finished", () => {
         clearTimeout(timeout);
         resolve(this.completedTexts.join(""));
@@ -162,6 +167,7 @@ class AsrClient extends EventEmitter {
       });
       this.once("error", (err) => {
         clearTimeout(timeout);
+        this.close();
         reject(err);
       });
       this.send({ event_id: nextEventId(), type: "session.finish" });
@@ -181,8 +187,13 @@ class AsrClient extends EventEmitter {
 
   close(): void {
     if (this.ws) {
-      this.ws.close(1000);
+      const ws = this.ws;
       this.ws = null;
+      try { ws.close(1000); } catch {}
+      // 如果 2 秒内没关掉，强制终止
+      setTimeout(() => {
+        try { ws.terminate(); } catch {}
+      }, 2000);
     }
   }
 }
@@ -192,7 +203,6 @@ class AsrClient extends EventEmitter {
 export default function voiceInput(pi: ExtensionAPI) {
   let language = "zh";
 
-  // 核心逻辑抽出来，command 和 shortcut 都能调
   async function handleVoice(ctx: any) {
       // 预检
       if (!isSoxInstalled()) {
@@ -214,7 +224,7 @@ export default function voiceInput(pi: ExtensionAPI) {
         return;
       }
 
-      // 连接 ASR
+      // 连接 ASR + 立即开始录音
       ctx.ui.notify("正在连接语音识别...");
       const asr = new AsrClient(apiKey, language);
       try {
@@ -224,87 +234,131 @@ export default function voiceInput(pi: ExtensionAPI) {
         return;
       }
 
-      // 开始录音
-      let recorder: ReturnType<typeof startRecording>;
-      try {
-        recorder = startRecording(16000);
-      } catch (err) {
-        ctx.ui.notify(`录音启动失败: ${err}`, "error");
-        asr.close();
-        return;
-      }
-      const CHUNK_SIZE = 3200;
-      let audioBuf = Buffer.alloc(0);
-      let recError = "";
-
-      recorder.stream.on("data", (data: Buffer) => {
-        audioBuf = Buffer.concat([audioBuf, data]);
-        while (audioBuf.length >= CHUNK_SIZE) {
-          asr.sendAudio(audioBuf.subarray(0, CHUNK_SIZE));
-          audioBuf = audioBuf.subarray(CHUNK_SIZE);
-        }
-      });
-
-      recorder.stream.on("error", (err: Error) => {
-        recError = err.message || "录音设备错误";
-      });
-
-      // 显示录音 overlay UI
+      // 一键录音 overlay：进入即录，Enter 停止，Esc 取消
       const result = await ctx.ui.custom<string | null>(
-        (tui, theme, _kb, done) => {
+        (tui: any, theme: any, _kb: any, done: (result: string | null) => void) => {
+          let recorder: ReturnType<typeof startRecording> | null = null;
+          const CHUNK_SIZE = 3200;
+          let audioBuf = Buffer.alloc(0);
           let interimText = "";
           let completedLines: string[] = [];
-          let cache: string[] | undefined;
+          let isRecording = false;
           let finished = false;
+          let doneCalled = false;
+          let recError = "";
+          let statusText = "";
+          let cache: string[] | undefined;
+
+          function safeDone(result: string | null) {
+            if (doneCalled) return;
+            doneCalled = true;
+            done(result);
+          }
 
           function invalidate() {
             cache = undefined;
             tui.requestRender();
           }
 
-          asr.on("interim", (text: string) => {
+          function onInterim(text: string) {
+            if (doneCalled) return;
             interimText = text;
             invalidate();
-          });
-
-          asr.on("completed", (text: string) => {
+          }
+          function onCompleted(text: string) {
+            if (doneCalled) return;
             if (text) completedLines.push(text);
             interimText = "";
             invalidate();
-          });
+          }
+          function onError() {
+            if (doneCalled) return;
+            invalidate();
+          }
 
-          asr.on("error", () => invalidate());
+          asr.on("interim", onInterim);
+          asr.on("completed", onCompleted);
+          asr.on("error", onError);
 
-          const timer = setTimeout(() => {
-            if (!finished) {
-              finished = true;
-              cleanup();
-              done(getAllText());
-            }
-          }, 5 * 60 * 1000);
+          function removeAsrListeners() {
+            asr.off("interim", onInterim);
+            asr.off("completed", onCompleted);
+            asr.off("error", onError);
+          }
 
           function getAllText(): string {
             return completedLines.join("");
           }
 
-          function cleanup() {
-            clearTimeout(timer);
-            recorder.stop();
+          function startRec() {
+            if (isRecording) return;
+            try {
+              recorder = startRecording(16000);
+              isRecording = true;
+              recError = "";
+
+              recorder.stream.on("data", (data: Buffer) => {
+                if (!isRecording) return;
+                audioBuf = Buffer.concat([audioBuf, data]);
+                while (audioBuf.length >= CHUNK_SIZE) {
+                  asr.sendAudio(audioBuf.subarray(0, CHUNK_SIZE));
+                  audioBuf = audioBuf.subarray(CHUNK_SIZE);
+                }
+              });
+
+              recorder.stream.on("error", (err: Error) => {
+                recError = err.message || "录音设备错误";
+                invalidate();
+              });
+
+              invalidate();
+            } catch (err: any) {
+              recError = `录音启动失败: ${err?.message || err}`;
+              invalidate();
+            }
+          }
+
+          function stopRec() {
+            if (!isRecording || !recorder) return;
+            isRecording = false;
+            try { recorder.stop(); } catch {}
+            try { recorder.stream.destroy(); } catch {}
+            recorder = null;
             if (audioBuf.length > 0) {
               asr.sendAudio(audioBuf);
               audioBuf = Buffer.alloc(0);
             }
           }
 
-          async function stopAndFinish() {
+          function cleanup() {
+            stopRec();
+            removeAsrListeners();
+            asr.close();
+          }
+
+          async function finishAndDone() {
             if (finished) return;
             finished = true;
-            cleanup();
+            stopRec();
+            statusText = "正在识别...";
+            invalidate();
+
+            const hardTimeout = setTimeout(() => {
+              removeAsrListeners();
+              asr.close();
+              safeDone(getAllText() || null);
+            }, 5000);
+
             try {
               const text = await asr.finish();
-              done(text || getAllText());
+              clearTimeout(hardTimeout);
+              removeAsrListeners();
+              safeDone(text || getAllText() || null);
             } catch {
-              done(getAllText());
+              clearTimeout(hardTimeout);
+              removeAsrListeners();
+              asr.close();
+              safeDone(getAllText() || null);
             }
           }
 
@@ -312,17 +366,21 @@ export default function voiceInput(pi: ExtensionAPI) {
             if (finished) return;
             finished = true;
             cleanup();
-            asr.close();
-            done(null);
+            safeDone(null);
           }
 
           function handleInput(data: string) {
-            if (matchesKey(data, Key.enter)) {
-              stopAndFinish();
-              return;
-            }
+            if (finished) return;
+
+            // Esc → 取消
             if (matchesKey(data, Key.escape)) {
               cancel();
+              return;
+            }
+
+            // Enter → 停止录音并提交
+            if (matchesKey(data, Key.return)) {
+              finishAndDone();
               return;
             }
           }
@@ -333,7 +391,14 @@ export default function voiceInput(pi: ExtensionAPI) {
             const add = (s: string) => lines.push(truncateToWidth(s, width));
 
             add(theme.fg("accent", "─".repeat(width)));
-            add(theme.fg("accent", " 🎤 语音输入") + theme.fg("muted", `  [${language === "zh" ? "中文" : "English"}]`));
+
+            if (statusText) {
+              add(theme.fg("accent", ` 🎤 ${statusText}`));
+            } else if (isRecording) {
+              add(theme.fg("accent", " 🔴 正在录音") + theme.fg("muted", `  [${language === "zh" ? "中文" : "English"}]`));
+            } else {
+              add(theme.fg("accent", " 🎤 语音输入") + theme.fg("muted", `  [${language === "zh" ? "中文" : "English"}]`));
+            }
             add("");
 
             if (completedLines.length > 0) {
@@ -354,28 +419,28 @@ export default function voiceInput(pi: ExtensionAPI) {
             if (recError) {
               add("  " + theme.fg("warning", `⚠ ${recError}`));
               add("  " + theme.fg("warning", "请检查: 系统设置 → 隐私与安全 → 麦克风 → 允许终端"));
-            } else if (completedLines.length === 0 && !interimText) {
-              add(theme.fg("dim", "  请说话..."));
             }
 
             add("");
-            add(theme.fg("dim", " Enter 停止并填入 · Esc 取消"));
+            if (!statusText) {
+              add(theme.fg("dim", " Enter 停止 · Esc 取消"));
+            }
             add(theme.fg("accent", "─".repeat(width)));
 
             cache = lines;
             return lines;
           }
 
+          // 立即开始录音
+          startRec();
+
           return {
             render,
             invalidate: () => { cache = undefined; },
             handleInput,
             dispose: () => {
-              if (!finished) {
-                finished = true;
-                cleanup();
-                asr.close();
-              }
+              finished = true;
+              cleanup();
             },
           };
         },
@@ -394,9 +459,9 @@ export default function voiceInput(pi: ExtensionAPI) {
       }
   }
 
-  // /voice 命令 — 最可靠的触发方式
+  // /voice 命令
   pi.registerCommand("voice", {
-    description: "语音输入（开始录音，说完按 Enter）",
+    description: "语音输入（Alt+V 一键录音，Enter 停止）",
     handler: async (args, ctx) => {
       // /voice en 或 /voice zh 可以临时切语言
       const lang = args.trim();
