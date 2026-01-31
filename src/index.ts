@@ -14,6 +14,7 @@ import {
 import { createResourceLoader } from "./resource-loader.js";
 import { logger } from "./logger.js";
 import { loadMemory } from "./config.js";
+import { startAutoSnapshot } from "./auto-snapshot.js";
 
 function printWelcome() {
   const memory = loadMemory();
@@ -107,6 +108,9 @@ async function main() {
   });
 
   logger.info(`Session created: ${session.sessionId}`);
+
+  // Auto-snapshot: commit every 5 minutes as safety net
+  startAutoSnapshot();
 
   // Print static welcome (no API call)
   printWelcome();
