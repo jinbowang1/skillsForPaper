@@ -50,7 +50,7 @@ export default function Bookshelf() {
           <div style={{
             padding: "40px 20px",
             textAlign: "center",
-            color: "rgba(200, 180, 160, 0.3)",
+            color: "rgba(160, 180, 220, 0.3)",
             fontSize: 12,
           }}>
             output/ 目录中的文件<br />会出现在这里

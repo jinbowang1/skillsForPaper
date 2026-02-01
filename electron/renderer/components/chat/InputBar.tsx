@@ -1,16 +1,73 @@
-import React, { useState, useRef, useCallback } from "react";
-import { Mic, ArrowUp, Square } from "lucide-react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { Mic, MicOff, ArrowUp, Square } from "lucide-react";
 import { useSessionStore, generateMsgId } from "../../stores/session-store";
 
 export default function InputBar() {
   const [text, setText] = useState("");
+  const [isVoiceRecording, setVoiceRecording] = useState(false);
+  const [interimText, setInterimText] = useState("");
+  const [voiceReady, setVoiceReady] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isComposingRef = useRef(false);
   const { isStreaming, addMessage, setStreaming, updateLastAssistantMessage } = useSessionStore();
 
+  // Check voice availability on mount
+  useEffect(() => {
+    window.api.voiceAvailable().then(setVoiceReady).catch(() => setVoiceReady(false));
+  }, []);
+
+  // Subscribe to voice events
+  useEffect(() => {
+    const unsubs = [
+      window.api.onVoiceInterim((interim) => {
+        setInterimText(interim);
+      }),
+      window.api.onVoiceCompleted((completed) => {
+        setText((prev) => prev + completed);
+        setInterimText("");
+      }),
+      window.api.onVoiceError((error) => {
+        console.error("[voice]", error);
+        setVoiceRecording(false);
+        setInterimText("");
+      }),
+    ];
+    return () => unsubs.forEach((fn) => fn());
+  }, []);
+
+  const handleVoiceToggle = useCallback(async () => {
+    if (isVoiceRecording) {
+      // Stop recording
+      const result = await window.api.voiceStop();
+      if (result.text) {
+        setText((prev) => prev + result.text);
+      }
+      setVoiceRecording(false);
+      setInterimText("");
+      // Focus textarea so user can edit/send
+      textareaRef.current?.focus();
+    } else {
+      // Start recording
+      const result = await window.api.voiceStart();
+      if (result.ok) {
+        setVoiceRecording(true);
+        setInterimText("");
+      } else {
+        console.error("[voice] Failed to start:", result.error);
+      }
+    }
+  }, [isVoiceRecording]);
+
   const handleSend = useCallback(async () => {
     const trimmed = text.trim();
     if (!trimmed || isStreaming) return;
+
+    // If recording, stop first
+    if (isVoiceRecording) {
+      window.api.voiceCancel();
+      setVoiceRecording(false);
+      setInterimText("");
+    }
 
     // Add user message to store
     addMessage({
@@ -20,8 +77,7 @@ export default function InputBar() {
       timestamp: Date.now(),
     });
 
-    // Pre-create assistant message so events always have a target,
-    // even if agent_start doesn't fire reliably for subsequent prompts
+    // Pre-create assistant message so events always have a target
     addMessage({
       id: generateMsgId(),
       role: "assistant",
@@ -40,15 +96,13 @@ export default function InputBar() {
       await window.api.prompt(trimmed);
     } catch (err) {
       console.error("Failed to send prompt:", err);
-      // Reset stuck streaming state so user can retry
       setStreaming(false);
       updateLastAssistantMessage((blocks) => {
         if (blocks.length === 0) {
-          return [{ type: "text", text: "⚠ 发送失败，请重试" }];
+          return [{ type: "text", text: "\u26A0 发送失败，请重试" }];
         }
         return blocks;
       });
-      // Clear isStreaming on the message
       const msgs = useSessionStore.getState().messages;
       for (let i = msgs.length - 1; i >= 0; i--) {
         if (msgs[i].role === "assistant" && msgs[i].isStreaming) {
@@ -61,7 +115,7 @@ export default function InputBar() {
         }
       }
     }
-  }, [text, isStreaming, addMessage, setStreaming, updateLastAssistantMessage]);
+  }, [text, isStreaming, isVoiceRecording, addMessage, setStreaming, updateLastAssistantMessage]);
 
   const handleAbort = useCallback(() => {
     window.api.abort();
@@ -69,7 +123,6 @@ export default function InputBar() {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      // Don't send during IME composition (e.g. Chinese input confirming English word)
       if (e.key === "Enter" && !e.shiftKey && !isComposingRef.current && !e.nativeEvent.isComposing) {
         e.preventDefault();
         if (isStreaming) return;
@@ -81,7 +134,6 @@ export default function InputBar() {
 
   const handleInput = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
-    // Auto-resize
     const el = e.target;
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
@@ -89,7 +141,7 @@ export default function InputBar() {
 
   return (
     <div className="input-area">
-      <div className="input-box">
+      <div className={`input-box ${isVoiceRecording ? "recording" : ""}`}>
         <textarea
           ref={textareaRef}
           value={text}
@@ -97,14 +149,24 @@ export default function InputBar() {
           onKeyDown={handleKeyDown}
           onCompositionStart={() => { isComposingRef.current = true; }}
           onCompositionEnd={() => { isComposingRef.current = false; }}
-          placeholder="和大师兄说点什么..."
+          placeholder={isVoiceRecording ? "正在听..." : "和大师兄说点什么..."}
           rows={1}
           disabled={isStreaming}
         />
+        {interimText && (
+          <div className="voice-interim">{interimText}</div>
+        )}
         <div className="input-btns">
-          <button className="circle-btn mic" title="语音输入">
-            <Mic size={16} />
-          </button>
+          {voiceReady && (
+            <button
+              className={`circle-btn mic ${isVoiceRecording ? "active" : ""}`}
+              title={isVoiceRecording ? "停止录音" : "语音输入"}
+              onClick={handleVoiceToggle}
+              disabled={isStreaming}
+            >
+              {isVoiceRecording ? <MicOff size={16} /> : <Mic size={16} />}
+            </button>
+          )}
           {isStreaming ? (
             <button
               className="circle-btn send"
@@ -126,7 +188,7 @@ export default function InputBar() {
           )}
         </div>
       </div>
-      <div className="input-hint">Enter 发送 · Shift+Enter 换行</div>
+      <div className="input-hint">Enter 发送 · Shift+Enter 换行{voiceReady ? " · 点击麦克风语音输入" : ""}</div>
     </div>
   );
 }

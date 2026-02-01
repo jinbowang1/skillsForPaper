@@ -40,6 +40,33 @@ const api = {
   // ── Task ──
   getTaskState: () => ipcRenderer.invoke("task:getState"),
 
+  // ── User ──
+  getUserInfo: () => ipcRenderer.invoke("user:getInfo"),
+
+  // ── Voice ──
+  voiceAvailable: () => ipcRenderer.invoke("voice:available"),
+  voiceStart: () => ipcRenderer.invoke("voice:start"),
+  voiceStop: () => ipcRenderer.invoke("voice:stop"),
+  voiceCancel: () => ipcRenderer.invoke("voice:cancel"),
+
+  onVoiceInterim: (callback: (text: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: string) => callback(data);
+    ipcRenderer.on("voice:interim", handler);
+    return () => ipcRenderer.removeListener("voice:interim", handler);
+  },
+
+  onVoiceCompleted: (callback: (text: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: string) => callback(data);
+    ipcRenderer.on("voice:completed", handler);
+    return () => ipcRenderer.removeListener("voice:completed", handler);
+  },
+
+  onVoiceError: (callback: (error: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: string) => callback(data);
+    ipcRenderer.on("voice:error", handler);
+    return () => ipcRenderer.removeListener("voice:error", handler);
+  },
+
   // ── Event listeners ──
   onAgentEvent: (callback: AgentEventCallback) => {
     const handler = (_event: Electron.IpcRendererEvent, data: any) => callback(data);

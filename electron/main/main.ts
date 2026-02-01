@@ -1,9 +1,15 @@
 import { app, BrowserWindow, nativeTheme } from "electron";
 import path from "path";
+import dotenv from "dotenv";
 import { registerIpcHandlers } from "./ipc-handlers.js";
 import { SessionBridge } from "./session-bridge.js";
 import { BookshelfWatcher } from "./bookshelf-watcher.js";
 import { TaskParser } from "./task-parser.js";
+import { VoiceHandler } from "./voice-handler.js";
+
+// Load .env early so all modules can read env vars
+const PROJECT_ROOT = path.resolve(__dirname, "../../..");
+dotenv.config({ path: path.join(PROJECT_ROOT, ".env") });
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -12,6 +18,7 @@ let mainWindow: BrowserWindow | null = null;
 let sessionBridge: SessionBridge | null = null;
 let bookshelfWatcher: BookshelfWatcher | null = null;
 let taskParser: TaskParser | null = null;
+let voiceHandler: VoiceHandler | null = null;
 
 nativeTheme.themeSource = "dark";
 
@@ -60,9 +67,10 @@ app.whenReady().then(async () => {
   sessionBridge = new SessionBridge(win);
   bookshelfWatcher = new BookshelfWatcher(win);
   taskParser = new TaskParser(win);
+  voiceHandler = new VoiceHandler(win);
 
   // Register IPC handlers BEFORE async init (renderer calls them on load)
-  registerIpcHandlers(win, sessionBridge, bookshelfWatcher, taskParser);
+  registerIpcHandlers(win, sessionBridge, bookshelfWatcher, taskParser, voiceHandler);
 
   // Start bookshelf watcher and task parser (sync, no delay)
   try {

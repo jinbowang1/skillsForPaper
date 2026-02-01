@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { GraduationCap } from "lucide-react";
 import { useSessionStore } from "../../stores/session-store";
+import DashixiongAvatar from "../DashixiongAvatar";
 
 interface ModelInfo {
   id: string;
@@ -44,9 +44,7 @@ export default function ChatHeader() {
   return (
     <div className="chat-header">
       <div className="chat-header-center">
-        <div className="avatar-sm">
-          <GraduationCap size={16} color="white" />
-        </div>
+        <DashixiongAvatar size={28} />
         <div>
           <div className="chat-header-name">大师兄</div>
           <div className="chat-header-status">

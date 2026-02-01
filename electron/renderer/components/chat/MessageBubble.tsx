@@ -1,8 +1,8 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { GraduationCap } from "lucide-react";
 import type { ChatMessage, ContentBlock } from "../../stores/session-store";
+import DashixiongAvatar from "../DashixiongAvatar";
 import { formatTime } from "../../utils/format";
 import ThinkBlock from "../cards/ThinkBlock";
 import CodeBlock from "../cards/CodeBlock";
@@ -120,7 +120,7 @@ function MessageBubbleInner({ message }: Props) {
         <div className={`msg ${isAI ? "from-ai" : "from-user"}`}>
           <div className="msg-avatar">
             {isAI ? (
-              <GraduationCap size={14} color="white" />
+              <DashixiongAvatar size={28} />
             ) : (
               "王"
             )}

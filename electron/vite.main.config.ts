@@ -11,6 +11,8 @@ export default defineConfig({
         "winston",
         "winston-daily-rotate-file",
         "chokidar",
+        "ws",
+        "node-record-lpcm16",
       ],
     },
   },

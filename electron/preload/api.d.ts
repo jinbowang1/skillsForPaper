@@ -30,6 +30,15 @@ export interface SessionState {
   model: string;
 }
 
+export interface UserInfo {
+  name: string;
+  identity: string;
+  institution: string;
+  researchField: string;
+  advisor: string;
+  project: string;
+}
+
 export interface ElectronAPI {
   // Session
   prompt: (text: string, images?: string[]) => Promise<void>;
@@ -51,6 +60,18 @@ export interface ElectronAPI {
 
   // Task
   getTaskState: () => Promise<TaskState | null>;
+
+  // User
+  getUserInfo: () => Promise<UserInfo>;
+
+  // Voice
+  voiceAvailable: () => Promise<boolean>;
+  voiceStart: () => Promise<{ ok: boolean; error?: string }>;
+  voiceStop: () => Promise<{ text: string; error?: string }>;
+  voiceCancel: () => Promise<void>;
+  onVoiceInterim: (callback: (text: string) => void) => () => void;
+  onVoiceCompleted: (callback: (text: string) => void) => () => void;
+  onVoiceError: (callback: (error: string) => void) => () => void;
 
   // Event listeners (return unsubscribe function)
   onAgentEvent: (callback: (event: any) => void) => () => void;

@@ -9,6 +9,8 @@
     "make": "electron-forge make"
   },
   "dependencies": {
+    "ws": "^8.19.0",
+    "node-record-lpcm16": "^1.0.1",
     "chokidar": "^4.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

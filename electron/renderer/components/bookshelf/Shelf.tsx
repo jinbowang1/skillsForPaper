@@ -35,14 +35,14 @@ export default function Shelf({ label, items }: Props) {
           <Folder
             label="章节草稿"
             items={draftItems}
-            color="#6A7A8C"
+            color="#5B8AD0"
           />
         )}
         {dataItems.length > 0 && (
           <Folder
             label="数据"
             items={dataItems}
-            color="#3A6A5C"
+            color="#50B0A0"
           />
         )}
         {imageItems.map((item) => (

@@ -6,16 +6,16 @@ interface Props {
   item: BookshelfItem;
 }
 
-// Color palette for different file types (warmer, more harmonious tones)
+// Color palette for different file types (modern cool tones)
 const EXT_COLORS: Record<string, string> = {
-  ".tex": "#B85C3A",  // 暖陶红
-  ".md": "#4A7A9C",   // 雾蓝
-  ".pdf": "#9C4A4A",  // 砖红
-  ".docx": "#4A8A7A", // 青瓷绿
-  ".bib": "#8A6AB0",  // 薰衣草紫
-  ".py": "#C4A84A",   // 琥珀金
-  ".json": "#7A8A5A", // 橄榄绿
-  ".csv": "#5A9A7A",  // 翡翠绿
+  ".tex": "#6E8AFA",  // 钴蓝
+  ".md": "#5BA0D0",   // 天蓝
+  ".pdf": "#E06070",  // 珊瑚粉
+  ".docx": "#50B8A0", // 薄荷绿
+  ".bib": "#A07AE0",  // 淡紫
+  ".py": "#E0C050",   // 明金
+  ".json": "#70B080", // 翠绿
+  ".csv": "#60C0C0",  // 蓝绿
 };
 
 // Book dimensions based on file size (slim books to fit more on shelf)

@@ -29,11 +29,11 @@
 .avatar-sm {
   width: 28px; height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FF9F0A, #FF375F);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
+  overflow: hidden;
 }
 
 .chat-header-name {
@@ -156,7 +156,7 @@
   font-size: 13px;
   margin-top: 2px;
 }
-.msg.from-ai .msg-avatar { background: linear-gradient(135deg, #FF9F0A, #FF375F); }
+.msg.from-ai .msg-avatar { background: none; }
 .msg.from-user .msg-avatar {
   background: linear-gradient(135deg, var(--accent), var(--purple));
   font-size: 11px; font-weight: 600; color: white;
@@ -291,6 +291,35 @@
 }
 .circle-btn.mic { background: transparent; color: var(--text-secondary); }
 .circle-btn.mic:hover { color: var(--text-primary); background: rgba(255,255,255,0.06); }
+.circle-btn.mic.active {
+  background: var(--red);
+  color: white;
+  animation: pulse-recording 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-recording {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 69, 58, 0); }
+}
+
+.input-box.recording {
+  border-color: var(--red);
+}
+
+.voice-interim {
+  position: absolute;
+  bottom: 100%;
+  left: var(--space-5);
+  right: var(--space-5);
+  padding: 6px 12px;
+  margin-bottom: 6px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
+  animation: fadeUp var(--duration-fast) ease-out;
+}
 .circle-btn.send { background: var(--accent); color: white; }
 .circle-btn.send:hover { background: var(--accent-hover); transform: scale(1.06); }
 .circle-btn:disabled { opacity: 0.4; cursor: default; transform: none; }

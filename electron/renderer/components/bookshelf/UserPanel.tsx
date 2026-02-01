@@ -1,11 +1,27 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Settings, BookOpen, HelpCircle } from "lucide-react";
 
+interface UserInfo {
+  name: string;
+  identity: string;
+  institution: string;
+  researchField: string;
+  advisor: string;
+  project: string;
+}
+
 export default function UserPanel() {
-  // TODO: Read from MEMORY.md dynamically
-  const userName = "王大爆";
+  const [user, setUser] = useState<UserInfo | null>(null);
+
+  useEffect(() => {
+    window.api.getUserInfo().then(setUser).catch(console.error);
+  }, []);
+
+  const userName = user?.name || "用户";
   const userInitial = userName.charAt(0);
-  const institution = "天津大学 · 硕士";
+  const institution = [user?.institution, user?.identity]
+    .filter(Boolean)
+    .join(" · ") || "未设置";
 
   return (
     <div className="shelf-footer">
