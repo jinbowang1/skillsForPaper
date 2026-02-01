@@ -1,0 +1,55 @@
+/* ============================================
+   Design Tokens — extracted from v3.html
+   ============================================ */
+:root {
+  --bg-primary: #000000;
+  --bg-secondary: #1C1C1E;
+  --bg-tertiary: #2C2C2E;
+  --bg-elevated: #3A3A3C;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(235, 235, 245, 0.6);
+  --text-tertiary: rgba(235, 235, 245, 0.3);
+  --text-placeholder: rgba(235, 235, 245, 0.3);
+
+  --accent: #0A84FF;
+  --accent-hover: #409CFF;
+  --green: #30D158;
+  --orange: #FF9F0A;
+  --red: #FF453A;
+  --yellow: #FFD60A;
+  --purple: #BF5AF2;
+  --teal: #40CBE0;
+  --pink: #FF375F;
+
+  --gray1: #8E8E93;
+  --gray2: #636366;
+  --gray3: #48484A;
+  --gray4: #3A3A3C;
+  --gray5: #2C2C2E;
+  --gray6: #1C1C1E;
+
+  --separator: rgba(84, 84, 88, 0.6);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro", system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+
+  --radius-xs: 4px; --radius-sm: 6px; --radius-md: 10px;
+  --radius-lg: 12px; --radius-xl: 16px; --radius-bubble: 18px;
+
+  --duration-fast: 0.15s; --duration-normal: 0.3s;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1.0);
+
+  --shelf-width: 280px;
+  --titlebar-height: 52px;
+
+  /* Bookshelf wood tones */
+  --wood-bg: #1A1614;
+  --wood-shelf: #3A302A;
+  --wood-shelf-edge: #4A3F35;
+  --wood-glow: rgba(255, 200, 120, 0.03);
+}

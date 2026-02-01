@@ -25,16 +25,26 @@
 
 ## 进行中的项目
 - 项目：Agent 在线持续进化系统
-  阶段：开题完成 ✓
+  阶段：论文初稿完成 ✓
   目标：完成毕业论文撰写与答辩
-  产出物：OPENING_REPORT.pdf（9页）
-  下一步：系统实现与实验验证
+  产出物：
+    - chapter1_introduction.md（绪论）
+    - chapter2_related_work.md（相关工作）
+    - chapter3_problem.md（问题定义）
+    - chapter4_architecture.md（架构设计）
+    - chapter5_skills.md（Skills沉淀）
+    - chapter6_conflict.md（冗余冲突消解）
+    - chapter7_experiment.md（实验验证）
+    - chapter8_conclusion.md（总结展望）
+    - references.md（55篇参考文献）
+  下一步：图表制作、LaTeX排版、导师审核
   研究方向：7x24h 在线 Agent，基于多源信息融合自动沉淀 Skills，实现"越用越强"的进化能力
   创新点：
     1. 在线持续进化的 Agent 架构
     2. 多源信息融合的 Skills 沉淀机制
     3. 实时 Skills 冗余与冲突消解方法
   验证维度：时间效率、准确率、进化效果、标注一致性
+  预计总字数：~82K 字
   时间节点：越快越好
 
 ## 已完成的项目

@@ -1,0 +1,438 @@
+/* ============================================
+   LEFT: Bookshelf (书架)
+   ============================================ */
+.bookshelf {
+  width: var(--shelf-width);
+  min-width: var(--shelf-width);
+  background: var(--wood-bg);
+  border-right: 1px solid rgba(60, 50, 40, 0.4);
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Warm ambient light from above */
+.bookshelf::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 120px;
+  background: radial-gradient(ellipse at 50% -20%, var(--wood-glow), transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Titlebar */
+.shelf-titlebar {
+  height: var(--titlebar-height);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 var(--space-5);
+  -webkit-app-region: drag;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.shelf-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(200, 180, 160, 0.5);
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   Shelves Container
+   ============================================ */
+.shelves {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.shelves::-webkit-scrollbar { width: 4px; }
+.shelves::-webkit-scrollbar-thumb { background: rgba(80, 70, 60, 0.3); border-radius: 2px; }
+
+/* ============================================
+   Single Shelf
+   ============================================ */
+.shelf {
+  position: relative;
+  padding-top: var(--space-2);
+}
+
+.shelf-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(200, 180, 160, 0.35);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 0 var(--space-2) var(--space-1);
+}
+
+.shelf-items {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 0 var(--space-2);
+  min-height: 120px;
+  position: relative;
+}
+
+/* The shelf board */
+.shelf-board {
+  height: 8px;
+  background: linear-gradient(180deg, var(--wood-shelf), #2E2520);
+  border-radius: 1px;
+  position: relative;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 4px 8px rgba(0, 0, 0, 0.5);
+  margin: 0 var(--space-1);
+}
+
+.shelf-board::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(180deg, var(--wood-shelf-edge), var(--wood-shelf));
+  border-radius: 0 0 2px 2px;
+}
+
+/* ============================================
+   3D Book
+   ============================================ */
+.book {
+  --c: #C94B3A;
+  --w: 36px;
+  --h: 130px;
+  width: var(--w);
+  height: var(--h);
+  position: relative;
+  cursor: pointer;
+  border-radius: 2px 3px 3px 2px;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--c) 82%, black),
+    var(--c) 30%,
+    color-mix(in srgb, var(--c) 88%, white) 65%,
+    color-mix(in srgb, var(--c) 78%, black)
+  );
+  box-shadow:
+    3px 0 0 color-mix(in srgb, var(--c) 55%, black),
+    5px 2px 8px rgba(0, 0, 0, 0.5);
+  transition: all 0.35s var(--ease-spring);
+  flex-shrink: 0;
+}
+
+/* Page edges at top */
+.book::before {
+  content: '';
+  position: absolute;
+  top: 2px; left: 3px; right: 5px;
+  height: 2px;
+  background: rgba(220, 210, 195, 0.5);
+  border-radius: 1px;
+}
+
+.book:hover {
+  transform: translateY(-14px) rotate(-3deg);
+  box-shadow:
+    3px 0 0 color-mix(in srgb, var(--c) 55%, black),
+    8px 12px 24px rgba(0, 0, 0, 0.6);
+  z-index: 5;
+}
+
+/* Active indicator */
+.book.active::after {
+  content: '';
+  position: absolute;
+  top: 8px; left: 50%;
+  transform: translateX(-50%);
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent), 0 0 16px rgba(10, 132, 255, 0.3);
+}
+
+.book-title {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  position: absolute;
+  top: 18px; bottom: 8px;
+  left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.book.thin .book-title {
+  font-size: 9px;
+  letter-spacing: 0.5px;
+}
+
+.book-ext {
+  position: absolute;
+  bottom: 6px; left: 0; right: 0;
+  text-align: center;
+  font-size: 8px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-mono);
+}
+
+/* Tooltip */
+.book-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(0, 0, 0, 0.92);
+  color: var(--text-primary);
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.2s var(--ease-smooth);
+  z-index: 20;
+  font-weight: 400;
+  letter-spacing: 0;
+  writing-mode: horizontal-tb;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.book-tooltip small {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  display: block;
+  margin-top: 2px;
+}
+
+.book:hover .book-tooltip,
+.shelf-folder:hover .book-tooltip,
+.pinned-chart:hover .book-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+  pointer-events: auto;
+}
+
+/* ============================================
+   Folder on shelf
+   ============================================ */
+.shelf-folder {
+  --fc: #4A6A5C;
+  width: 48px;
+  height: 64px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.3s var(--ease-spring);
+}
+
+.shelf-folder:hover {
+  transform: translateY(-8px);
+  z-index: 5;
+}
+
+.folder-back {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 54px;
+  background: var(--fc);
+  border-radius: 2px 6px 4px 4px;
+  box-shadow: 3px 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.folder-tab {
+  position: absolute;
+  top: 0; left: 0;
+  width: 24px;
+  height: 14px;
+  background: var(--fc);
+  border-radius: 4px 4px 0 0;
+}
+
+.folder-front {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 50px;
+  background: color-mix(in srgb, var(--fc) 80%, white);
+  border-radius: 0 4px 4px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.folder-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  line-height: 1.2;
+  padding: 0 4px;
+}
+
+.folder-count {
+  position: absolute;
+  top: 2px; right: -2px;
+  min-width: 16px;
+  height: 16px;
+  background: var(--orange);
+  color: black;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* ============================================
+   Pinned chart/image on shelf
+   ============================================ */
+.pinned-chart {
+  width: 64px;
+  height: 48px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.4);
+  transform: rotate(-2deg);
+  cursor: pointer;
+  transition: all 0.3s var(--ease-spring);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pinned-chart:hover {
+  transform: rotate(0deg) translateY(-8px) scale(1.05);
+  box-shadow: 4px 8px 16px rgba(0, 0, 0, 0.5);
+  z-index: 5;
+}
+
+/* Pushpin */
+.pinned-chart::before {
+  content: '';
+  position: absolute;
+  top: -4px; left: 50%;
+  transform: translateX(-50%);
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #F06050, #C94030);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.pinned-chart svg {
+  width: 100%; height: 100%;
+}
+
+/* ============================================
+   Bookshelf Footer (User)
+   ============================================ */
+.shelf-footer {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(60, 50, 40, 0.3);
+  padding: var(--space-3) var(--space-4);
+  position: relative;
+  z-index: 2;
+  background: rgba(26, 22, 20, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.user-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  flex-shrink: 0;
+}
+
+.user-detail { flex: 1; min-width: 0; }
+
+.user-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.user-meta {
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.credits-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--green);
+  background: rgba(48, 209, 88, 0.1);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+.credits-pill:hover { background: rgba(48, 209, 88, 0.18); }
+
+.user-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.icon-btn {
+  width: 28px; height: 28px;
+  border: none;
+  background: transparent;
+  color: rgba(200, 180, 160, 0.4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast);
+}
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(200, 180, 160, 0.7);
+}

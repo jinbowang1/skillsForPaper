@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大师兄 - 学术写作助手</title>
+<style>
+  /* ============================================
+     Apple Design Tokens
+     ============================================ */
+  :root {
+    /* Dark Mode Colors (default) */
+    --bg-primary: #000000;
+    --bg-secondary: #1C1C1E;
+    --bg-tertiary: #2C2C2E;
+    --bg-elevated: #3A3A3C;
+
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(235, 235, 245, 0.6);
+    --text-tertiary: rgba(235, 235, 245, 0.3);
+    --text-placeholder: rgba(235, 235, 245, 0.3);
+
+    --accent: #0A84FF;
+    --accent-hover: #409CFF;
+    --green: #30D158;
+    --orange: #FF9F0A;
+    --red: #FF453A;
+    --yellow: #FFD60A;
+    --purple: #BF5AF2;
+
+    --gray1: #8E8E93;
+    --gray2: #636366;
+    --gray3: #48484A;
+    --gray4: #3A3A3C;
+    --gray5: #2C2C2E;
+    --gray6: #1C1C1E;
+
+    --separator: rgba(84, 84, 88, 0.6);
+    --bubble-received: #2C2C2E;
+    --bubble-sent: #0A84FF;
+
+    --fill-primary: rgba(120, 120, 128, 0.36);
+    --fill-secondary: rgba(120, 120, 128, 0.32);
+
+    /* Typography */
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro", system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --font-mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace;
+
+    /* Spacing (8pt grid) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+
+    /* Radius (continuous / superellipse approximation) */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-bubble: 18px;
+
+    /* Shadows */
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04);
+    --shadow-popup: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+
+    /* Animation */
+    --duration-fast: 0.15s;
+    --duration-normal: 0.3s;
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1.0);
+
+    /* Layout */
+    --sidebar-width: 220px;
+    --titlebar-height: 52px;
+  }
+
+  /* ============================================
+     Reset & Base
+     ============================================ */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ============================================
+     App Shell
+     ============================================ */
+  .app {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     Sidebar (macOS vibrancy style)
+     ============================================ */
+  .sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    background: rgba(28, 28, 30, 0.85);
+    backdrop-filter: blur(30px) saturate(150%);
+    -webkit-backdrop-filter: blur(30px) saturate(150%);
+    border-right: 1px solid var(--separator);
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    position: relative;
+  }
+
+  /* Titlebar drag area (for Electron) */
+  .sidebar-titlebar {
+    height: var(--titlebar-height);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-5);
+    -webkit-app-region: drag;
+    flex-shrink: 0;
+  }
+
+  .traffic-lights {
+    display: flex;
+    gap: 8px;
+    -webkit-app-region: no-drag;
+  }
+
+  .traffic-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: opacity var(--duration-fast) var(--ease-smooth);
+  }
+
+  .traffic-light:hover { opacity: 0.8; }
+  .traffic-light.close { background: #FF5F57; }
+  .traffic-light.minimize { background: #FEBC2E; }
+  .traffic-light.maximize { background: #28C840; }
+
+  /* Sidebar sections */
+  .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 var(--space-3);
+  }
+
+  .sidebar-content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .sidebar-content::-webkit-scrollbar-thumb {
+    background: var(--gray3);
+    border-radius: 3px;
+  }
+
+  .sidebar-section {
+    margin-bottom: var(--space-5);
+  }
+
+  .sidebar-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: var(--space-2) var(--space-2);
+    margin-bottom: var(--space-1);
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-smooth);
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 28px;
+  }
+
+  .sidebar-item:hover {
+    background: var(--fill-primary);
+  }
+
+  .sidebar-item.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  .sidebar-item-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-item-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sidebar-item-badge {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* File tree items */
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-smooth);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 24px;
+  }
+
+  .file-item:hover {
+    background: var(--fill-primary);
+    color: var(--text-primary);
+  }
+
+  .file-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .file-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Task progress */
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 3px var(--space-2);
+    font-size: 12px;
+    line-height: 22px;
+    color: var(--text-secondary);
+  }
+
+  .task-check {
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .task-check.done { color: var(--green); }
+  .task-check.active { color: var(--accent); }
+  .task-check.pending { color: var(--gray2); }
+
+  /* User panel (bottom) */
+  .sidebar-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--separator);
+    padding: var(--space-3);
+  }
+
+  .user-panel {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .user-credits {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1.3;
+  }
+
+  .credits-bar {
+    width: 40px;
+    height: 3px;
+    background: var(--gray3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .credits-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    width: 64%;
+  }
+
+  .user-actions {
+    display: flex;
+    gap: var(--space-1);
+  }
+
+  .user-action-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--duration-fast) var(--ease-smooth);
+  }
+
+  .user-action-btn:hover {
+    background: var(--fill-primary);
+    color: var(--text-primary);
+  }
+
+  /* ============================================
+     Main Chat Area
+     ============================================ */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+    min-width: 0;
+  }
+
+  /* Chat titlebar */
+  .chat-titlebar {
+    height: var(--titlebar-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--separator);
+    -webkit-app-region: drag;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .chat-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .chat-subtitle {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+  }
+
+  .chat-title-group {
+    text-align: center;
+  }
+
+  .model-selector {
+    position: absolute;
+    right: var(--space-4);
+    -webkit-app-region: no-drag;
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: var(--fill-primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-smooth);
+  }
+
+  .model-selector:hover {
+    background: var(--fill-secondary);
+    color: var(--text-primary);
+  }
+
+  /* Messages area */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-5) var(--space-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .messages::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .messages::-webkit-scrollbar-thumb {
+    background: var(--gray3);
+    border-radius: 4px;
+  }
+
+  /* Message bubbles */
+  .message {
+    display: flex;
+    flex-direction: column;
+    max-width: 72%;
+    animation: messageIn var(--duration-normal) var(--ease-spring);
+  }
+
+  @keyframes messageIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .message.received {
+    align-self: flex-start;
+  }
+
+  .message.sent {
+    align-self: flex-end;
+  }
+
+  .message-sender {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-1);
+    padding: 0 var(--space-3);
+  }
+
+  .bubble {
+    padding: 10px 16px;
+    border-radius: var(--radius-bubble);
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word;
+  }
+
+  .message.received .bubble {
+    background: var(--bubble-received);
+    color: var(--text-primary);
+    border-bottom-left-radius: var(--radius-xs);
+  }
+
+  .message.sent .bubble {
+    background: var(--bubble-sent);
+    color: white;
+    border-bottom-right-radius: var(--radius-xs);
+  }
+
+  .message-time {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: var(--space-1);
+    padding: 0 var(--space-3);
+  }
+
+  .message.sent .message-time {
+    text-align: right;
+  }
+
+  /* ============================================
+     Status Card (inline in chat)
+     ============================================ */
+  .status-card {
+    align-self: stretch;
+    max-width: 100%;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--separator);
+    overflow: hidden;
+    animation: messageIn var(--duration-normal) var(--ease-spring);
+  }
+
+  .status-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--separator);
+  }
+
+  .status-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .status-card-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    font-weight: 500;
+  }
+
+  .status-card-badge.running {
+    background: rgba(10, 132, 255, 0.15);
+    color: var(--accent);
+  }
+
+  .status-card-badge.done {
+    background: rgba(48, 209, 88, 0.15);
+    color: var(--green);
+  }
+
+  .status-card-badge.warning {
+    background: rgba(255, 159, 10, 0.15);
+    color: var(--orange);
+  }
+
+  .status-card-body {
+    padding: var(--space-4);
+  }
+
+  /* Pipeline */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .pipeline-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .pipeline-step.done {
+    color: var(--green);
+  }
+
+  .pipeline-step.active {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .pipeline-step-icon {
+    font-size: 14px;
+  }
+
+  .pipeline-arrow {
+    color: var(--gray2);
+    font-size: 10px;
+  }
+
+  /* Metrics row */
+  .metrics {
+    display: flex;
+    gap: var(--space-5);
+    margin-bottom: var(--space-3);
+  }
+
+  .metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .metric-value {
+    font-size: 18px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+  }
+
+  .metric-change {
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .metric-change.down { color: var(--green); }
+  .metric-change.up { color: var(--green); }
+  .metric-change.bad { color: var(--red); }
+
+  /* Progress bar */
+  .progress-row {
+    margin-bottom: var(--space-3);
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-1);
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--gray3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: width 0.6s var(--ease-smooth);
+  }
+
+  /* Status footer */
+  .status-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-4);
+    border-top: 1px solid var(--separator);
+    background: rgba(0,0,0,0.2);
+  }
+
+  .status-footer-info {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .status-footer-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .status-action-btn {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: var(--radius-xs);
+    border: none;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-smooth);
+    font-family: var(--font-sans);
+  }
+
+  .status-action-btn.secondary {
+    background: var(--fill-primary);
+    color: var(--text-secondary);
+  }
+
+  .status-action-btn.secondary:hover {
+    background: var(--fill-secondary);
+    color: var(--text-primary);
+  }
+
+  .status-action-btn.danger {
+    background: rgba(255, 69, 58, 0.15);
+    color: var(--red);
+  }
+
+  .status-action-btn.danger:hover {
+    background: rgba(255, 69, 58, 0.25);
+  }
+
+  /* ============================================
+     File Card (inline in chat)
+     ============================================ */
+  .file-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--separator);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-smooth);
+    max-width: 320px;
+    animation: messageIn var(--duration-normal) var(--ease-spring);
+  }
+
+  .file-card:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--gray2);
+  }
+
+  .file-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .file-card-icon.json { background: rgba(255, 159, 10, 0.15); }
+  .file-card-icon.png { background: rgba(191, 90, 242, 0.15); }
+  .file-card-icon.tex { background: rgba(48, 209, 88, 0.15); }
+  .file-card-icon.pdf { background: rgba(255, 69, 58, 0.15); }
+
+  .file-card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .file-card-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-card-meta {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .file-card-action {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* ============================================
+     Input Area
+     ============================================ */
+  .input-area {
+    padding: var(--space-3) var(--space-8) var(--space-5);
+    flex-shrink: 0;
+  }
+
+  .input-container {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-2);
+    background: var(--bg-secondary);
+    border: 1px solid var(--separator);
+    border-radius: var(--radius-xl);
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    transition: border-color var(--duration-fast) var(--ease-smooth);
+  }
+
+  .input-container:focus-within {
+    border-color: var(--accent);
+  }
+
+  .input-field {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.4;
+    resize: none;
+    min-height: 20px;
+    max-height: 120px;
+    padding: var(--space-1) 0;
+  }
+
+  .input-field::placeholder {
+    color: var(--text-placeholder);
+  }
+
+  .input-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex-shrink: 0;
+  }
+
+  .input-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all var(--duration-fast) var(--ease-smooth);
+  }
+
+  .input-btn.mic {
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  .input-btn.mic:hover {
+    color: var(--text-primary);
+    background: var(--fill-primary);
+  }
+
+  .input-btn.send {
+    background: var(--accent);
+    color: white;
+  }
+
+  .input-btn.send:hover {
+    background: var(--accent-hover);
+    transform: scale(1.05);
+  }
+
+  .input-hint {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: var(--space-2);
+  }
+
+  /* ============================================
+     Timestamp divider
+     ============================================ */
+  .time-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2) 0;
+  }
+
+  .time-divider span {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-primary);
+    padding: 0 var(--space-3);
+  }
+
+  /* ============================================
+     Typing indicator
+     ============================================ */
+  .typing-indicator {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+    animation: messageIn var(--duration-normal) var(--ease-spring);
+  }
+
+  .typing-dots {
+    display: flex;
+    gap: 4px;
+    background: var(--bubble-received);
+    padding: 12px 16px;
+    border-radius: var(--radius-bubble);
+    border-bottom-left-radius: var(--radius-xs);
+  }
+
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    animation: typingBounce 1.4s infinite ease-in-out;
+  }
+
+  .typing-dot:nth-child(1) { animation-delay: 0s; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* ============================================
+     Spinning indicator for active status
+     ============================================ */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--gray3);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  /* ============================================
+     Pulse dot for live status
+     ============================================ */
+  .pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    position: relative;
+  }
+
+  .pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--green);
+    opacity: 0;
+    animation: pulse 2s ease-out infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.6; transform: scale(0.8); }
+    100% { opacity: 0; transform: scale(2); }
+  }
+
+  /* ============================================
+     Code block inside bubble
+     ============================================ */
+  .bubble code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: rgba(0,0,0,0.3);
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+  }
+
+  .message.sent .bubble code {
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* ============================================
+     Skills tag in bubble
+     ============================================ */
+  .skill-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    background: rgba(191, 90, 242, 0.15);
+    color: var(--purple);
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============================================
+       Sidebar
+       ============================================ -->
+  <aside class="sidebar">
+    <!-- Titlebar with traffic lights -->
+    <div class="sidebar-titlebar">
+      <div class="traffic-lights">
+        <div class="traffic-light close"></div>
+        <div class="traffic-light minimize"></div>
+        <div class="traffic-light maximize"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar content -->
+    <div class="sidebar-content">
+      <!-- Output files -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">产出文件</div>
+        <div class="file-item">
+          <span class="file-icon">📄</span>
+          <span class="file-name">oae_paper.tex</span>
+        </div>
+        <div class="file-item">
+          <span class="file-icon">📋</span>
+          <span class="file-name">OPENING_REPORT.md</span>
+        </div>
+        <div class="file-item">
+          <span class="file-icon">📊</span>
+          <span class="file-name">experiment_results.json</span>
+        </div>
+        <div class="file-item">
+          <span class="file-icon">📈</span>
+          <span class="file-name">learning_curves.png</span>
+        </div>
+        <div class="file-item">
+          <span class="file-icon">📝</span>
+          <span class="file-name">Experiment_Design.md</span>
+        </div>
+        <div class="file-item">
+          <span class="file-icon">📑</span>
+          <span class="file-name">Literature_Review.md</span>
+        </div>
+      </div>
+
+      <!-- Task progress -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">任务进度</div>
+        <div class="task-item">
+          <span class="task-check done">✓</span>
+          <span>选题确定</span>
+        </div>
+        <div class="task-item">
+          <span class="task-check done">✓</span>
+          <span>文献调研</span>
+        </div>
+        <div class="task-item">
+          <span class="task-check done">✓</span>
+          <span>开题报告</span>
+        </div>
+        <div class="task-item">
+          <span class="task-check done">✓</span>
+          <span>实验设计</span>
+        </div>
+        <div class="task-item">
+          <span class="task-check active">●</span>
+          <span style="color: var(--accent); font-weight: 500;">对比实验</span>
+        </div>
+        <div class="task-item">
+          <span class="task-check pending">○</span>
+          <span>论文撰写</span>
+        </div>
+        <div class="task-item">
+          <span class="task-check pending">○</span>
+          <span>投稿 & 修改</span>
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">可用技能</div>
+        <div class="sidebar-item">
+          <span class="sidebar-item-icon">✍️</span>
+          <span class="sidebar-item-label">论文写作</span>
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-item-icon">🔍</span>
+          <span class="sidebar-item-label">文献检索</span>
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-item-icon">📐</span>
+          <span class="sidebar-item-label">开题报告</span>
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-item-icon">🧪</span>
+          <span class="sidebar-item-label">实验设计</span>
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-item-icon">📊</span>
+          <span class="sidebar-item-label">数据分析</span>
+          <span class="sidebar-item-badge">140+</span>
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-item-icon">✏️</span>
+          <span class="sidebar-item-label">审稿修改</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- User panel -->
+    <div class="sidebar-footer">
+      <div class="user-panel">
+        <div class="user-avatar">王</div>
+        <div class="user-info">
+          <div class="user-name">王大爆</div>
+          <div class="user-credits">
+            <span>⚡ 128 credits</span>
+            <div class="credits-bar"><div class="credits-fill"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="user-actions" style="margin-top: 8px; justify-content: flex-end;">
+        <button class="user-action-btn" title="设置">⚙️</button>
+        <button class="user-action-btn" title="记忆管理">📝</button>
+        <button class="user-action-btn" title="帮助">❓</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================
+       Main Chat Area
+       ============================================ -->
+  <main class="main">
+    <!-- Chat titlebar -->
+    <div class="chat-titlebar">
+      <div class="chat-title-group">
+        <div class="chat-title">大师兄</div>
+        <div class="chat-subtitle">学术写作助手 · 在线</div>
+      </div>
+      <button class="model-selector">Claude Opus 4.5 ▾</button>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages">
+
+      <div class="time-divider"><span>今天 14:32</span></div>
+
+      <!-- Received message -->
+      <div class="message received">
+        <div class="bubble">
+          王大爆，大师兄在。有活儿直接说。<br>
+          输入 <code>/skills</code> 看看我都会啥。
+        </div>
+        <div class="message-time">14:32</div>
+      </div>
+
+      <!-- Sent message -->
+      <div class="message sent">
+        <div class="bubble">帮我跑一下对比实验，baseline 用 PPO、DQN 和 Random，跑 50 个 epoch，评估 time efficiency、accuracy 和 evolution effect</div>
+        <div class="message-time">14:33</div>
+      </div>
+
+      <!-- Received message with skill tag -->
+      <div class="message received">
+        <div class="bubble">
+          好，我先确认一下实验配置：<br><br>
+          <strong>Baselines:</strong> PPO, DQN, Random<br>
+          <strong>Epochs:</strong> 50<br>
+          <strong>评估指标:</strong> Time Efficiency, Accuracy, Evolution Effect<br>
+          <strong>数据集:</strong> 使用之前 Experiment_Design.md 里定义的那个<br><br>
+          没问题的话我就开始了。
+          <span class="skill-tag">🧪 实验设计</span>
+        </div>
+        <div class="message-time">14:33</div>
+      </div>
+
+      <!-- Sent message -->
+      <div class="message sent">
+        <div class="bubble">对，开始吧</div>
+        <div class="message-time">14:33</div>
+      </div>
+
+      <!-- Status card - Running experiment -->
+      <div class="status-card">
+        <div class="status-card-header">
+          <div class="status-card-title">
+            🔬 Agent 自进化对比实验
+          </div>
+          <div class="status-card-badge running">
+            <span class="spinner" style="width:10px;height:10px;border-width:1.5px;margin-right:4px;vertical-align:middle;"></span>
+            运行中
+          </div>
+        </div>
+        <div class="status-card-body">
+          <!-- Pipeline -->
+          <div class="pipeline">
+            <div class="pipeline-step done">
+              <span class="pipeline-step-icon">✅</span>
+              <span>环境准备</span>
+            </div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step done">
+              <span class="pipeline-step-icon">✅</span>
+              <span>数据加载</span>
+            </div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step active">
+              <span class="pipeline-step-icon"><span class="spinner" style="width:12px;height:12px;border-width:1.5px;"></span></span>
+              <span>训练运行</span>
+            </div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step">
+              <span class="pipeline-step-icon">○</span>
+              <span>模型评估</span>
+            </div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step">
+              <span class="pipeline-step-icon">○</span>
+              <span>生成报告</span>
+            </div>
+          </div>
+
+          <!-- Progress -->
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>Epoch 23 / 50</span>
+              <span>46%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 46%;"></div>
+            </div>
+          </div>
+
+          <!-- Metrics -->
+          <div class="metrics">
+            <div class="metric">
+              <span class="metric-label">Loss</span>
+              <span class="metric-value">0.127</span>
+              <span class="metric-change down">↓ 0.215</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Accuracy</span>
+              <span class="metric-value">78.3%</span>
+              <span class="metric-change up">↑ 12.1%</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">学习率</span>
+              <span class="metric-value">1e-4</span>
+              <span class="metric-change" style="color: var(--text-tertiary);">恒定</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">用时</span>
+              <span class="metric-value">4m 12s</span>
+              <span class="metric-change" style="color: var(--text-tertiary);">预估 9m</span>
+            </div>
+          </div>
+        </div>
+        <div class="status-card-footer">
+          <div class="status-footer-info">
+            <div class="pulse-dot"></div>
+            <span>实时更新 · 0 errors · 1 warning</span>
+          </div>
+          <div class="status-footer-actions">
+            <button class="status-action-btn secondary">查看日志</button>
+            <button class="status-action-btn danger">暂停</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Received message (progress update) -->
+      <div class="message received">
+        <div class="bubble">
+          跑到 Epoch 23 了，Loss 还在稳定下降，Accuracy 已经到 78%，看起来正常。有一个 warning 是 DQN 的 replay buffer 快满了，不影响结果，我已经处理了。你先忙别的，跑完我叫你。
+        </div>
+        <div class="message-time">14:37</div>
+      </div>
+
+      <div class="time-divider"><span>14:45</span></div>
+
+      <!-- Status card - Completed -->
+      <div class="status-card">
+        <div class="status-card-header">
+          <div class="status-card-title">
+            🔬 Agent 自进化对比实验
+          </div>
+          <div class="status-card-badge done">✓ 完成</div>
+        </div>
+        <div class="status-card-body">
+          <div class="pipeline">
+            <div class="pipeline-step done"><span class="pipeline-step-icon">✅</span><span>环境准备</span></div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step done"><span class="pipeline-step-icon">✅</span><span>数据加载</span></div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step done"><span class="pipeline-step-icon">✅</span><span>训练运行</span></div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step done"><span class="pipeline-step-icon">✅</span><span>模型评估</span></div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step done"><span class="pipeline-step-icon">✅</span><span>生成报告</span></div>
+          </div>
+          <div class="metrics">
+            <div class="metric">
+              <span class="metric-label">最终 Loss</span>
+              <span class="metric-value">0.043</span>
+              <span class="metric-change down">↓ 最佳</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">最终 Accuracy</span>
+              <span class="metric-value">94.7%</span>
+              <span class="metric-change up">↑ 超过所有 baseline</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">总用时</span>
+              <span class="metric-value">8m 47s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Received message with file cards -->
+      <div class="message received">
+        <div class="bubble">
+          实验跑完了，结果不错——你的方法在三个指标上都超过了 baseline。我把结果文件都生成好了，你看一眼：
+        </div>
+        <div class="message-time">14:45</div>
+      </div>
+
+      <!-- File cards -->
+      <div class="file-card" onclick="alert('在实际应用中会用系统默认应用打开此文件')">
+        <div class="file-card-icon json">📊</div>
+        <div class="file-card-info">
+          <div class="file-card-name">experiment_results.json</div>
+          <div class="file-card-meta">12.4 KB · 刚刚生成</div>
+        </div>
+        <div class="file-card-action">打开 →</div>
+      </div>
+
+      <div class="file-card" onclick="alert('在实际应用中会用系统默认应用打开此文件')">
+        <div class="file-card-icon png">📈</div>
+        <div class="file-card-info">
+          <div class="file-card-name">learning_curves.png</div>
+          <div class="file-card-meta">Loss/Acc 对比曲线 · 245 KB</div>
+        </div>
+        <div class="file-card-action">打开 →</div>
+      </div>
+
+      <div class="message received">
+        <div class="bubble">
+          要不要我现在把这些结果写进论文的实验章节？还是你先看看数据，有什么想调的再说。
+        </div>
+        <div class="message-time">14:46</div>
+      </div>
+
+      <!-- Sent message -->
+      <div class="message sent">
+        <div class="bubble">数据看起来不错，直接帮我写实验章节吧，用英文写</div>
+        <div class="message-time">14:47</div>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="typing-indicator">
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Input area -->
+    <div class="input-area">
+      <div class="input-container">
+        <textarea class="input-field" placeholder="输入消息..." rows="1"></textarea>
+        <div class="input-actions">
+          <button class="input-btn mic" title="语音输入">🎤</button>
+          <button class="input-btn send" title="发送">↑</button>
+        </div>
+      </div>
+      <div class="input-hint">按 Enter 发送 · Shift+Enter 换行 · /skills 查看技能</div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Auto-scroll messages to bottom
+  const messages = document.querySelector('.messages');
+  messages.scrollTop = messages.scrollHeight;
+
+  // Auto-resize textarea
+  const textarea = document.querySelector('.input-field');
+  textarea.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+
+  // Simulate enter to send
+  textarea.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (this.value.trim()) {
+        // In real app, would send message
+        this.value = '';
+        this.style.height = 'auto';
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

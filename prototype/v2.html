@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大师兄 - 学术写作助手</title>
+<style>
+  /* ============================================
+     Apple Design Tokens
+     ============================================ */
+  :root {
+    --bg-primary: #000000;
+    --bg-secondary: #1C1C1E;
+    --bg-tertiary: #2C2C2E;
+    --bg-elevated: #3A3A3C;
+
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(235, 235, 245, 0.6);
+    --text-tertiary: rgba(235, 235, 245, 0.3);
+    --text-placeholder: rgba(235, 235, 245, 0.3);
+
+    --accent: #0A84FF;
+    --accent-hover: #409CFF;
+    --green: #30D158;
+    --orange: #FF9F0A;
+    --red: #FF453A;
+    --yellow: #FFD60A;
+    --purple: #BF5AF2;
+    --teal: #40CBE0;
+    --pink: #FF375F;
+
+    --gray1: #8E8E93;
+    --gray2: #636366;
+    --gray3: #48484A;
+    --gray4: #3A3A3C;
+    --gray5: #2C2C2E;
+    --gray6: #1C1C1E;
+
+    --separator: rgba(84, 84, 88, 0.6);
+    --bubble-received: #1C1C1E;
+    --bubble-sent: #0A84FF;
+
+    --fill-primary: rgba(120, 120, 128, 0.36);
+    --fill-secondary: rgba(120, 120, 128, 0.24);
+
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro", system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --font-mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-bubble: 18px;
+
+    --shadow-card: 0 2px 8px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.06);
+    --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.1);
+
+    --duration-fast: 0.15s;
+    --duration-normal: 0.3s;
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1.0);
+
+    --desk-width: 280px;
+    --titlebar-height: 52px;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ============================================
+     App Shell
+     ============================================ */
+  .app {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     LEFT: 书桌 (Desk)
+     ============================================ */
+  .desk {
+    width: var(--desk-width);
+    min-width: var(--desk-width);
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--separator);
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+  }
+
+  /* Titlebar */
+  .desk-titlebar {
+    height: var(--titlebar-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-5);
+    -webkit-app-region: drag;
+    flex-shrink: 0;
+  }
+
+  .traffic-lights {
+    display: flex;
+    gap: 8px;
+    -webkit-app-region: no-drag;
+  }
+
+  .traffic-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: opacity var(--duration-fast);
+  }
+  .traffic-light:hover { opacity: 0.8; }
+  .traffic-light.close { background: #FF5F57; }
+  .traffic-light.minimize { background: #FEBC2E; }
+  .traffic-light.maximize { background: #28C840; }
+
+  .desk-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.3px;
+  }
+
+  /* Desk scrollable area */
+  .desk-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .desk-content::-webkit-scrollbar { width: 6px; }
+  .desk-content::-webkit-scrollbar-thumb { background: var(--gray3); border-radius: 3px; }
+
+  /* Category label */
+  .desk-category {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: var(--space-2) var(--space-1) var(--space-1);
+    margin-top: var(--space-2);
+  }
+
+  .desk-category:first-child { margin-top: 0; }
+
+  /* ============================================
+     Desk Item Card (file on desk)
+     ============================================ */
+  .desk-card {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-smooth);
+    border: 1px solid transparent;
+    position: relative;
+  }
+
+  .desk-card:hover {
+    background: var(--bg-elevated);
+    border-color: var(--gray3);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .desk-card-top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+  }
+
+  .desk-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .desk-card-icon.tex    { background: rgba(48, 209, 88, 0.12); }
+  .desk-card-icon.md     { background: rgba(10, 132, 255, 0.12); }
+  .desk-card-icon.json   { background: rgba(255, 159, 10, 0.12); }
+  .desk-card-icon.png    { background: rgba(191, 90, 242, 0.12); }
+  .desk-card-icon.pdf    { background: rgba(255, 69, 58, 0.12); }
+  .desk-card-icon.folder { background: rgba(64, 203, 224, 0.12); }
+
+  .desk-card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .desk-card-subtitle {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.3;
+  }
+
+  .desk-card-preview {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .desk-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-2);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .desk-card-tag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .desk-card-tag.latest {
+    background: rgba(48, 209, 88, 0.12);
+    color: var(--green);
+  }
+
+  .desk-card-tag.editing {
+    background: rgba(10, 132, 255, 0.12);
+    color: var(--accent);
+  }
+
+  .desk-card-tag.data {
+    background: rgba(255, 159, 10, 0.12);
+    color: var(--orange);
+  }
+
+  /* Image preview thumbnail in card */
+  .desk-card-thumb {
+    width: 100%;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    margin-bottom: var(--space-2);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .desk-card-thumb .mini-chart {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .mini-chart svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ============================================
+     Desk Footer (User)
+     ============================================ */
+  .desk-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--separator);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .user-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .user-detail { flex: 1; min-width: 0; }
+
+  .user-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .user-meta {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .credits-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: var(--green);
+    background: rgba(48, 209, 88, 0.1);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--duration-fast);
+  }
+
+  .credits-pill:hover { background: rgba(48, 209, 88, 0.18); }
+
+  .user-actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+  }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--duration-fast);
+  }
+
+  .icon-btn:hover {
+    background: var(--fill-primary);
+    color: var(--text-primary);
+  }
+
+  /* ============================================
+     RIGHT: Chat
+     ============================================ */
+  .chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+    min-width: 0;
+  }
+
+  .chat-header {
+    height: var(--titlebar-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-app-region: drag;
+    flex-shrink: 0;
+    position: relative;
+    border-bottom: 1px solid rgba(84, 84, 88, 0.3);
+  }
+
+  .chat-header-center {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .avatar-sm {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF9F0A, #FF375F);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .chat-header-text {
+    text-align: left;
+  }
+
+  .chat-header-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .chat-header-status {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .online-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  .model-pill {
+    position: absolute;
+    right: var(--space-5);
+    -webkit-app-region: no-drag;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--gray3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all var(--duration-fast);
+    font-family: var(--font-sans);
+  }
+
+  .model-pill:hover {
+    border-color: var(--gray1);
+    color: var(--text-secondary);
+  }
+
+  /* Messages */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-6) var(--space-10);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .messages::-webkit-scrollbar { width: 8px; }
+  .messages::-webkit-scrollbar-thumb { background: var(--gray3); border-radius: 4px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Message wrapper */
+  .msg {
+    display: flex;
+    gap: var(--space-3);
+    max-width: 80%;
+    animation: fadeUp var(--duration-normal) var(--ease-smooth);
+  }
+
+  .msg.from-ai { align-self: flex-start; }
+  .msg.from-user { align-self: flex-end; flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .msg.from-ai .msg-avatar {
+    background: linear-gradient(135deg, #FF9F0A, #FF375F);
+  }
+
+  .msg.from-user .msg-avatar {
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+  }
+
+  .msg-body { min-width: 0; }
+
+  .msg-name {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 3px;
+    padding: 0 2px;
+  }
+
+  .msg.from-user .msg-name { text-align: right; }
+
+  .bubble {
+    padding: 10px 16px;
+    border-radius: var(--radius-bubble);
+    font-size: 14px;
+    line-height: 1.55;
+    word-wrap: break-word;
+  }
+
+  .msg.from-ai .bubble {
+    background: var(--bubble-received);
+    color: var(--text-primary);
+    border-top-left-radius: var(--radius-xs);
+  }
+
+  .msg.from-user .bubble {
+    background: var(--bubble-sent);
+    color: white;
+    border-top-right-radius: var(--radius-xs);
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 3px;
+    padding: 0 2px;
+  }
+
+  .msg.from-user .msg-time { text-align: right; }
+
+  .bubble strong { font-weight: 600; }
+
+  .bubble code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: rgba(255,255,255,0.08);
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+  }
+
+  .msg.from-user .bubble code { background: rgba(255,255,255,0.15); }
+
+  /* Timestamp divider */
+  .divider {
+    text-align: center;
+    padding: var(--space-2) 0;
+  }
+
+  .divider span {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  /* ============================================
+     Status Card v2 — cleaner, more Apple
+     ============================================ */
+  .status-card {
+    align-self: stretch;
+    max-width: 100%;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    animation: fadeUp var(--duration-normal) var(--ease-smooth);
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .sc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .sc-title {
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .sc-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .sc-badge.running { background: rgba(10,132,255,0.12); color: var(--accent); }
+  .sc-badge.done    { background: rgba(48,209,88,0.12); color: var(--green); }
+
+  .sc-body {
+    padding: 0 var(--space-5) var(--space-4);
+  }
+
+  /* Pipeline v2 — connected line */
+  .pipeline2 {
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) 0 var(--space-4);
+    position: relative;
+  }
+
+  .p2-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .p2-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--gray3);
+    color: var(--text-tertiary);
+    transition: all var(--duration-normal);
+  }
+
+  .p2-step.done .p2-dot   { background: var(--green); color: white; }
+  .p2-step.active .p2-dot { background: var(--accent); color: white; }
+
+  .p2-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .p2-step.done .p2-label   { color: var(--text-secondary); }
+  .p2-step.active .p2-label { color: var(--accent); font-weight: 500; }
+
+  /* line connecting dots */
+  .pipeline2::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--space-3) + 12px);
+    left: calc(10% + 12px);
+    right: calc(10% + 12px);
+    height: 2px;
+    background: var(--gray3);
+    z-index: 0;
+  }
+
+  .pipeline2 .p2-line-fill {
+    position: absolute;
+    top: calc(var(--space-3) + 12px);
+    left: calc(10% + 12px);
+    height: 2px;
+    background: var(--green);
+    z-index: 0;
+    transition: width 0.6s var(--ease-smooth);
+  }
+
+  /* Metrics grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+
+  .metric-box {
+    background: rgba(0,0,0,0.25);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    text-align: center;
+  }
+
+  .metric-box-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: var(--space-1);
+  }
+
+  .metric-box-value {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .metric-box-change {
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .metric-box-change.good { color: var(--green); }
+  .metric-box-change.neutral { color: var(--text-tertiary); }
+
+  /* Progress in status card */
+  .sc-progress {
+    margin-top: var(--space-3);
+  }
+
+  .sc-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .sc-progress-bar {
+    height: 6px;
+    background: var(--gray3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .sc-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--teal));
+    transition: width 0.8s var(--ease-smooth);
+  }
+
+  .sc-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-5);
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .sc-footer-left {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    position: relative;
+  }
+
+  .pulse::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--green);
+    opacity: 0;
+    animation: pulseAnim 2s ease-out infinite;
+  }
+
+  @keyframes pulseAnim {
+    0% { opacity: 0.5; transform: scale(0.8); }
+    100% { opacity: 0; transform: scale(2.2); }
+  }
+
+  .sc-btn {
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    transition: all var(--duration-fast);
+  }
+
+  .sc-btn.ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--gray3);
+  }
+
+  .sc-btn.ghost:hover { border-color: var(--gray1); color: var(--text-primary); }
+
+  .sc-btn.danger {
+    background: rgba(255,69,58,0.12);
+    color: var(--red);
+  }
+
+  .sc-btn.danger:hover { background: rgba(255,69,58,0.2); }
+
+  .sc-footer-right { display: flex; gap: var(--space-2); }
+
+  /* ============================================
+     File Card v2
+     ============================================ */
+  .file-card2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-smooth);
+    max-width: 360px;
+    animation: fadeUp var(--duration-normal) var(--ease-smooth);
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .file-card2:hover {
+    background: var(--bg-tertiary);
+    border-color: rgba(255,255,255,0.08);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card);
+  }
+
+  .fc2-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .fc2-icon.json { background: rgba(255,159,10,0.12); }
+  .fc2-icon.png  { background: rgba(191,90,242,0.12); }
+  .fc2-icon.tex  { background: rgba(48,209,88,0.12); }
+  .fc2-icon.pdf  { background: rgba(255,69,58,0.12); }
+  .fc2-icon.md   { background: rgba(10,132,255,0.12); }
+
+  .fc2-info { flex: 1; min-width: 0; }
+
+  .fc2-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fc2-meta {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .fc2-open {
+    font-size: 18px;
+    color: var(--text-tertiary);
+    transition: color var(--duration-fast);
+    flex-shrink: 0;
+  }
+
+  .file-card2:hover .fc2-open { color: var(--accent); }
+
+  /* ============================================
+     Typing
+     ============================================ */
+  .typing {
+    align-self: flex-start;
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-3);
+    animation: fadeUp var(--duration-normal) var(--ease-smooth);
+  }
+
+  .typing .msg-avatar {
+    background: linear-gradient(135deg, #FF9F0A, #FF375F);
+  }
+
+  .typing-bubble {
+    display: flex;
+    gap: 5px;
+    background: var(--bubble-received);
+    padding: 14px 18px;
+    border-radius: var(--radius-bubble);
+    border-top-left-radius: var(--radius-xs);
+  }
+
+  .t-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    animation: bounce 1.4s infinite ease-in-out;
+  }
+
+  .t-dot:nth-child(1) { animation-delay: 0s; }
+  .t-dot:nth-child(2) { animation-delay: 0.2s; }
+  .t-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ============================================
+     Input
+     ============================================ */
+  .input-area {
+    padding: var(--space-3) var(--space-10) var(--space-6);
+    flex-shrink: 0;
+  }
+
+  .input-box {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-2);
+    background: var(--bg-secondary);
+    border: 1px solid var(--gray3);
+    border-radius: 24px;
+    padding: 6px 6px 6px var(--space-5);
+    transition: border-color var(--duration-fast);
+  }
+
+  .input-box:focus-within { border-color: var(--accent); }
+
+  .input-box textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.45;
+    resize: none;
+    min-height: 22px;
+    max-height: 120px;
+    padding: 5px 0;
+  }
+
+  .input-box textarea::placeholder { color: var(--text-placeholder); }
+
+  .input-btns {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .circle-btn {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all var(--duration-fast);
+  }
+
+  .circle-btn.mic {
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  .circle-btn.mic:hover { color: var(--text-primary); background: var(--fill-primary); }
+
+  .circle-btn.send {
+    background: var(--accent);
+    color: white;
+  }
+
+  .circle-btn.send:hover { background: var(--accent-hover); transform: scale(1.06); }
+
+  .input-hint {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: var(--space-2);
+  }
+
+  /* ============================================
+     Spinner
+     ============================================ */
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .spinner {
+    display: inline-block;
+    border: 2px solid var(--gray3);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  /* Utility */
+  .gap-2 { gap: var(--space-2); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============================================
+       LEFT: 书桌
+       ============================================ -->
+  <aside class="desk">
+    <div class="desk-titlebar">
+      <div class="traffic-lights">
+        <div class="traffic-light close"></div>
+        <div class="traffic-light minimize"></div>
+        <div class="traffic-light maximize"></div>
+      </div>
+      <span class="desk-title">书桌</span>
+    </div>
+
+    <div class="desk-content">
+
+      <!-- Category: 论文 -->
+      <div class="desk-category">论文</div>
+
+      <div class="desk-card" onclick="alert('用 VS Code 打开 oae_paper.tex')">
+        <div class="desk-card-top">
+          <div class="desk-card-icon tex">📄</div>
+          <div>
+            <div class="desk-card-title">Agent 自进化论文</div>
+            <div class="desk-card-subtitle">oae_paper.tex</div>
+          </div>
+        </div>
+        <div class="desk-card-preview">Online Agent Evolution: A Framework for Continuous Skill Acquisition...</div>
+        <div class="desk-card-footer">
+          <span>昨天 22:15 修改</span>
+          <span class="desk-card-tag editing">撰写中</span>
+        </div>
+      </div>
+
+      <div class="desk-card" onclick="alert('用默认应用打开 OPENING_REPORT.md')">
+        <div class="desk-card-top">
+          <div class="desk-card-icon md">📋</div>
+          <div>
+            <div class="desk-card-title">开题报告</div>
+            <div class="desk-card-subtitle">OPENING_REPORT.md</div>
+          </div>
+        </div>
+        <div class="desk-card-preview">基于大语言模型的 Agent 在线持续进化系统研究</div>
+        <div class="desk-card-footer">
+          <span>1月15日</span>
+          <span class="desk-card-tag" style="background:rgba(142,142,147,0.12);color:var(--gray1);">已完成</span>
+        </div>
+      </div>
+
+      <!-- Category: 实验 -->
+      <div class="desk-category">实验</div>
+
+      <div class="desk-card" onclick="alert('用默认应用打开 learning_curves.png')">
+        <div class="desk-card-top">
+          <div class="desk-card-icon png">📈</div>
+          <div>
+            <div class="desk-card-title">训练曲线</div>
+            <div class="desk-card-subtitle">learning_curves.png</div>
+          </div>
+        </div>
+        <div class="desk-card-thumb">
+          <div class="mini-chart">
+            <svg viewBox="0 0 200 60" fill="none">
+              <polyline points="5,55 25,52 45,48 65,40 85,32 105,22 125,15 145,10 165,7 185,5 195,4" stroke="#30D158" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="5,50 25,50 45,49 65,46 85,42 105,38 125,35 145,33 165,30 185,28 195,27" stroke="#636366" stroke-width="1.5" fill="none" stroke-dasharray="4 3" stroke-linecap="round"/>
+              <polyline points="5,52 25,51 45,51 65,50 85,49 105,48 125,47 145,46 165,46 185,45 195,45" stroke="#48484A" stroke-width="1.5" fill="none" stroke-dasharray="4 3" stroke-linecap="round"/>
+              <text x="190" y="8" fill="#30D158" font-size="7" text-anchor="end" font-family="-apple-system">Ours</text>
+              <text x="190" y="30" fill="#636366" font-size="7" text-anchor="end" font-family="-apple-system">PPO</text>
+              <text x="190" y="48" fill="#48484A" font-size="7" text-anchor="end" font-family="-apple-system">DQN</text>
+            </svg>
+          </div>
+        </div>
+        <div class="desk-card-footer">
+          <span>刚刚生成</span>
+          <span class="desk-card-tag latest">最新</span>
+        </div>
+      </div>
+
+      <div class="desk-card" onclick="alert('用默认应用打开 experiment_results.json')">
+        <div class="desk-card-top">
+          <div class="desk-card-icon json">📊</div>
+          <div>
+            <div class="desk-card-title">实验结果数据</div>
+            <div class="desk-card-subtitle">experiment_results.json · 12.4 KB</div>
+          </div>
+        </div>
+        <div class="desk-card-preview">Acc 94.7% | Loss 0.043 | Evolution +31.2%</div>
+        <div class="desk-card-footer">
+          <span>刚刚生成</span>
+          <span class="desk-card-tag data">数据</span>
+        </div>
+      </div>
+
+      <!-- Category: 调研 -->
+      <div class="desk-category">调研</div>
+
+      <div class="desk-card" onclick="alert('用默认应用打开 Literature_Review.md')">
+        <div class="desk-card-top">
+          <div class="desk-card-icon md">📑</div>
+          <div>
+            <div class="desk-card-title">文献综述</div>
+            <div class="desk-card-subtitle">Literature_Review.md</div>
+          </div>
+        </div>
+        <div class="desk-card-preview">覆盖 42 篇文献，Agent Learning, Skill Evolution, RL-based...</div>
+        <div class="desk-card-footer">
+          <span>1月20日</span>
+          <span class="desk-card-tag" style="background:rgba(142,142,147,0.12);color:var(--gray1);">已完成</span>
+        </div>
+      </div>
+
+      <div class="desk-card" onclick="alert('用默认应用打开 Experiment_Design.md')">
+        <div class="desk-card-top">
+          <div class="desk-card-icon md">📐</div>
+          <div>
+            <div class="desk-card-title">实验设计方案</div>
+            <div class="desk-card-subtitle">Experiment_Design.md</div>
+          </div>
+        </div>
+        <div class="desk-card-footer">
+          <span>1月22日</span>
+          <span class="desk-card-tag" style="background:rgba(142,142,147,0.12);color:var(--gray1);">已完成</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer: user -->
+    <div class="desk-footer">
+      <div class="user-row">
+        <div class="user-avatar">王</div>
+        <div class="user-detail">
+          <div class="user-name">王大爆</div>
+          <div class="user-meta">
+            <span>天津大学 · 硕士</span>
+            <span class="credits-pill" title="点击充值">⚡ 128</span>
+          </div>
+        </div>
+      </div>
+      <div class="user-actions-row">
+        <button class="icon-btn" title="设置">⚙️</button>
+        <button class="icon-btn" title="记忆">📝</button>
+        <button class="icon-btn" title="帮助">❓</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================
+       RIGHT: Chat
+       ============================================ -->
+  <main class="chat">
+    <div class="chat-header">
+      <div class="chat-header-center">
+        <div class="avatar-sm">🎓</div>
+        <div class="chat-header-text">
+          <div class="chat-header-name">大师兄</div>
+          <div class="chat-header-status">
+            <span class="online-dot"></span>
+            在线
+          </div>
+        </div>
+      </div>
+      <button class="model-pill">Claude Opus 4.5 ▾</button>
+    </div>
+
+    <div class="messages">
+
+      <div class="divider"><span>今天 14:32</span></div>
+
+      <!-- AI -->
+      <div class="msg from-ai">
+        <div class="msg-avatar">🎓</div>
+        <div class="msg-body">
+          <div class="msg-name">大师兄</div>
+          <div class="bubble">王大爆，大师兄在。有活儿直接说。</div>
+          <div class="msg-time">14:32</div>
+        </div>
+      </div>
+
+      <!-- User -->
+      <div class="msg from-user">
+        <div class="msg-avatar">王</div>
+        <div class="msg-body">
+          <div class="msg-name">王大爆</div>
+          <div class="bubble">帮我跑一下对比实验，baseline 用 PPO、DQN 和 Random，跑 50 个 epoch</div>
+          <div class="msg-time">14:33</div>
+        </div>
+      </div>
+
+      <!-- AI -->
+      <div class="msg from-ai">
+        <div class="msg-avatar">🎓</div>
+        <div class="msg-body">
+          <div class="msg-name">大师兄</div>
+          <div class="bubble">
+            好，确认一下配置：<br><br>
+            <strong>Baselines:</strong> PPO, DQN, Random<br>
+            <strong>Epochs:</strong> 50<br>
+            <strong>评估指标:</strong> Time Efficiency, Accuracy, Evolution Effect<br><br>
+            没问题我就开跑了。
+          </div>
+          <div class="msg-time">14:33</div>
+        </div>
+      </div>
+
+      <!-- User -->
+      <div class="msg from-user">
+        <div class="msg-avatar">王</div>
+        <div class="msg-body">
+          <div class="msg-name">王大爆</div>
+          <div class="bubble">没问题，开始吧</div>
+          <div class="msg-time">14:34</div>
+        </div>
+      </div>
+
+      <!-- Status: Running -->
+      <div class="status-card">
+        <div class="sc-header">
+          <div class="sc-title">🔬 Agent 自进化对比实验</div>
+          <div class="sc-badge running">
+            <span class="spinner" style="width:10px;height:10px;border-width:1.5px;margin-right:4px;vertical-align:middle;"></span>
+            运行中
+          </div>
+        </div>
+        <div class="sc-body">
+          <div class="pipeline2">
+            <div class="p2-line-fill" style="width:45%;"></div>
+            <div class="p2-step done">
+              <div class="p2-dot">✓</div>
+              <div class="p2-label">环境</div>
+            </div>
+            <div class="p2-step done">
+              <div class="p2-dot">✓</div>
+              <div class="p2-label">数据</div>
+            </div>
+            <div class="p2-step active">
+              <div class="p2-dot"><span class="spinner" style="width:12px;height:12px;border-width:1.5px;border-color:white;border-top-color:transparent;"></span></div>
+              <div class="p2-label">训练</div>
+            </div>
+            <div class="p2-step">
+              <div class="p2-dot">4</div>
+              <div class="p2-label">评估</div>
+            </div>
+            <div class="p2-step">
+              <div class="p2-dot">5</div>
+              <div class="p2-label">报告</div>
+            </div>
+          </div>
+
+          <div class="sc-progress">
+            <div class="sc-progress-label">
+              <span>Epoch 23 / 50</span>
+              <span>46%</span>
+            </div>
+            <div class="sc-progress-bar">
+              <div class="sc-progress-fill" style="width:46%;"></div>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <div class="metric-box-label">Loss</div>
+              <div class="metric-box-value">0.127</div>
+              <div class="metric-box-change good">↓ 0.215</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-box-label">Accuracy</div>
+              <div class="metric-box-value">78.3%</div>
+              <div class="metric-box-change good">↑ 12.1%</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-box-label">学习率</div>
+              <div class="metric-box-value">1e-4</div>
+              <div class="metric-box-change neutral">恒定</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-box-label">用时</div>
+              <div class="metric-box-value">4:12</div>
+              <div class="metric-box-change neutral">~9 min</div>
+            </div>
+          </div>
+        </div>
+        <div class="sc-footer">
+          <div class="sc-footer-left">
+            <div class="pulse"></div>
+            <span>实时更新 · 0 errors · 1 warning</span>
+          </div>
+          <div class="sc-footer-right">
+            <button class="sc-btn ghost">查看日志</button>
+            <button class="sc-btn danger">暂停</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI update -->
+      <div class="msg from-ai">
+        <div class="msg-avatar">🎓</div>
+        <div class="msg-body">
+          <div class="msg-name">大师兄</div>
+          <div class="bubble">Epoch 23，Loss 稳定下降，Acc 到了 78%。DQN replay buffer 有个 warning，已经处理。你先忙别的，跑完叫你。</div>
+          <div class="msg-time">14:37</div>
+        </div>
+      </div>
+
+      <div class="divider"><span>14:45</span></div>
+
+      <!-- Status: Done -->
+      <div class="status-card">
+        <div class="sc-header">
+          <div class="sc-title">🔬 Agent 自进化对比实验</div>
+          <div class="sc-badge done">✓ 完成</div>
+        </div>
+        <div class="sc-body">
+          <div class="pipeline2">
+            <div class="p2-line-fill" style="width:100%;"></div>
+            <div class="p2-step done"><div class="p2-dot">✓</div><div class="p2-label">环境</div></div>
+            <div class="p2-step done"><div class="p2-dot">✓</div><div class="p2-label">数据</div></div>
+            <div class="p2-step done"><div class="p2-dot">✓</div><div class="p2-label">训练</div></div>
+            <div class="p2-step done"><div class="p2-dot">✓</div><div class="p2-label">评估</div></div>
+            <div class="p2-step done"><div class="p2-dot">✓</div><div class="p2-label">报告</div></div>
+          </div>
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <div class="metric-box-label">最终 Loss</div>
+              <div class="metric-box-value">0.043</div>
+              <div class="metric-box-change good">↓ 最佳</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-box-label">Accuracy</div>
+              <div class="metric-box-value">94.7%</div>
+              <div class="metric-box-change good">↑ 全面超越</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-box-label">Evolution</div>
+              <div class="metric-box-value">+31%</div>
+              <div class="metric-box-change good">显著提升</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-box-label">总用时</div>
+              <div class="metric-box-value">8:47</div>
+              <div class="metric-box-change neutral">50 epochs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI with files -->
+      <div class="msg from-ai">
+        <div class="msg-avatar">🎓</div>
+        <div class="msg-body">
+          <div class="msg-name">大师兄</div>
+          <div class="bubble">跑完了，三个指标全面超越 baseline。结果都放书桌上了，你看一眼：</div>
+          <div class="msg-time">14:45</div>
+        </div>
+      </div>
+
+      <div class="file-card2" onclick="alert('用系统默认应用打开')">
+        <div class="fc2-icon json">📊</div>
+        <div class="fc2-info">
+          <div class="fc2-name">experiment_results.json</div>
+          <div class="fc2-meta">12.4 KB · 刚刚生成</div>
+        </div>
+        <div class="fc2-open">→</div>
+      </div>
+
+      <div class="file-card2" onclick="alert('用系统默认应用打开')">
+        <div class="fc2-icon png">📈</div>
+        <div class="fc2-info">
+          <div class="fc2-name">learning_curves.png</div>
+          <div class="fc2-meta">Accuracy 对比曲线 · 245 KB</div>
+        </div>
+        <div class="fc2-open">→</div>
+      </div>
+
+      <div class="msg from-ai">
+        <div class="msg-avatar">🎓</div>
+        <div class="msg-body">
+          <div class="msg-name">大师兄</div>
+          <div class="bubble">要不要我直接写实验章节？还是你先看看数据。</div>
+          <div class="msg-time">14:46</div>
+        </div>
+      </div>
+
+      <div class="msg from-user">
+        <div class="msg-avatar">王</div>
+        <div class="msg-body">
+          <div class="msg-name">王大爆</div>
+          <div class="bubble">直接写吧，英文</div>
+          <div class="msg-time">14:47</div>
+        </div>
+      </div>
+
+      <!-- Typing -->
+      <div class="typing">
+        <div class="msg-avatar">🎓</div>
+        <div class="typing-bubble">
+          <div class="t-dot"></div>
+          <div class="t-dot"></div>
+          <div class="t-dot"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="input-area">
+      <div class="input-box">
+        <textarea placeholder="和大师兄说点什么..." rows="1"></textarea>
+        <div class="input-btns">
+          <button class="circle-btn mic" title="语音输入">🎤</button>
+          <button class="circle-btn send" title="发送">↑</button>
+        </div>
+      </div>
+      <div class="input-hint">Enter 发送 · Shift+Enter 换行</div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  const messages = document.querySelector('.messages');
+  messages.scrollTop = messages.scrollHeight;
+
+  const ta = document.querySelector('.input-box textarea');
+  ta.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+  ta.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (this.value.trim()) { this.value = ''; this.style.height = 'auto'; }
+    }
+  });
+</script>
+
+</body>
+</html>

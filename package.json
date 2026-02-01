@@ -13,7 +13,11 @@
     "start": "node dist/index.js",
     "voice": "node dist/voice.js",
     "voice:test": "node dist/test-asr.js",
-    "dev": "tsc && node dist/index.js"
+    "dev": "tsc && node dist/index.js",
+    "electron:dev": "cd electron && npm start",
+    "electron:package": "cd electron && npm run package",
+    "electron:make": "cd electron && npm run make",
+    "electron:install": "cd electron && npm install"
   },
   "dependencies": {
     "@mariozechner/pi-ai": "^0.50.7",

@@ -8,3 +8,9 @@ logs/*.log
 logs/*.json
 .pi/*
 !.pi/extensions/
+
+# Electron
+electron/node_modules/
+electron/dist/
+electron/.vite/
+electron/out/

@@ -45,21 +45,17 @@ export default function autoContinue(pi: ExtensionAPI) {
       if ("role" in last && last.role === "assistant" && "stopReason" in last) {
         // 模型主动结束（不是 token 用完）
         if (last.stopReason === "stop") {
-          // 提取文本内容，检查是否在等用户
+          // 提取文本内容
           const textParts = Array.isArray(last.content)
             ? last.content
                 .filter((c: any) => c.type === "text")
                 .map((c: any) => c.text)
                 .join("")
             : "";
-          const lastLine = textParts.trim().split("\n").pop() || "";
-          // 以问号结尾、或包含明确等待用户的关键词
-          if (
-            lastLine.endsWith("?") ||
-            lastLine.endsWith("？") ||
-            /请(你)?(提供|给我|确认|选择|告诉|说明)/.test(lastLine) ||
-            /需要你/.test(lastLine)
-          ) {
+          const fullText = textParts.trim();
+
+          // 检查是否在等用户：扫描整段文本，不只看最后一行
+          if (isWaitingForUser(fullText)) {
             return;
           }
         }
@@ -112,4 +108,52 @@ export default function autoContinue(pi: ExtensionAPI) {
       { deliverAs: "followUp" },
     );
   });
+}
+
+/**
+ * 检测 agent 是否在等用户回复。
+ * 扫描整段文本（不只是最后一行），匹配多种中/英文等待模式。
+ */
+function isWaitingForUser(text: string): boolean {
+  if (!text) return false;
+
+  // 1. 任何地方有问号
+  if (text.includes("?") || text.includes("？")) return true;
+
+  // 2. 常见等待用户决策的中文模式
+  const waitPatterns = [
+    /你(想|要|觉得|看|说|定|选)/,
+    /选一个/,
+    /告诉我/,
+    /哪(个|种|块|项|边)/,
+    /怎么(样|办|做|处理)/,
+    /好(不好|吗|么)/,
+    /可以吗/,
+    /行(不行|吗)/,
+    /是否/,
+    /还是/,
+    /先(搞|做|看|弄|处理|开始)/,
+    /请(你)?(提供|给我|确认|选择|告诉|说明|决定)/,
+    /需要你/,
+    /等你/,
+    /随时/,
+    /直接说/,
+    /你.{0,6}(意见|想法|看法|建议)/,
+    /从.{0,6}开始/,
+  ];
+
+  for (const pat of waitPatterns) {
+    if (pat.test(text)) return true;
+  }
+
+  // 3. 末尾是选项列表（编号或短横线列表 + 描述），通常表示在等用户选
+  const lines = text.split("\n").filter((l) => l.trim());
+  const lastLines = lines.slice(-6);
+  let listCount = 0;
+  for (const line of lastLines) {
+    if (/^\s*(\d+[\.\)、]|-|•|\*)\s+/.test(line)) listCount++;
+  }
+  if (listCount >= 2) return true;
+
+  return false;
 }
