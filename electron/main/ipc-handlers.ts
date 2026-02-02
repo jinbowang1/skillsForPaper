@@ -185,4 +185,33 @@ export function registerIpcHandlers(
   ipcMain.handle("voice:cancel", async () => {
     voiceHandler.cancel();
   });
+
+  // ── Window control channels ──
+  ipcMain.handle("window:minimize", () => {
+    window.minimize();
+  });
+
+  ipcMain.handle("window:maximize", () => {
+    if (window.isMaximized()) {
+      window.unmaximize();
+    } else {
+      window.maximize();
+    }
+  });
+
+  ipcMain.handle("window:close", () => {
+    window.close();
+  });
+
+  ipcMain.handle("window:isMaximized", () => {
+    return window.isMaximized();
+  });
+
+  window.on("maximize", () => {
+    window.webContents.send("window:maximized-change", true);
+  });
+
+  window.on("unmaximize", () => {
+    window.webContents.send("window:maximized-change", false);
+  });
 }

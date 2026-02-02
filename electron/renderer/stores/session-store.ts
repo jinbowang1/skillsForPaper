@@ -27,6 +27,7 @@ export interface ContentBlock {
   options?: Array<{ label: string; description?: string }>;
   selectedIndex?: number;
   answered?: boolean;
+  customAnswer?: string;
   // For tool
   toolName?: string;
   toolStatus?: "running" | "done" | "error";
@@ -48,11 +49,18 @@ export interface ChatMessage {
   isStreaming?: boolean;
 }
 
+/** Pending free-text decision: user clicked "自由输入" in a DecisionCard */
+export interface PendingDecision {
+  toolCallId: string;
+  question: string;
+}
+
 interface SessionState {
   messages: ChatMessage[];
   isStreaming: boolean;
   agentState: "idle" | "working" | "thinking";
   currentModel: string;
+  pendingDecision: PendingDecision | null;
 
   addMessage: (msg: ChatMessage) => void;
   updateLastAssistantMessage: (updater: (blocks: ContentBlock[]) => ContentBlock[]) => void;
@@ -60,7 +68,8 @@ interface SessionState {
   setStreaming: (isStreaming: boolean) => void;
   setAgentState: (state: SessionState["agentState"]) => void;
   setModel: (model: string) => void;
-  markDecisionAnswered: (toolCallId: string, selectedIndex: number) => void;
+  markDecisionAnswered: (toolCallId: string, selectedIndex: number, customAnswer?: string) => void;
+  setPendingDecision: (decision: PendingDecision | null) => void;
 }
 
 let msgIdCounter = 0;
@@ -73,6 +82,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   isStreaming: false,
   agentState: "idle",
   currentModel: "Claude Opus 4.5",
+  pendingDecision: null,
 
   addMessage: (msg) => set((state) => ({
     messages: [...state.messages, msg],
@@ -116,16 +126,18 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
   setModel: (currentModel) => set({ currentModel }),
 
-  markDecisionAnswered: (toolCallId, selectedIndex) => set((state) => {
+  markDecisionAnswered: (toolCallId, selectedIndex, customAnswer?) => set((state) => {
     const messages = state.messages.map((msg) => ({
       ...msg,
       blocks: msg.blocks.map((block) => {
         if (block.type === "decision" && block.toolCallId === toolCallId) {
-          return { ...block, answered: true, selectedIndex };
+          return { ...block, answered: true, selectedIndex, customAnswer };
         }
         return block;
       }),
     }));
     return { messages };
   }),
+
+  setPendingDecision: (decision) => set({ pendingDecision: decision }),
 }));

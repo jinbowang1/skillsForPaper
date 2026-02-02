@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Copy, Check } from "lucide-react";
+import { useUIStore } from "../../stores/ui-store";
 
 interface Props {
   code: string;
@@ -11,6 +12,7 @@ export default function CodeBlock({ code, language, filename }: Props) {
   const [copied, setCopied] = useState(false);
   const [highlighted, setHighlighted] = useState<string>("");
   const codeRef = useRef<HTMLPreElement>(null);
+  const theme = useUIStore((s) => s.theme);
 
   useEffect(() => {
     // Attempt to use Shiki for highlighting
@@ -21,7 +23,7 @@ export default function CodeBlock({ code, language, filename }: Props) {
         const { codeToHtml } = await import("shiki");
         const html = await codeToHtml(code, {
           lang: language || "text",
-          theme: "github-dark",
+          theme: theme === "light" ? "github-light" : "github-dark",
         });
         if (!cancelled) {
           setHighlighted(html);
@@ -36,7 +38,7 @@ export default function CodeBlock({ code, language, filename }: Props) {
 
     highlight();
     return () => { cancelled = true; };
-  }, [code, language]);
+  }, [code, language, theme]);
 
   const handleCopy = async () => {
     try {

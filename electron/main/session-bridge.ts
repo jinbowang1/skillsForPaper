@@ -26,6 +26,20 @@ export class SessionBridge {
     // Load .env
     dotenv.config({ path: ENV_PATH, override: true });
 
+    // Set up HTTP proxy BEFORE loading the SDK.
+    // The SDK's stream.js does this asynchronously via import("undici").then(...)
+    // which creates a race condition. We do it synchronously here to guarantee
+    // the proxy is active before any requests are made.
+    if (process.env.HTTPS_PROXY || process.env.HTTP_PROXY) {
+      try {
+        const { EnvHttpProxyAgent, setGlobalDispatcher } = await import("undici");
+        setGlobalDispatcher(new EnvHttpProxyAgent());
+        this.logger.info(`[proxy] Global proxy set: ${process.env.HTTPS_PROXY || process.env.HTTP_PROXY}`);
+      } catch (err) {
+        this.logger.warn(`[proxy] Failed to set proxy: ${err}`);
+      }
+    }
+
     // Dynamic import for ESM-only package
     const piAgent = await import("@mariozechner/pi-coding-agent");
 
@@ -85,6 +99,9 @@ export class SessionBridge {
     }
 
     // Register DashScope (Qwen3)
+    // DashScope's OpenAI-compatible API does not support several OpenAI-specific
+    // params (store, stream_options, max_completion_tokens, developer role).
+    // The compat object tells the SDK to skip those and use Qwen-native thinking.
     const dashscopeKey = process.env.DASHSCOPE_API_KEY;
     if (dashscopeKey) {
       this.modelRegistry.registerProvider("dashscope", {
@@ -101,16 +118,23 @@ export class SessionBridge {
             cost: { input: 1.2, output: 6.0, cacheRead: 0.24, cacheWrite: 1.2 },
             contextWindow: 262144,
             maxTokens: 65536,
+            compat: {
+              supportsStore: false,
+              supportsDeveloperRole: false,
+              supportsUsageInStreaming: false,
+              thinkingFormat: "qwen",
+            },
           },
         ],
       });
     }
 
     // Register Moonshot (Kimi K2.5)
+    // Note: api.moonshot.cn (not .ai) — the .ai domain rejects keys from the CN platform
     const moonshotKey = process.env.MOONSHOT_API_KEY;
     if (moonshotKey) {
       this.modelRegistry.registerProvider("moonshot", {
-        baseUrl: "https://api.moonshot.ai/v1",
+        baseUrl: "https://api.moonshot.cn/v1",
         apiKey: moonshotKey,
         api: "openai-completions",
         authHeader: true,
@@ -123,6 +147,11 @@ export class SessionBridge {
             cost: { input: 0.6, output: 3.0, cacheRead: 0.1, cacheWrite: 0.6 },
             contextWindow: 262144,
             maxTokens: 65536,
+            compat: {
+              supportsStore: false,
+              supportsDeveloperRole: false,
+              supportsUsageInStreaming: false,
+            },
           },
         ],
       });

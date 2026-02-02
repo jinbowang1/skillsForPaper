@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Check } from "lucide-react";
 import { useSessionStore } from "../../stores/session-store";
 import DashixiongAvatar from "../DashixiongAvatar";
@@ -9,6 +9,8 @@ interface Props {
   options: Array<{ label: string; description?: string }>;
   answered?: boolean;
   selectedIndex?: number;
+  /** Custom answer text (set by InputBar when user uses free-text reply) */
+  customAnswer?: string;
 }
 
 export default function DecisionCard({
@@ -17,12 +19,21 @@ export default function DecisionCard({
   options,
   answered = false,
   selectedIndex,
+  customAnswer,
 }: Props) {
   const [localSelected, setLocalSelected] = useState<number | undefined>(selectedIndex);
   const [isAnswered, setIsAnswered] = useState(answered);
-  const [customMode, setCustomMode] = useState(false);
-  const [customText, setCustomText] = useState("");
   const markDecisionAnswered = useSessionStore((s) => s.markDecisionAnswered);
+  const setPendingDecision = useSessionStore((s) => s.setPendingDecision);
+  const pendingDecision = useSessionStore((s) => s.pendingDecision);
+
+  // Sync store → local state (when InputBar answers this decision externally)
+  useEffect(() => {
+    if (answered && !isAnswered) {
+      setIsAnswered(true);
+      if (selectedIndex !== undefined) setLocalSelected(selectedIndex);
+    }
+  }, [answered, selectedIndex]);
 
   const handleSelect = useCallback(
     async (index: number) => {
@@ -43,24 +54,16 @@ export default function DecisionCard({
     [toolCallId, options, isAnswered, markDecisionAnswered]
   );
 
-  const handleCustomSubmit = useCallback(async () => {
-    if (isAnswered || !customText.trim()) return;
-
-    setLocalSelected(-1);
-    setIsAnswered(true);
-
-    markDecisionAnswered(toolCallId, -1);
-
-    try {
-      await window.api.respondDecision(toolCallId, customText.trim());
-    } catch (err) {
-      console.error("Failed to respond to decision:", err);
-    }
-  }, [toolCallId, customText, isAnswered, markDecisionAnswered]);
+  const handleCustomTrigger = useCallback(() => {
+    // Activate the main InputBar for free-text reply (supports voice input)
+    setPendingDecision({ toolCallId, question });
+  }, [toolCallId, question, setPendingDecision]);
 
   // Answered → compact single-line showing question + selected answer
   if (isAnswered && localSelected !== undefined) {
-    const answerLabel = localSelected === -1 ? customText.trim() : options[localSelected]?.label;
+    const answerLabel = localSelected === -1
+      ? (customAnswer || "")
+      : options[localSelected]?.label;
     return (
       <div className="decision-card answered">
         <div className="dc-answered-row">
@@ -74,6 +77,9 @@ export default function DecisionCard({
       </div>
     );
   }
+
+  // Whether this decision's free-text mode is active in InputBar
+  const isThisPending = pendingDecision?.toolCallId === toolCallId;
 
   // Unanswered → full card with all options
   return (
@@ -104,34 +110,17 @@ export default function DecisionCard({
           </button>
         ))}
 
-        {!customMode && (
-          <button
-            className="dc-option dc-custom-trigger"
-            onClick={() => setCustomMode(true)}
-          >
-            <div className="dc-opt-body">
-              <div className="dc-opt-title">自由输入...</div>
+        <button
+          className={`dc-option dc-custom-trigger ${isThisPending ? "active" : ""}`}
+          onClick={handleCustomTrigger}
+        >
+          <div className="dc-opt-body">
+            <div className="dc-opt-title">
+              {isThisPending ? "请在下方输入框回复..." : "自由输入..."}
             </div>
-          </button>
-        )}
+          </div>
+        </button>
       </div>
-
-      {customMode && (
-        <div className="dc-custom-input">
-          <input
-            autoFocus
-            value={customText}
-            onChange={(e) => setCustomText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && customText.trim()) handleCustomSubmit();
-            }}
-            placeholder="请输入..."
-          />
-          <button onClick={handleCustomSubmit} disabled={!customText.trim()}>
-            确认
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -11,6 +11,21 @@ export type DecisionRequestCallback = (req: {
 }) => void;
 
 const api = {
+  // ── Platform ──
+  platform: process.platform,
+
+  // ── Window Controls ──
+  windowMinimize: () => ipcRenderer.invoke("window:minimize"),
+  windowMaximize: () => ipcRenderer.invoke("window:maximize"),
+  windowClose: () => ipcRenderer.invoke("window:close"),
+  windowIsMaximized: () => ipcRenderer.invoke("window:isMaximized"),
+  onMaximizedChange: (callback: (isMaximized: boolean) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: boolean) =>
+      callback(data);
+    ipcRenderer.on("window:maximized-change", handler);
+    return () => ipcRenderer.removeListener("window:maximized-change", handler);
+  },
+
   // ── Session ──
   prompt: (text: string, images?: string[]) =>
     ipcRenderer.invoke("session:prompt", { text, images }),

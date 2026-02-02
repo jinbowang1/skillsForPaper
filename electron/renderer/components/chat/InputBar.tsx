@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { Mic, MicOff, ArrowUp, Square } from "lucide-react";
+import { Mic, MicOff, ArrowUp, Square, X } from "lucide-react";
 import { useSessionStore } from "../../stores/session-store";
 import { useUserStore } from "../../stores/user-store";
 import { useSendMessage } from "../../hooks/useSendMessage";
@@ -14,8 +14,18 @@ export default function InputBar() {
   const isComposingRef = useRef(false);
   const messages = useSessionStore((s) => s.messages);
   const isStreaming = useSessionStore((s) => s.isStreaming);
+  const pendingDecision = useSessionStore((s) => s.pendingDecision);
+  const setPendingDecision = useSessionStore((s) => s.setPendingDecision);
+  const markDecisionAnswered = useSessionStore((s) => s.markDecisionAnswered);
   const { aiName } = useUserStore();
   const sendMessage = useSendMessage();
+
+  // When entering decision reply mode, auto-focus the input
+  useEffect(() => {
+    if (pendingDecision) {
+      textareaRef.current?.focus();
+    }
+  }, [pendingDecision]);
 
   // 快捷回复 chips（好的/继续/详细说说）
   // 当有未回答的 DecisionCard 时不显示（用户应通过 DecisionCard 交互）
@@ -87,7 +97,10 @@ export default function InputBar() {
 
   const handleSend = useCallback(async () => {
     const trimmed = text.trim();
-    if (!trimmed || isStreaming) return;
+    if (!trimmed) return;
+
+    // Block normal sends while streaming (but allow decision replies)
+    if (isStreaming && !pendingDecision) return;
 
     // If recording, stop first
     if (isVoiceRecording) {
@@ -101,8 +114,21 @@ export default function InputBar() {
       textareaRef.current.style.height = "auto";
     }
 
+    // Decision reply mode: respond to the pending decision via InputBar
+    if (pendingDecision) {
+      const { toolCallId } = pendingDecision;
+      markDecisionAnswered(toolCallId, -1, trimmed);
+      setPendingDecision(null);
+      try {
+        await window.api.respondDecision(toolCallId, trimmed);
+      } catch (err) {
+        console.error("Failed to respond to decision:", err);
+      }
+      return;
+    }
+
     await sendMessage(trimmed);
-  }, [text, isStreaming, isVoiceRecording, sendMessage]);
+  }, [text, isStreaming, isVoiceRecording, sendMessage, pendingDecision, markDecisionAnswered, setPendingDecision]);
 
   const handleAbort = useCallback(() => {
     window.api.abort();
@@ -112,11 +138,12 @@ export default function InputBar() {
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey && !isComposingRef.current && !e.nativeEvent.isComposing) {
         e.preventDefault();
-        if (isStreaming) return;
+        // Allow Enter during streaming only when replying to a decision
+        if (isStreaming && !pendingDecision) return;
         handleSend();
       }
     },
-    [handleSend, isStreaming]
+    [handleSend, isStreaming, pendingDecision]
   );
 
   const handleInput = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -126,9 +153,25 @@ export default function InputBar() {
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
   }, []);
 
+  // Input is enabled when not streaming, OR when replying to a decision
+  const inputEnabled = !isStreaming || !!pendingDecision;
+
+  const handleCancelDecision = useCallback(() => {
+    setPendingDecision(null);
+  }, [setPendingDecision]);
+
   return (
     <div className="input-area">
-      <div className={`input-box ${isVoiceRecording ? "recording" : ""}`}>
+      {pendingDecision && (
+        <div className="decision-reply-hint">
+          <span className="decision-reply-label">回复：</span>
+          <span className="decision-reply-question">{pendingDecision.question}</span>
+          <button className="decision-reply-cancel" onClick={handleCancelDecision} title="取消">
+            <X size={12} />
+          </button>
+        </div>
+      )}
+      <div className={`input-box ${isVoiceRecording ? "recording" : ""} ${pendingDecision ? "decision-mode" : ""}`}>
         <textarea
           ref={textareaRef}
           value={text}
@@ -136,15 +179,21 @@ export default function InputBar() {
           onKeyDown={handleKeyDown}
           onCompositionStart={() => { isComposingRef.current = true; }}
           onCompositionEnd={() => { isComposingRef.current = false; }}
-          placeholder={isVoiceRecording ? "正在听..." : `和${aiName}说点什么...`}
+          placeholder={
+            isVoiceRecording
+              ? "正在听..."
+              : pendingDecision
+                ? "输入你的回复..."
+                : `和${aiName}说点什么...`
+          }
           rows={1}
-          disabled={isStreaming}
+          disabled={!inputEnabled}
         />
         {interimText && (
           <div className="voice-interim">{interimText}</div>
         )}
         {/* 快捷回复 chips — 输入框内右侧 */}
-        {quickChips.length > 0 && (
+        {quickChips.length > 0 && !pendingDecision && (
           <div className="quick-chips">
             {quickChips.map((c, i) => (
               <button
@@ -163,12 +212,12 @@ export default function InputBar() {
               className={`circle-btn mic ${isVoiceRecording ? "active" : ""}`}
               title={isVoiceRecording ? "停止录音" : "语音输入"}
               onClick={handleVoiceToggle}
-              disabled={isStreaming}
+              disabled={!inputEnabled}
             >
               {isVoiceRecording ? <MicOff size={16} /> : <Mic size={16} />}
             </button>
           )}
-          {isStreaming ? (
+          {isStreaming && !pendingDecision ? (
             <button
               className="circle-btn send"
               onClick={handleAbort}

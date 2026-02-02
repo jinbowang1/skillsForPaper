@@ -4,8 +4,8 @@
 .desk {
   width: var(--desk-width);
   min-width: var(--desk-width);
-  background: #161618;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--overlay-strong);
   display: flex;
   flex-direction: column;
   user-select: none;
@@ -83,7 +83,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--overlay-faint);
   border-radius: var(--radius-md);
   padding: 6px 10px;
   cursor: pointer;
@@ -97,11 +97,11 @@
 }
 
 .desk-card:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--overlay-hover);
 }
 
 .desk-card:active {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--overlay-light);
   transition-duration: 0.06s;
 }
 
@@ -109,7 +109,7 @@
    Folder Card — click to expand file list
    ============================================ */
 .desk-folder {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--overlay-faint);
   border-radius: var(--radius-lg);
   border: 1px solid transparent;
   transition: background var(--duration-fast), border-color var(--duration-fast);
@@ -117,7 +117,7 @@
 }
 
 .desk-folder:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--overlay-medium);
 }
 
 .desk-folder-header {
@@ -200,12 +200,12 @@
 }
 
 .desk-folder-file:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--overlay-strong);
   color: var(--text-primary);
 }
 
 .desk-folder-file:active {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--overlay-faint);
 }
 
 .desk-folder-file-icon {
@@ -301,7 +301,7 @@
    ============================================ */
 .desk-footer {
   flex-shrink: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--overlay-strong);
   padding: 12px var(--space-4);
 }
 
@@ -321,7 +321,7 @@
   justify-content: center;
   font-size: 16px;
   font-weight: 600;
-  color: white;
+  color: var(--text-on-accent);
   flex-shrink: 0;
 }
 
@@ -375,6 +375,6 @@
 }
 
 .icon-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--overlay-strong);
   color: var(--text-secondary);
 }

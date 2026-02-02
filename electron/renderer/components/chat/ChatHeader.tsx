@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSessionStore } from "../../stores/session-store";
 import { useUserStore } from "../../stores/user-store";
 import DashixiongAvatar from "../DashixiongAvatar";
+import WindowControls from "./WindowControls";
 import {
   THINKING_PHRASES,
   IDLE_PHRASES,
@@ -93,6 +94,7 @@ export default function ChatHeader() {
           </div>
         )}
       </div>
+      <WindowControls />
     </div>
   );
 }

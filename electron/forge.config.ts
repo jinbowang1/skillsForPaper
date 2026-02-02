@@ -1,6 +1,8 @@
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import { MakerZIP } from "@electron-forge/maker-zip";
+import { MakerDMG } from "@electron-forge/maker-dmg";
+import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -12,6 +14,8 @@ const config: ForgeConfig = {
   },
   makers: [
     new MakerZIP({}, ["darwin"]),
+    new MakerDMG({ format: "ULFO" }),
+    new MakerSquirrel({ name: "dashixiong" }),
   ],
   plugins: [
     new VitePlugin({

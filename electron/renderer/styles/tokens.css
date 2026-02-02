@@ -47,6 +47,101 @@
   --desk-width: 280px;
   --titlebar-height: 52px;
 
-  --shadow-card: 0 2px 8px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.06);
-  --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.1);
+  /* Semantic overlay variables (white overlays for dark theme) */
+  --overlay-subtle:  rgba(255,255,255, 0.02);
+  --overlay-faint:   rgba(255,255,255, 0.03);
+  --overlay-light:   rgba(255,255,255, 0.04);
+  --overlay-medium:  rgba(255,255,255, 0.05);
+  --overlay-strong:  rgba(255,255,255, 0.06);
+  --overlay-hover:   rgba(255,255,255, 0.07);
+  --overlay-active:  rgba(255,255,255, 0.08);
+
+  /* Shadow variables */
+  --shadow-subtle:   rgba(0,0,0, 0.25);
+  --shadow-medium:   rgba(0,0,0, 0.3);
+  --shadow-strong:   rgba(0,0,0, 0.35);
+  --shadow-heavy:    rgba(0,0,0, 0.4);
+  --shadow-deeper:   rgba(0,0,0, 0.5);
+
+  --separator-light: rgba(84, 84, 88, 0.3);
+
+  --bg-sidebar:      #161618;
+  --bg-code-card:    #141416;
+  --code-text:       #E0E0E0;
+  --bubble-user-bg:  #0A84FF;
+  --bubble-user-text:#FFFFFF;
+  --text-on-accent:  #FFFFFF;
+
+  --shadow-card: 0 2px 8px var(--shadow-heavy), 0 0 0 0.5px var(--overlay-strong);
+  --shadow-card-hover: 0 8px 24px var(--shadow-deeper), 0 0 0 0.5px var(--overlay-active);
+}
+
+/* ============================================
+   Light Theme — Apple HIG light palette
+   ============================================ */
+:root[data-theme="light"] {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F2F2F7;
+  --bg-tertiary: #E5E5EA;
+  --bg-elevated: #FFFFFF;
+
+  --text-primary: #000000;
+  --text-secondary: rgba(60,60,67,0.6);
+  --text-tertiary: rgba(60,60,67,0.5);
+  --text-placeholder: rgba(60,60,67,0.38);
+
+  --accent: #007AFF;
+  --accent-hover: #0066CC;
+  --green: #28CD41;
+  --red: #FF3B30;
+  --orange: #FF9500;
+  --yellow: #FFCC00;
+  --purple: #AF52DE;
+  --teal: #5AC8FA;
+  --pink: #FF2D55;
+
+  --gray1: #8E8E93;
+  --gray2: #AEAEB2;
+  --gray3: #C7C7CC;
+  --gray4: #D1D1D6;
+  --gray5: #E5E5EA;
+  --gray6: #F2F2F7;
+
+  --separator: rgba(60,60,67,0.29);
+
+  /* Overlay flipped to black transparency */
+  --overlay-subtle:  rgba(0,0,0,0.02);
+  --overlay-faint:   rgba(0,0,0,0.03);
+  --overlay-light:   rgba(0,0,0,0.04);
+  --overlay-medium:  rgba(0,0,0,0.05);
+  --overlay-strong:  rgba(0,0,0,0.06);
+  --overlay-hover:   rgba(0,0,0,0.07);
+  --overlay-active:  rgba(0,0,0,0.08);
+
+  /* Shadows lighter */
+  --shadow-subtle:   rgba(0,0,0,0.06);
+  --shadow-medium:   rgba(0,0,0,0.08);
+  --shadow-strong:   rgba(0,0,0,0.10);
+  --shadow-heavy:    rgba(0,0,0,0.12);
+  --shadow-deeper:   rgba(0,0,0,0.15);
+
+  --separator-light: rgba(60,60,67,0.12);
+
+  --bg-sidebar: #F2F2F7;
+  --bg-code-card: #F2F2F7;
+  --code-text: #1D1D1F;
+
+  --bubble-user-bg: #007AFF;
+  --bubble-user-text: #FFFFFF;
+  --text-on-accent: #FFFFFF;
+
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
+  --shadow-card-hover: 0 4px 16px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.08);
+}
+
+/* ============================================
+   Platform: Windows titlebar height
+   ============================================ */
+:root[data-platform="win32"] {
+  --titlebar-height: 32px;
 }

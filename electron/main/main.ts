@@ -24,22 +24,31 @@ let voiceHandler: VoiceHandler | null = null;
 nativeTheme.themeSource = "dark";
 
 function createWindow() {
-  mainWindow = new BrowserWindow({
+  const isMac = process.platform === "darwin";
+
+  const windowOptions: Electron.BrowserWindowConstructorOptions = {
     width: 1200,
     height: 800,
     minWidth: 900,
     minHeight: 600,
     backgroundColor: "#000000",
-    titleBarStyle: "hidden",
-    trafficLightPosition: { x: 20, y: 18 },
-    vibrancy: "under-window",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
     },
-  });
+  };
+
+  if (isMac) {
+    windowOptions.titleBarStyle = "hidden";
+    windowOptions.trafficLightPosition = { x: 20, y: 18 };
+    windowOptions.vibrancy = "under-window";
+  } else {
+    windowOptions.frame = false;
+  }
+
+  mainWindow = new BrowserWindow(windowOptions);
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);

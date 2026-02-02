@@ -52,6 +52,16 @@ export interface SetupResult {
 }
 
 export interface ElectronAPI {
+  // Platform
+  platform: string;
+
+  // Window Controls
+  windowMinimize: () => Promise<void>;
+  windowMaximize: () => Promise<void>;
+  windowClose: () => Promise<void>;
+  windowIsMaximized: () => Promise<boolean>;
+  onMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
+
   // Session
   prompt: (text: string, images?: string[]) => Promise<void>;
   steer: (text: string) => Promise<void>;

@@ -17,7 +17,7 @@
   -webkit-app-region: drag;
   flex-shrink: 0;
   position: relative;
-  border-bottom: 1px solid rgba(84, 84, 88, 0.3);
+  border-bottom: 1px solid var(--separator-light);
 }
 
 .chat-header-center {
@@ -88,7 +88,7 @@
   border: 1px solid var(--gray3);
   border-radius: 10px;
   padding: 4px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px var(--shadow-heavy);
   z-index: 100;
   animation: fadeUp var(--duration-fast) ease-out;
 }
@@ -109,7 +109,7 @@
   transition: background var(--duration-fast);
 }
 .model-option:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--overlay-strong);
   color: var(--text-primary);
 }
 .model-option.active {
@@ -164,7 +164,7 @@
 .msg.from-ai .msg-avatar { background: none; }
 .msg.from-user .msg-avatar {
   background: linear-gradient(135deg, var(--accent), var(--purple));
-  font-size: 11px; font-weight: 600; color: white;
+  font-size: 11px; font-weight: 600; color: var(--text-on-accent);
 }
 
 .msg-body { min-width: 0; }
@@ -190,8 +190,8 @@
   border-top-left-radius: var(--radius-xs);
 }
 .msg.from-user .bubble {
-  background: #0A84FF;
-  color: white;
+  background: var(--bubble-user-bg);
+  color: var(--bubble-user-text);
   border-top-right-radius: var(--radius-xs);
 }
 
@@ -217,14 +217,14 @@
 .bubble code {
   font-family: var(--font-mono);
   font-size: 12px;
-  background: rgba(255,255,255,0.08);
+  background: var(--overlay-active);
   padding: 2px 6px;
   border-radius: var(--radius-xs);
 }
 
 /* Fenced code blocks (pre > code) */
 .bubble pre {
-  background: rgba(0,0,0,0.35);
+  background: var(--shadow-strong);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
   margin: 0.6em 0;
@@ -237,7 +237,7 @@
   border-radius: 0;
   font-size: 12px;
   line-height: 1.6;
-  color: #E0E0E0;
+  color: var(--code-text);
   white-space: pre;
 }
 
@@ -281,16 +281,16 @@
   text-align: left;
   padding: 6px 12px;
   white-space: nowrap;
-  background: rgba(255,255,255,0.04);
+  background: var(--overlay-light);
 }
 .bubble td {
   padding: 5px 12px;
   color: var(--text-secondary);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--overlay-strong);
   vertical-align: top;
 }
 .bubble tbody tr:hover {
-  background: rgba(255,255,255,0.03);
+  background: var(--overlay-faint);
 }
 
 /* Links */
@@ -445,7 +445,7 @@
   font-family: var(--font-sans);
   font-size: 11px;
   color: var(--text-tertiary);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--overlay-strong);
   border: 1px solid var(--gray3);
   border-radius: 12px;
   padding: 3px 10px;
@@ -479,10 +479,10 @@
   transition: all var(--duration-fast);
 }
 .circle-btn.mic { background: transparent; color: var(--text-secondary); }
-.circle-btn.mic:hover { color: var(--text-primary); background: rgba(255,255,255,0.06); }
+.circle-btn.mic:hover { color: var(--text-primary); background: var(--overlay-strong); }
 .circle-btn.mic.active {
   background: var(--red);
-  color: white;
+  color: var(--text-on-accent);
   animation: pulse-recording 1.5s ease-in-out infinite;
 }
 
@@ -509,13 +509,97 @@
   font-style: italic;
   animation: fadeUp var(--duration-fast) ease-out;
 }
-.circle-btn.send { background: var(--accent); color: white; }
+.circle-btn.send { background: var(--accent); color: var(--text-on-accent); }
 .circle-btn.send:hover { background: var(--accent-hover); transform: scale(1.06); }
 .circle-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+/* Decision reply hint — shown above input-box when replying to ask_user */
+.decision-reply-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px var(--space-5) 2px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  animation: fadeUp var(--duration-fast) ease-out;
+}
+.decision-reply-label {
+  color: var(--accent);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.decision-reply-question {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.decision-reply-cancel {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--overlay-strong);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.decision-reply-cancel:hover {
+  background: var(--overlay-active);
+  color: var(--text-primary);
+}
+.input-box.decision-mode {
+  border-color: var(--accent);
+}
 
 .input-hint {
   text-align: center;
   font-size: 11px;
   color: var(--text-tertiary);
   margin-top: var(--space-2);
+}
+
+/* ============================================
+   Window Controls (Windows only)
+   ============================================ */
+.window-controls {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  height: var(--titlebar-height);
+  -webkit-app-region: no-drag;
+  z-index: 20;
+}
+
+.window-control-btn {
+  width: 46px;
+  height: var(--titlebar-height);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-fast), color var(--duration-fast);
+  font-family: var(--font-sans);
+}
+
+.window-control-btn:hover {
+  background: var(--overlay-hover);
+}
+
+.window-control-btn.close:hover {
+  background: var(--red);
+  color: var(--text-on-accent);
+}
+
+/* Shift model-selector right on Windows to avoid overlapping window controls */
+:root[data-platform="win32"] .model-selector {
+  right: calc(46px * 3 + var(--space-5));
 }

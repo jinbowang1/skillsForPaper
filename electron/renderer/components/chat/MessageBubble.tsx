@@ -96,6 +96,7 @@ function renderBlock(block: ContentBlock, index: number, isStreaming?: boolean) 
           options={block.options || []}
           answered={block.answered}
           selectedIndex={block.selectedIndex}
+          customAnswer={block.customAnswer}
         />
       );
     case "steps":
