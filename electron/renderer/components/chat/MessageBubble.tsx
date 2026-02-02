@@ -2,6 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage, ContentBlock } from "../../stores/session-store";
+import { useUserStore } from "../../stores/user-store";
 import DashixiongAvatar from "../DashixiongAvatar";
 import { formatTime } from "../../utils/format";
 import ThinkBlock from "../cards/ThinkBlock";
@@ -83,6 +84,7 @@ function renderBlock(block: ContentBlock, index: number, isStreaming?: boolean) 
 function MessageBubbleInner({ message }: Props) {
   const { role, blocks, timestamp, isStreaming } = message;
   const isAI = role === "assistant";
+  const { userName, userInitial, aiName } = useUserStore();
 
   // Gather all text blocks into one combined text
   const textContent = blocks
@@ -108,11 +110,34 @@ function MessageBubbleInner({ message }: Props) {
   const hasThinking = thinkingBlocks.length > 0;
   const showThinking = combinedThinkingText || (isStreaming && hasThinking);
 
+  // Show loading bubble when assistant is streaming but has no visible content yet
+  const showLoadingBubble =
+    isAI && isStreaming && !textContent && !showThinking && toolBlocks.length === 0;
+
   return (
     <div className="message-group">
       {/* Combined think block */}
       {showThinking && (
         <ThinkBlock text={combinedThinkingText} isStreaming={isStreaming} />
+      )}
+
+      {/* Loading bubble — assistant preparing response */}
+      {showLoadingBubble && (
+        <div className="msg from-ai">
+          <div className="msg-avatar">
+            <DashixiongAvatar size={28} />
+          </div>
+          <div className="msg-body">
+            <div className="msg-name">{aiName}</div>
+            <div className="bubble">
+              <span className="streaming-dots">
+                <span className="t-dot" />
+                <span className="t-dot" />
+                <span className="t-dot" />
+              </span>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Main message bubble */}
@@ -122,11 +147,11 @@ function MessageBubbleInner({ message }: Props) {
             {isAI ? (
               <DashixiongAvatar size={28} />
             ) : (
-              "王"
+              userInitial
             )}
           </div>
           <div className="msg-body">
-            <div className="msg-name">{isAI ? "大师兄" : "王大爆"}</div>
+            <div className="msg-name">{isAI ? aiName : userName}</div>
             <div className="bubble">
               {isAI ? (
                 isStreaming ? (

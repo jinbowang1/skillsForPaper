@@ -1,31 +1,18 @@
 /* ============================================
-   LEFT: Bookshelf (书架)
+   LEFT: Desk (书桌)
    ============================================ */
-.bookshelf {
-  width: var(--shelf-width);
-  min-width: var(--shelf-width);
-  background: var(--wood-bg);
+.desk {
+  width: var(--desk-width);
+  min-width: var(--desk-width);
+  background: #161618;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
   user-select: none;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Warm ambient light from above */
-.bookshelf::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 120px;
-  background: radial-gradient(ellipse at 50% -20%, var(--wood-glow), transparent 70%);
-  pointer-events: none;
-  z-index: 1;
 }
 
 /* Titlebar */
-.shelf-titlebar {
+.desk-titlebar {
   height: var(--titlebar-height);
   display: flex;
   align-items: center;
@@ -33,336 +20,295 @@
   padding: 0 var(--space-5);
   -webkit-app-region: drag;
   flex-shrink: 0;
-  position: relative;
-  z-index: 2;
 }
 
-.shelf-title {
+.desk-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(200, 210, 230, 0.5);
-  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  letter-spacing: 0.3px;
 }
 
-/* ============================================
-   Shelves Container
-   ============================================ */
-.shelves {
+/* Scrollable content */
+.desk-content {
   flex: 1;
   overflow-y: auto;
-  padding: 0 var(--space-3);
+  padding: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: 0;
-  position: relative;
-  z-index: 2;
+  gap: var(--space-3);
 }
 
-.shelves::-webkit-scrollbar { width: 4px; }
-.shelves::-webkit-scrollbar-thumb { background: rgba(120, 130, 160, 0.2); border-radius: 2px; }
+.desk-content::-webkit-scrollbar { width: 6px; }
+.desk-content::-webkit-scrollbar-thumb { background: var(--gray3); border-radius: 3px; }
 
-/* ============================================
-   Single Shelf
-   ============================================ */
-.shelf {
-  position: relative;
-  padding-top: var(--space-2);
-}
-
-.shelf-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(160, 180, 220, 0.4);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 0 var(--space-2) var(--space-1);
-}
-
-.shelf-items {
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  padding: 0 var(--space-2);
-  min-height: 120px;
-  position: relative;
-}
-
-/* The shelf board */
-.shelf-board {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-  border-radius: 1px;
-  position: relative;
-  box-shadow: none;
-  margin: 0 var(--space-3);
-}
-
-.shelf-board::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 10%; right: 10%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(100, 140, 255, 0.06), transparent);
-  border-radius: 0 0 2px 2px;
-}
-
-/* ============================================
-   3D Book
-   ============================================ */
-.book {
-  --c: #6E8AFA;
-  --w: 36px;
-  --h: 130px;
-  width: var(--w);
-  height: var(--h);
-  position: relative;
-  cursor: pointer;
-  border-radius: 3px 4px 4px 3px;
-  background: linear-gradient(160deg,
-    color-mix(in srgb, var(--c) 60%, #12141A),
-    color-mix(in srgb, var(--c) 40%, #12141A) 50%,
-    color-mix(in srgb, var(--c) 50%, #12141A)
-  );
-  border: 1px solid color-mix(in srgb, var(--c) 25%, transparent);
-  box-shadow:
-    2px 2px 8px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: all 0.35s var(--ease-spring);
-  flex-shrink: 0;
-}
-
-/* Subtle top highlight */
-.book::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
-  border-radius: 3px 4px 0 0;
-}
-
-.book:hover {
-  transform: translateY(-14px) rotate(-3deg);
-  box-shadow:
-    4px 8px 20px rgba(0, 0, 0, 0.5),
-    0 0 20px color-mix(in srgb, var(--c) 15%, transparent);
-  z-index: 5;
-}
-
-/* Active indicator */
-.book.active::after {
-  content: '';
-  position: absolute;
-  top: 8px; left: 50%;
-  transform: translateX(-50%);
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent), 0 0 16px rgba(10, 132, 255, 0.3);
-}
-
-.book-title {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  position: absolute;
-  top: 18px; bottom: 8px;
-  left: 0; right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-}
-
-.book.thin .book-title {
-  font-size: 9px;
-  letter-spacing: 0.5px;
-}
-
-.book-ext {
-  position: absolute;
-  bottom: 6px; left: 0; right: 0;
+.desk-empty {
+  padding: 40px 20px;
   text-align: center;
-  font-size: 8px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.4);
-  font-family: var(--font-mono);
-}
-
-/* Tooltip */
-.book-tooltip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  background: rgba(0, 0, 0, 0.92);
-  color: var(--text-primary);
-  font-size: 11px;
-  padding: 5px 10px;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: all 0.2s var(--ease-smooth);
-  z-index: 20;
-  font-weight: 400;
-  letter-spacing: 0;
-  writing-mode: horizontal-tb;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-}
-
-.book-tooltip small {
   color: var(--text-tertiary);
-  font-size: 10px;
-  display: block;
-  margin-top: 2px;
-}
-
-.book:hover .book-tooltip,
-.shelf-folder:hover .book-tooltip,
-.pinned-chart:hover .book-tooltip {
-  opacity: 1;
-  transform: translateX(-50%) translateY(-4px);
-  pointer-events: auto;
+  font-size: 12px;
 }
 
 /* ============================================
-   Folder on shelf
+   Category group
    ============================================ */
-.shelf-folder {
-  --fc: #4A6A8C;
-  width: 48px;
-  height: 64px;
-  position: relative;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.3s var(--ease-spring);
-}
-
-.shelf-folder:hover {
-  transform: translateY(-8px);
-  z-index: 5;
-}
-
-.folder-back {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 54px;
-  background: color-mix(in srgb, var(--fc) 35%, #12141A);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 2px 6px 4px 4px;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.folder-tab {
-  position: absolute;
-  top: 0; left: 0;
-  width: 24px;
-  height: 14px;
-  background: color-mix(in srgb, var(--fc) 35%, #12141A);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-bottom: none;
-  border-radius: 4px 4px 0 0;
-}
-
-.folder-front {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 50px;
-  background: color-mix(in srgb, var(--fc) 25%, #1A1D26);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0 4px 4px 4px;
+.desk-category-group {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.folder-label {
-  font-size: 9px;
+.desk-category {
+  font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
-  text-align: center;
-  line-height: 1.2;
-  padding: 0 4px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: var(--space-2) var(--space-1) 0;
 }
 
-.folder-count {
-  position: absolute;
-  top: 2px; right: -2px;
-  min-width: 16px;
-  height: 16px;
-  background: var(--orange);
-  color: black;
-  font-size: 9px;
-  font-weight: 700;
-  border-radius: 8px;
+/* ============================================
+   Stack — compact card list (no overlap)
+   ============================================ */
+.desk-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ============================================
+   Desk Card — product file on desk
+   ============================================ */
+.desk-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition: background var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
+  border: 1px solid transparent;
+  position: relative;
+}
+
+/* Hover: visual highlight only, no layout shift */
+.desk-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.desk-card:active {
+  background: rgba(255, 255, 255, 0.05);
+  transition-duration: 0.06s;
+}
+
+/* ============================================
+   Folder Card — click to expand file list
+   ============================================ */
+.desk-folder {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  transition: background var(--duration-fast), border-color var(--duration-fast);
+  overflow: hidden;
+}
+
+.desk-folder:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.desk-folder-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+}
+
+.desk-folder-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 159, 10, 0.10);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-}
-
-/* ============================================
-   Pinned chart/image on shelf
-   ============================================ */
-.pinned-chart {
-  width: 64px;
-  height: 48px;
-  background: var(--bg-tertiary);
-  border-radius: 3px;
-  overflow: hidden;
-  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.4);
-  transform: rotate(-2deg);
-  cursor: pointer;
-  transition: all 0.3s var(--ease-spring);
-  position: relative;
+  color: var(--orange);
   flex-shrink: 0;
 }
 
-.pinned-chart:hover {
-  transform: rotate(0deg) translateY(-8px) scale(1.05);
-  box-shadow: 4px 8px 16px rgba(0, 0, 0, 0.5);
-  z-index: 5;
+.desk-folder-info {
+  flex: 1;
+  min-width: 0;
 }
 
-/* Pushpin */
-.pinned-chart::before {
-  content: '';
-  position: absolute;
-  top: -4px; left: 50%;
-  transform: translateX(-50%);
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 40%, #F06050, #C94030);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  z-index: 2;
+.desk-folder-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
-.pinned-chart svg {
-  width: 100%; height: 100%;
+.desk-folder-count {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* Chevron indicator */
+.desk-folder-chevron {
+  color: var(--text-tertiary);
+  transition: transform 0.25s var(--ease-smooth);
+  flex-shrink: 0;
+}
+
+.desk-folder.open .desk-folder-chevron {
+  transform: rotate(90deg);
+}
+
+/* File list — click-controlled via .open class */
+.desk-folder-files {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s var(--ease-smooth);
+}
+
+.desk-folder.open .desk-folder-files {
+  max-height: 500px;
+}
+
+.desk-folder-files-inner {
+  padding: 0 var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.desk-folder-file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px var(--space-2);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.desk-folder-file:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.desk-folder-file:active {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.desk-folder-file-icon {
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.desk-folder-file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desk-folder-file-size {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  opacity: 0.5;
+}
+
+/* Top row: icon + text */
+.desk-card-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.desk-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform 0.3s var(--ease-spring);
+}
+
+.desk-card:hover .desk-card-icon {
+  transform: scale(1.1);
+}
+
+.desk-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.desk-card-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desk-card-subtitle {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Footer row */
+.desk-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-2);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* Tags */
+.desk-card-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.desk-card-tag.latest {
+  background: rgba(48, 209, 88, 0.12);
+  color: var(--green);
+}
+
+.desk-card-tag.editing {
+  background: rgba(10, 132, 255, 0.12);
+  color: var(--accent);
+}
+
+.desk-card-tag.data {
+  background: rgba(255, 159, 10, 0.12);
+  color: var(--orange);
 }
 
 /* ============================================
-   Bookshelf Footer (User)
+   Desk Footer (User)
    ============================================ */
-.shelf-footer {
+.desk-footer {
   flex-shrink: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: var(--space-3) var(--space-4);
-  position: relative;
-  z-index: 2;
-  background: rgba(18, 20, 26, 0.85);
-  backdrop-filter: blur(12px);
 }
 
 .user-row {
@@ -372,7 +318,8 @@
 }
 
 .user-avatar {
-  width: 34px; height: 34px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), var(--purple));
   display: flex;
@@ -400,21 +347,6 @@
   gap: 6px;
 }
 
-.credits-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 11px;
-  color: var(--green);
-  background: rgba(48, 209, 88, 0.1);
-  padding: 1px 7px;
-  border-radius: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background var(--duration-fast);
-}
-.credits-pill:hover { background: rgba(48, 209, 88, 0.18); }
-
 .user-actions-row {
   display: flex;
   justify-content: flex-end;
@@ -423,10 +355,11 @@
 }
 
 .icon-btn {
-  width: 28px; height: 28px;
+  width: 28px;
+  height: 28px;
   border: none;
   background: transparent;
-  color: rgba(160, 180, 220, 0.35);
+  color: var(--text-tertiary);
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 13px;
@@ -435,7 +368,8 @@
   justify-content: center;
   transition: all var(--duration-fast);
 }
+
 .icon-btn:hover {
   background: rgba(255, 255, 255, 0.06);
-  color: rgba(160, 180, 220, 0.7);
+  color: var(--text-secondary);
 }

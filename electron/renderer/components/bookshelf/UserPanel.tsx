@@ -1,30 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Settings, BookOpen, HelpCircle } from "lucide-react";
-
-interface UserInfo {
-  name: string;
-  identity: string;
-  institution: string;
-  researchField: string;
-  advisor: string;
-  project: string;
-}
+import { useUserStore } from "../../stores/user-store";
 
 export default function UserPanel() {
-  const [user, setUser] = useState<UserInfo | null>(null);
+  const { userInfo, userName, userInitial } = useUserStore();
 
-  useEffect(() => {
-    window.api.getUserInfo().then(setUser).catch(console.error);
-  }, []);
-
-  const userName = user?.name || "用户";
-  const userInitial = userName.charAt(0);
-  const institution = [user?.institution, user?.identity]
+  const institution = [userInfo?.institution, userInfo?.identity]
     .filter(Boolean)
     .join(" · ") || "未设置";
 
   return (
-    <div className="shelf-footer">
+    <div className="desk-footer">
       <div className="user-row">
         <div className="user-avatar">{userInitial}</div>
         <div className="user-detail">

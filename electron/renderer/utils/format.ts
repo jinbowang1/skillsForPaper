@@ -43,6 +43,33 @@ export function formatRelativeTime(timestamp: number): string {
 }
 
 /**
+ * Map filename base to a Chinese display name
+ */
+const DISPLAY_NAME_MAP: Record<string, string> = {
+  OPENING_REPORT: "开题报告",
+  opening_report: "开题报告",
+  Paper_Outline: "大纲",
+  OAE_Paper: "论文",
+  oae_paper: "论文",
+  RESEARCH_PLAN: "研究计划",
+  Experiment_Design: "实验设计",
+  Literature_Review: "文献综述",
+  CNN_Continual_Learning_Literature_Review: "文献综述",
+  CTDR_Detailed_Design: "CTDR 设计",
+  Research_Proposal_ClassIL_Regularization: "研究方案",
+  oae_experiment: "实验脚本",
+  plot_results: "绘图",
+  references: "引用",
+  thesis: "毕业论文",
+  experiment_results: "实验结果",
+};
+
+export function getDisplayName(name: string): string {
+  const base = name.replace(/\.[^.]+$/, "");
+  return DISPLAY_NAME_MAP[base] || base;
+}
+
+/**
  * Get file extension icon class
  */
 export function getExtClass(ext: string): string {

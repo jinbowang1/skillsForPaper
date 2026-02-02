@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Mic, MicOff, ArrowUp, Square } from "lucide-react";
 import { useSessionStore, generateMsgId } from "../../stores/session-store";
+import { useUserStore } from "../../stores/user-store";
 
 export default function InputBar() {
   const [text, setText] = useState("");
@@ -10,6 +11,7 @@ export default function InputBar() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isComposingRef = useRef(false);
   const { isStreaming, addMessage, setStreaming, updateLastAssistantMessage } = useSessionStore();
+  const { aiName } = useUserStore();
 
   // Check voice availability on mount
   useEffect(() => {
@@ -38,10 +40,7 @@ export default function InputBar() {
   const handleVoiceToggle = useCallback(async () => {
     if (isVoiceRecording) {
       // Stop recording
-      const result = await window.api.voiceStop();
-      if (result.text) {
-        setText((prev) => prev + result.text);
-      }
+      await window.api.voiceStop();
       setVoiceRecording(false);
       setInterimText("");
       // Focus textarea so user can edit/send
@@ -149,7 +148,7 @@ export default function InputBar() {
           onKeyDown={handleKeyDown}
           onCompositionStart={() => { isComposingRef.current = true; }}
           onCompositionEnd={() => { isComposingRef.current = false; }}
-          placeholder={isVoiceRecording ? "正在听..." : "和大师兄说点什么..."}
+          placeholder={isVoiceRecording ? "正在听..." : `和${aiName}说点什么...`}
           rows={1}
           disabled={isStreaming}
         />

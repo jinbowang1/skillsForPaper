@@ -113,7 +113,7 @@
   color: var(--text-primary);
 }
 .model-option.active {
-  color: var(--blue);
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -197,6 +197,14 @@
   padding: 0 2px;
 }
 .msg.from-user .msg-time { text-align: right; }
+
+/* Streaming dots inside bubble */
+.streaming-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+}
 
 .bubble strong { font-weight: 600; }
 .bubble code {

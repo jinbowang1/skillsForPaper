@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSessionStore } from "../../stores/session-store";
+import { useUserStore } from "../../stores/user-store";
 import DashixiongAvatar from "../DashixiongAvatar";
 
 interface ModelInfo {
@@ -9,6 +10,7 @@ interface ModelInfo {
 
 export default function ChatHeader() {
   const { isStreaming, currentModel, setModel } = useSessionStore();
+  const { aiName } = useUserStore();
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [isOpen, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -46,7 +48,7 @@ export default function ChatHeader() {
       <div className="chat-header-center">
         <DashixiongAvatar size={28} />
         <div>
-          <div className="chat-header-name">大师兄</div>
+          <div className="chat-header-name">{aiName}</div>
           <div className="chat-header-status">
             <span className="online-dot" />
             {isStreaming ? "思考中..." : "在线"}

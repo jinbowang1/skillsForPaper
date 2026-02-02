@@ -1,11 +1,11 @@
 /* ============================================
-   Think Block
+   Think Block — subtle, non-intrusive
    ============================================ */
 .think-block {
   align-self: flex-start;
   max-width: 75%;
-  background: rgba(191, 90, 242, 0.04);
-  border: 1px solid rgba(191, 90, 242, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-lg);
   overflow: hidden;
   animation: fadeUp var(--duration-normal) var(--ease-smooth);
@@ -16,19 +16,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
   cursor: pointer;
   transition: background var(--duration-fast);
 }
-.think-header:hover { background: rgba(191, 90, 242, 0.06); }
+.think-header:hover { background: rgba(255, 255, 255, 0.03); }
 
 .think-header-left {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 13px;
-  color: var(--purple);
+  font-size: 12px;
+  color: var(--text-tertiary);
   font-weight: 500;
+}
+
+.think-header-left svg {
+  opacity: 0.5;
 }
 
 .think-toggle {
@@ -61,10 +65,10 @@
 .think-block.expanded .think-toggle { transform: rotate(180deg); }
 
 .think-text {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.6;
-  color: var(--text-secondary);
-  border-top: 1px solid rgba(191, 90, 242, 0.08);
+  color: var(--text-tertiary);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
   padding-top: var(--space-3);
 }
 
@@ -784,28 +788,51 @@
 }
 
 /* ============================================
-   Typing Indicator
+   Typing Indicator — assistant preparing response
    ============================================ */
 .typing {
   align-self: flex-start;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: var(--space-3);
   animation: fadeUp var(--duration-normal) var(--ease-smooth);
 }
-.typing .msg-avatar { background: linear-gradient(135deg, #FF9F0A, #FF375F); }
+
+.typing-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.typing-name {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-bottom: 3px;
+  padding: 0 2px;
+}
 
 .typing-bubble {
   display: flex;
-  gap: 5px;
+  align-items: center;
+  gap: 6px;
   background: var(--bg-secondary);
-  padding: 14px 18px;
+  padding: 12px 18px;
   border-radius: var(--radius-bubble);
   border-top-left-radius: var(--radius-xs);
 }
 
+.typing-label {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.typing-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .t-dot {
-  width: 7px; height: 7px;
+  width: 5px; height: 5px;
   border-radius: 50%;
   background: var(--text-tertiary);
   animation: bounce 1.4s infinite ease-in-out;
