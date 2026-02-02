@@ -1,0 +1,130 @@
+/* ============================================
+   Setup Wizard — First-run onboarding
+   ============================================ */
+.setup-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  z-index: 9999;
+  /* Allow dragging the titlebar area */
+  -webkit-app-region: drag;
+}
+
+.setup-card {
+  width: 400px;
+  padding: var(--space-10) var(--space-8);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  /* Card content should not be draggable */
+  -webkit-app-region: no-drag;
+}
+
+.setup-header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.setup-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+  letter-spacing: -0.5px;
+}
+
+.setup-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.setup-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.setup-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.setup-required {
+  color: var(--red);
+  margin-left: 2px;
+}
+
+.setup-optional {
+  color: var(--text-tertiary);
+  font-weight: 400;
+  margin-left: var(--space-1);
+}
+
+.setup-input {
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.setup-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.setup-input:focus {
+  border-color: var(--accent);
+}
+
+.setup-input:disabled {
+  opacity: 0.5;
+}
+
+.setup-error {
+  font-size: 12px;
+  color: var(--red);
+  margin: 0;
+}
+
+.setup-submit {
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  background: var(--accent);
+  color: var(--text-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-smooth);
+}
+
+.setup-submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.setup-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.setup-hint {
+  margin-top: var(--space-5);
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}

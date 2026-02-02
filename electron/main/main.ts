@@ -1,6 +1,8 @@
 import { app, BrowserWindow, nativeTheme } from "electron";
 import path from "path";
 import dotenv from "dotenv";
+import { ENV_PATH, IS_PACKAGED } from "./paths.js";
+import { isFirstRun, bootstrapUserData } from "./first-run.js";
 import { registerIpcHandlers } from "./ipc-handlers.js";
 import { SessionBridge } from "./session-bridge.js";
 import { BookshelfWatcher } from "./bookshelf-watcher.js";
@@ -8,8 +10,7 @@ import { TaskParser } from "./task-parser.js";
 import { VoiceHandler } from "./voice-handler.js";
 
 // Load .env early so all modules can read env vars
-const PROJECT_ROOT = path.resolve(__dirname, "../../..");
-dotenv.config({ path: path.join(PROJECT_ROOT, ".env") });
+dotenv.config({ path: ENV_PATH });
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -61,6 +62,9 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  // Ensure writable directories and template files exist (idempotent)
+  if (IS_PACKAGED) bootstrapUserData();
+
   const win = createWindow();
 
   // Create all components immediately so IPC handlers are available
@@ -86,12 +90,19 @@ app.whenReady().then(async () => {
     console.error("[main] Failed to start task parser:", err);
   }
 
-  // Initialize session bridge last (async, takes time)
-  try {
-    await sessionBridge.initialize();
-    console.log("[main] Session bridge initialized");
-  } catch (err) {
-    console.error("[main] Failed to initialize session bridge:", err);
+  // First run: show setup wizard instead of initializing session
+  if (isFirstRun()) {
+    win.webContents.once("did-finish-load", () => {
+      win.webContents.send("setup:required");
+    });
+  } else {
+    // Initialize session bridge last (async, takes time)
+    try {
+      await sessionBridge.initialize();
+      console.log("[main] Session bridge initialized");
+    } catch (err) {
+      console.error("[main] Failed to initialize session bridge:", err);
+    }
   }
 });
 

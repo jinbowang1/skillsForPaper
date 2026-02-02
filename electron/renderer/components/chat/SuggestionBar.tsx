@@ -4,10 +4,11 @@ import { useSendMessage } from "../../hooks/useSendMessage";
 import type { Suggestion } from "../../utils/parseSuggestions";
 
 const WELCOME_SUGGESTIONS: Suggestion[] = [
-  { label: "帮我做一次文献检索", sendText: "帮我做一次文献检索" },
-  { label: "帮我润色论文段落", sendText: "帮我润色一下论文段落" },
-  { label: "帮我设计实验方案", sendText: "帮我设计一个实验方案" },
-  { label: "帮我写论文大纲", sendText: "帮我写一个论文大纲" },
+  { label: "创新点挖掘",       sendText: "帮我进行创新点挖掘" },
+  { label: "实验设计",         sendText: "帮我进行实验设计" },
+  { label: "代码编写与执行",   sendText: "帮我进行代码编写与执行" },
+  { label: "智能润色",         sendText: "帮我进行智能润色" },
+  { label: "生成目标期刊pdf",  sendText: "帮我生成目标期刊pdf" },
 ];
 
 /**

@@ -20,6 +20,8 @@ export default function DecisionCard({
 }: Props) {
   const [localSelected, setLocalSelected] = useState<number | undefined>(selectedIndex);
   const [isAnswered, setIsAnswered] = useState(answered);
+  const [customMode, setCustomMode] = useState(false);
+  const [customText, setCustomText] = useState("");
   const markDecisionAnswered = useSessionStore((s) => s.markDecisionAnswered);
 
   const handleSelect = useCallback(
@@ -41,9 +43,24 @@ export default function DecisionCard({
     [toolCallId, options, isAnswered, markDecisionAnswered]
   );
 
+  const handleCustomSubmit = useCallback(async () => {
+    if (isAnswered || !customText.trim()) return;
+
+    setLocalSelected(-1);
+    setIsAnswered(true);
+
+    markDecisionAnswered(toolCallId, -1);
+
+    try {
+      await window.api.respondDecision(toolCallId, customText.trim());
+    } catch (err) {
+      console.error("Failed to respond to decision:", err);
+    }
+  }, [toolCallId, customText, isAnswered, markDecisionAnswered]);
+
   // Answered → compact single-line showing question + selected answer
   if (isAnswered && localSelected !== undefined) {
-    const selected = options[localSelected];
+    const answerLabel = localSelected === -1 ? customText.trim() : options[localSelected]?.label;
     return (
       <div className="decision-card answered">
         <div className="dc-answered-row">
@@ -51,7 +68,7 @@ export default function DecisionCard({
           <span className="dc-answered-q">{question}</span>
           <span className="dc-answered-a">
             <Check size={10} />
-            {selected.label}
+            {answerLabel}
           </span>
         </div>
       </div>
@@ -86,7 +103,35 @@ export default function DecisionCard({
             <div className="dc-check" />
           </button>
         ))}
+
+        {!customMode && (
+          <button
+            className="dc-option dc-custom-trigger"
+            onClick={() => setCustomMode(true)}
+          >
+            <div className="dc-opt-body">
+              <div className="dc-opt-title">自由输入...</div>
+            </div>
+          </button>
+        )}
       </div>
+
+      {customMode && (
+        <div className="dc-custom-input">
+          <input
+            autoFocus
+            value={customText}
+            onChange={(e) => setCustomText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && customText.trim()) handleCustomSubmit();
+            }}
+            placeholder="请输入..."
+          />
+          <button onClick={handleCustomSubmit} disabled={!customText.trim()}>
+            确认
+          </button>
+        </div>
+      )}
     </div>
   );
 }

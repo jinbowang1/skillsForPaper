@@ -9,7 +9,10 @@
     "make": "electron-forge make"
   },
   "dependencies": {
+    "@mariozechner/pi-ai": "^0.50.7",
+    "@mariozechner/pi-coding-agent": "^0.50.7",
     "chokidar": "^4.0.3",
+    "dotenv": "^16.0.0",
     "framer-motion": "^11.15.0",
     "katex": "^0.16.28",
     "lucide-react": "^0.468.0",
@@ -22,6 +25,9 @@
     "remark-gfm": "^4.0.0",
     "remark-math": "^6.0.0",
     "shiki": "^1.24.0",
+    "undici": "^7.19.2",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^5.0.0",
     "ws": "^8.19.0",
     "zustand": "^5.0.0"
   },

@@ -29,6 +29,16 @@ const api = {
   respondDecision: (toolCallId: string, answer: string) =>
     ipcRenderer.invoke("decision:respond", { toolCallId, answer }),
 
+  // ── Setup ──
+  submitSetup: (config: { anthropicKey: string; minimaxKey?: string }) =>
+    ipcRenderer.invoke("setup:submit", config),
+
+  onSetupRequired: (callback: () => void) => {
+    const handler = () => callback();
+    ipcRenderer.on("setup:required", handler);
+    return () => ipcRenderer.removeListener("setup:required", handler);
+  },
+
   // ── File ──
   openFile: (path: string) => ipcRenderer.invoke("file:open", { path }),
 

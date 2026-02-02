@@ -2,9 +2,7 @@ import { BrowserWindow } from "electron";
 import path from "path";
 import { readdirSync, statSync, existsSync } from "fs";
 import { watch, type FSWatcher } from "chokidar";
-
-const PROJECT_ROOT = path.resolve(__dirname, "../../..");
-const OUTPUT_DIR = path.join(PROJECT_ROOT, "output");
+import { OUTPUT_DIR } from "./paths.js";
 
 export interface BookshelfItem {
   name: string;

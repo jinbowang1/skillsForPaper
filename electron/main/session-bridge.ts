@@ -1,17 +1,17 @@
 import { BrowserWindow } from "electron";
-import path from "path";
+import dotenv from "dotenv";
+import { AGENT_CWD, OUTPUT_DIR, ENV_PATH } from "./paths.js";
+import { logger } from "./app-logger.js";
+import { createResourceLoader } from "./app-resource-loader.js";
 import { installGlobalBridge, setWindow as setDecisionWindow } from "./decision-bridge.js";
 import type { BookshelfWatcher } from "./bookshelf-watcher.js";
-
-const PROJECT_ROOT = path.resolve(__dirname, "../../..");
-const OUTPUT_DIR = path.join(PROJECT_ROOT, "output");
 
 export class SessionBridge {
   private window: BrowserWindow;
   private session: any = null;
   private modelRegistry: any = null;
   private isStreaming = false;
-  private logger: any = console;
+  private logger: any = logger;
   private bookshelfWatcher: BookshelfWatcher | null = null;
 
   constructor(window: BrowserWindow) {
@@ -24,16 +24,10 @@ export class SessionBridge {
 
   async initialize() {
     // Load .env
-    const dotenv = await import("dotenv");
-    dotenv.config({ path: path.join(PROJECT_ROOT, ".env") });
+    dotenv.config({ path: ENV_PATH, override: true });
 
-    // Dynamic import for ESM-only packages
-    const [piAgent, parentConfig, parentLogger, parentResourceLoader] = await Promise.all([
-      import("@mariozechner/pi-coding-agent"),
-      import(path.join(PROJECT_ROOT, "dist", "config.js")),
-      import(path.join(PROJECT_ROOT, "dist", "logger.js")),
-      import(path.join(PROJECT_ROOT, "dist", "resource-loader.js")),
-    ]);
+    // Dynamic import for ESM-only package
+    const piAgent = await import("@mariozechner/pi-coding-agent");
 
     const {
       createAgentSession,
@@ -45,17 +39,13 @@ export class SessionBridge {
       getAgentDir,
     } = piAgent;
 
-    const { ROOT_DIR } = parentConfig;
-    this.logger = parentLogger.logger;
-    const { createResourceLoader } = parentResourceLoader;
-
     // Install decision bridge BEFORE creating session — the ask_user extension
     // reads global.__electronDecisionBridge during execute(), which happens
     // after session creation.
     installGlobalBridge();
     setDecisionWindow(this.window);
 
-    const cwd = ROOT_DIR;
+    const cwd = AGENT_CWD;
     const agentDir = getAgentDir();
 
     this.logger.info("=== Electron session initializing ===");
@@ -94,13 +84,57 @@ export class SessionBridge {
       });
     }
 
+    // Register DashScope (Qwen3)
+    const dashscopeKey = process.env.DASHSCOPE_API_KEY;
+    if (dashscopeKey) {
+      this.modelRegistry.registerProvider("dashscope", {
+        baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        apiKey: dashscopeKey,
+        api: "openai-completions",
+        authHeader: true,
+        models: [
+          {
+            id: "qwen3-max",
+            name: "Qwen3 Max",
+            reasoning: true,
+            input: ["text"],
+            cost: { input: 1.2, output: 6.0, cacheRead: 0.24, cacheWrite: 1.2 },
+            contextWindow: 262144,
+            maxTokens: 65536,
+          },
+        ],
+      });
+    }
+
+    // Register Moonshot (Kimi K2.5)
+    const moonshotKey = process.env.MOONSHOT_API_KEY;
+    if (moonshotKey) {
+      this.modelRegistry.registerProvider("moonshot", {
+        baseUrl: "https://api.moonshot.ai/v1",
+        apiKey: moonshotKey,
+        api: "openai-completions",
+        authHeader: true,
+        models: [
+          {
+            id: "kimi-k2.5",
+            name: "Kimi K2.5",
+            reasoning: true,
+            input: ["text", "image"],
+            cost: { input: 0.6, output: 3.0, cacheRead: 0.1, cacheWrite: 0.6 },
+            contextWindow: 262144,
+            maxTokens: 65536,
+          },
+        ],
+      });
+    }
+
     // Settings & session
     const settingsManager = SettingsManager.create(cwd, agentDir);
     settingsManager.setQuietStartup(true);
     const sessionManager = SessionManager.create(cwd);
 
-    // Resource loader
-    const resourceLoader = createResourceLoader(cwd, agentDir);
+    // Resource loader (pass piAgent to avoid static require of ESM-only package)
+    const resourceLoader = createResourceLoader(cwd, agentDir, piAgent);
     await resourceLoader.reload();
 
     // Create agent session (ask_user tool comes from .pi/extensions/ask-user.ts)
@@ -250,6 +284,8 @@ export class SessionBridge {
   private static ALLOWED_MODELS = [
     { provider: "anthropic", idPrefix: "claude-opus-4-5" },
     { provider: "minimax", idPrefix: "MiniMax-M2.1" },
+    { provider: "dashscope", idPrefix: "qwen3-max" },
+    { provider: "moonshot", idPrefix: "kimi-k2.5" },
   ];
 
   private static isAllowed(m: { provider: string; id: string }): boolean {

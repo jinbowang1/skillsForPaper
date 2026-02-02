@@ -1,9 +1,10 @@
 import { ipcMain, shell, BrowserWindow } from "electron";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { copyFileSync, mkdirSync, existsSync } from "fs";
 import { tmpdir } from "os";
+import dotenv from "dotenv";
+import { MEMORY_PATH, ENV_PATH } from "./paths.js";
 import type { SessionBridge } from "./session-bridge.js";
 import type { BookshelfWatcher } from "./bookshelf-watcher.js";
 import type { TaskParser } from "./task-parser.js";
@@ -27,8 +28,7 @@ function parseMemoryFile(): {
     project: "",
   };
   try {
-    const memoryPath = join(__dirname, "..", "..", "..", "memory", "MEMORY.md");
-    const content = readFileSync(memoryPath, "utf-8");
+    const content = readFileSync(MEMORY_PATH, "utf-8");
 
     const fieldMap: Record<string, keyof typeof defaults> = {
       "姓名": "name",
@@ -90,6 +90,45 @@ export function registerIpcHandlers(
   // ── Decision channels ──
   ipcMain.handle("decision:respond", async (_event, { toolCallId, answer }) => {
     return respondDecision(toolCallId, answer);
+  });
+
+  // ── Setup channel ──
+  ipcMain.handle("setup:submit", async (_event, config: {
+    anthropicKey: string;
+    minimaxKey?: string;
+    dashscopeKey?: string;
+    moonshotKey?: string;
+  }) => {
+    try {
+      // Build .env content
+      let envContent = `ANTHROPIC_API_KEY=${config.anthropicKey}\n`;
+      if (config.minimaxKey) {
+        envContent += `MINIMAX_API_KEY=${config.minimaxKey}\n`;
+      }
+      if (config.dashscopeKey) {
+        envContent += `DASHSCOPE_API_KEY=${config.dashscopeKey}\n`;
+      }
+      if (config.moonshotKey) {
+        envContent += `MOONSHOT_API_KEY=${config.moonshotKey}\n`;
+      }
+
+      // Ensure parent directory exists
+      const envDir = path.dirname(ENV_PATH);
+      if (!existsSync(envDir)) mkdirSync(envDir, { recursive: true });
+
+      // Write .env file
+      writeFileSync(ENV_PATH, envContent, "utf-8");
+
+      // Reload env vars into process
+      dotenv.config({ path: ENV_PATH, override: true });
+
+      // Initialize session bridge now that keys are available
+      await sessionBridge.initialize();
+
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err.message || "Setup failed" };
+    }
   });
 
   // ── File channels ──

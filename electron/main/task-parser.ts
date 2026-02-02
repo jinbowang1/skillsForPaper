@@ -1,9 +1,9 @@
 import { BrowserWindow } from "electron";
 import path from "path";
 import { readFileSync, existsSync, watchFile, unwatchFile } from "fs";
+import { OUTPUT_DIR } from "./paths.js";
 
-const PROJECT_ROOT = path.resolve(__dirname, "../../..");
-const TASK_FILE = path.join(PROJECT_ROOT, "output", "TASK.md");
+const TASK_FILE = path.join(OUTPUT_DIR, "TASK.md");
 
 export interface TaskStep {
   label: string;

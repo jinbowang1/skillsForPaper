@@ -6,10 +6,9 @@ const config: ForgeConfig = {
   packagerConfig: {
     name: "大师兄",
     executableName: "dashixiong",
-    icon: "./assets/icon",
     asar: true,
-    extraResource: ["../skills", "../memory"],
-    osxSign: {},
+    icon: "./assets/icon",
+    extraResource: ["../skills", "../memory", "../.pi/extensions"],
   },
   makers: [
     new MakerZIP({}, ["darwin"]),

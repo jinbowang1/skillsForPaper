@@ -39,6 +39,18 @@ export interface UserInfo {
   project: string;
 }
 
+export interface SetupConfig {
+  anthropicKey: string;
+  minimaxKey?: string;
+  dashscopeKey?: string;
+  moonshotKey?: string;
+}
+
+export interface SetupResult {
+  ok: boolean;
+  error?: string;
+}
+
 export interface ElectronAPI {
   // Session
   prompt: (text: string, images?: string[]) => Promise<void>;
@@ -50,6 +62,10 @@ export interface ElectronAPI {
 
   // Decision
   respondDecision: (toolCallId: string, answer: string) => Promise<void>;
+
+  // Setup
+  submitSetup: (config: SetupConfig) => Promise<SetupResult>;
+  onSetupRequired: (callback: () => void) => () => void;
 
   // File
   openFile: (path: string) => Promise<string>;

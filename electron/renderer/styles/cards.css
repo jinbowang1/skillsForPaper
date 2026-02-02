@@ -176,6 +176,60 @@
   color: transparent;
 }
 
+/* Custom input trigger */
+.dc-custom-trigger {
+  border-style: dashed;
+  color: var(--text-tertiary);
+}
+.dc-custom-trigger .dc-opt-title {
+  color: var(--text-tertiary);
+}
+
+/* Custom free-text input */
+.dc-custom-input {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+}
+.dc-custom-input input {
+  flex: 1;
+  background: var(--bg-primary, #1a1a1c);
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.dc-custom-input input:focus {
+  border-color: var(--accent);
+}
+.dc-custom-input input::placeholder {
+  color: var(--text-tertiary);
+}
+.dc-custom-input button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.dc-custom-input button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.dc-custom-input button:not(:disabled):hover {
+  opacity: 0.85;
+}
+
 /* Answered state — compact single row */
 .decision-card.answered {
   width: auto;
