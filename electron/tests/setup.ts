@@ -1,0 +1,50 @@
+import "@testing-library/jest-dom/vitest";
+import { afterEach } from "vitest";
+
+// Mock window.api for all renderer tests
+const mockApi = {
+  prompt: vi.fn().mockResolvedValue(undefined),
+  steer: vi.fn().mockResolvedValue(undefined),
+  abort: vi.fn().mockResolvedValue(undefined),
+  getState: vi.fn().mockResolvedValue({ isStreaming: false, model: "test" }),
+  getModels: vi.fn().mockResolvedValue([{ id: "test", name: "Test Model" }]),
+  setModel: vi.fn().mockResolvedValue({ model: "test" }),
+  respondDecision: vi.fn().mockResolvedValue(undefined),
+  submitSetup: vi.fn().mockResolvedValue({ ok: true }),
+  onSetupRequired: vi.fn(() => vi.fn()),
+  openFile: vi.fn().mockResolvedValue(""),
+  revealFile: vi.fn().mockResolvedValue(undefined),
+  getBookshelfItems: vi.fn().mockResolvedValue([]),
+  getTaskState: vi.fn().mockResolvedValue(null),
+  getUserInfo: vi.fn().mockResolvedValue({
+    name: "测试用户", identity: "硕士",
+    institution: "测试大学", researchField: "AI",
+    advisor: "导师", project: "项目",
+  }),
+  voiceAvailable: vi.fn().mockResolvedValue(false),
+  voiceStart: vi.fn().mockResolvedValue({ ok: true }),
+  voiceStop: vi.fn().mockResolvedValue({ text: "" }),
+  voiceCancel: vi.fn().mockResolvedValue(undefined),
+  onVoiceInterim: vi.fn(() => vi.fn()),
+  onVoiceCompleted: vi.fn(() => vi.fn()),
+  onVoiceError: vi.fn(() => vi.fn()),
+  onAgentEvent: vi.fn(() => vi.fn()),
+  onStateChange: vi.fn(() => vi.fn()),
+  onBookshelfUpdate: vi.fn(() => vi.fn()),
+  onTaskUpdate: vi.fn(() => vi.fn()),
+  onDecisionRequest: vi.fn(() => vi.fn()),
+};
+
+Object.defineProperty(window, "api", { value: mockApi, writable: true });
+
+// Reset user-store between tests so loaded flag doesn't carry over
+afterEach(async () => {
+  const { useUserStore } = await import("../renderer/stores/user-store");
+  useUserStore.setState({
+    userInfo: null,
+    userName: "用户",
+    userInitial: "用",
+    aiName: "大师兄",
+    loaded: false,
+  });
+});

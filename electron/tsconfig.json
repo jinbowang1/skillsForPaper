@@ -17,6 +17,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["main/**/*", "preload/**/*", "renderer/**/*"],
+  "include": ["main/**/*", "preload/**/*", "renderer/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist", ".vite"]
 }
