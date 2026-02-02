@@ -79,6 +79,7 @@ export class BookshelfWatcher {
   private watcher: FSWatcher | null = null;
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private items: BookshelfItem[] = [];
+  private activeFilePath: string | null = null;
 
   constructor(window: BrowserWindow) {
     this.window = window;
@@ -129,8 +130,16 @@ export class BookshelfWatcher {
       const result: BookshelfItem[] = [];
       this.scanDir(OUTPUT_DIR, result, 0);
       this.items = result;
-      // Sort by modification time (newest first)
-      this.items.sort((a, b) => b.mtime - a.mtime);
+      // Apply active state
+      for (const item of this.items) {
+        item.isActive = item.path === this.activeFilePath;
+      }
+      // Sort: active first, then by modification time (newest first)
+      this.items.sort((a, b) => {
+        if (a.isActive && !b.isActive) return -1;
+        if (!a.isActive && b.isActive) return 1;
+        return b.mtime - a.mtime;
+      });
     } catch {
       this.items = [];
     }
@@ -170,6 +179,24 @@ export class BookshelfWatcher {
   private notifyRenderer() {
     if (this.window && !this.window.isDestroyed()) {
       this.window.webContents.send("bookshelf:update", this.items);
+    }
+  }
+
+  /** Mark a file as the current focus — sorts it to the top and notifies renderer. */
+  setActiveFile(filePath: string) {
+    this.activeFilePath = filePath;
+    // Re-scan to pick up newly created/modified file and apply active state
+    this.scan();
+    this.notifyRenderer();
+  }
+
+  clearActiveFile() {
+    if (this.activeFilePath) {
+      this.activeFilePath = null;
+      for (const item of this.items) {
+        item.isActive = false;
+      }
+      this.notifyRenderer();
     }
   }
 

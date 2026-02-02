@@ -1,7 +1,9 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Mic, MicOff, ArrowUp, Square } from "lucide-react";
-import { useSessionStore, generateMsgId } from "../../stores/session-store";
+import { useSessionStore } from "../../stores/session-store";
 import { useUserStore } from "../../stores/user-store";
+import { useSendMessage } from "../../hooks/useSendMessage";
+import { parseFallbackSuggestions } from "../../utils/parseSuggestions";
 
 export default function InputBar() {
   const [text, setText] = useState("");
@@ -10,8 +12,34 @@ export default function InputBar() {
   const [voiceReady, setVoiceReady] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isComposingRef = useRef(false);
-  const { isStreaming, addMessage, setStreaming, updateLastAssistantMessage } = useSessionStore();
+  const messages = useSessionStore((s) => s.messages);
+  const isStreaming = useSessionStore((s) => s.isStreaming);
   const { aiName } = useUserStore();
+  const sendMessage = useSendMessage();
+
+  // 快捷回复 chips（好的/继续/详细说说）
+  // 当有未回答的 DecisionCard 时不显示（用户应通过 DecisionCard 交互）
+  const quickChips = useMemo(() => {
+    if (messages.length === 0 || isStreaming || text.trim()) return [];
+
+    // Check if any message has an unanswered decision — if so, hide chips
+    const hasPendingDecision = messages.some((msg) =>
+      msg.blocks.some((b) => b.type === "decision" && !b.answered)
+    );
+    if (hasPendingDecision) return [];
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (msg.role === "assistant") {
+        const t = msg.blocks
+          .filter((b) => b.type === "text" && b.text)
+          .map((b) => b.text!)
+          .join("\n");
+        return parseFallbackSuggestions(t, false);
+      }
+    }
+    return [];
+  }, [messages, isStreaming, text]);
 
   // Check voice availability on mount
   useEffect(() => {
@@ -68,53 +96,13 @@ export default function InputBar() {
       setInterimText("");
     }
 
-    // Add user message to store
-    addMessage({
-      id: generateMsgId(),
-      role: "user",
-      blocks: [{ type: "text", text: trimmed }],
-      timestamp: Date.now(),
-    });
-
-    // Pre-create assistant message so events always have a target
-    addMessage({
-      id: generateMsgId(),
-      role: "assistant",
-      blocks: [],
-      timestamp: Date.now(),
-      isStreaming: true,
-    });
-
     setText("");
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
 
-    // Send to main process
-    try {
-      await window.api.prompt(trimmed);
-    } catch (err) {
-      console.error("Failed to send prompt:", err);
-      setStreaming(false);
-      updateLastAssistantMessage((blocks) => {
-        if (blocks.length === 0) {
-          return [{ type: "text", text: "\u26A0 发送失败，请重试" }];
-        }
-        return blocks;
-      });
-      const msgs = useSessionStore.getState().messages;
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        if (msgs[i].role === "assistant" && msgs[i].isStreaming) {
-          useSessionStore.setState({
-            messages: msgs.map((m, idx) =>
-              idx === i ? { ...m, isStreaming: false } : m
-            ),
-          });
-          break;
-        }
-      }
-    }
-  }, [text, isStreaming, isVoiceRecording, addMessage, setStreaming, updateLastAssistantMessage]);
+    await sendMessage(trimmed);
+  }, [text, isStreaming, isVoiceRecording, sendMessage]);
 
   const handleAbort = useCallback(() => {
     window.api.abort();
@@ -154,6 +142,20 @@ export default function InputBar() {
         />
         {interimText && (
           <div className="voice-interim">{interimText}</div>
+        )}
+        {/* 快捷回复 chips — 输入框内右侧 */}
+        {quickChips.length > 0 && (
+          <div className="quick-chips">
+            {quickChips.map((c, i) => (
+              <button
+                key={i}
+                className="quick-chip"
+                onClick={() => sendMessage(c.sendText)}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
         )}
         <div className="input-btns">
           {voiceReady && (

@@ -18,12 +18,19 @@ interface CategoryGroup {
 export default function Bookshelf() {
   const items = useBookshelfStore((s) => s.items);
 
-  const groups = useMemo(() => {
+  const { activeItems, groups } = useMemo(() => {
+    const active: BookshelfItem[] = [];
     const paper: CategoryGroup = { products: [], process: [] };
     const experiment: CategoryGroup = { products: [], process: [] };
     const research: CategoryGroup = { products: [], process: [] };
 
     for (const item of items) {
+      // Extract active items — they'll be shown at the top separately
+      if (item.isActive) {
+        active.push(item);
+        continue;
+      }
+
       const cat = item.category;
 
       if (cat === "experiment") {
@@ -48,7 +55,7 @@ export default function Bookshelf() {
       }
     }
 
-    return { paper, experiment, research };
+    return { activeItems: active, groups: { paper, experiment, research } };
   }, [items]);
 
   const hasAnything = items.length > 0;
@@ -60,6 +67,16 @@ export default function Bookshelf() {
       </div>
 
       <div className="desk-content">
+        {activeItems.length > 0 && (
+          <div className="desk-category-group">
+            <div className="desk-category">当前关注</div>
+            <div className="desk-stack">
+              {activeItems.map((item) => (
+                <DeskCard key={item.path} item={item} />
+              ))}
+            </div>
+          </div>
+        )}
         <DeskSection label="论文" group={groups.paper} folderLabel="草稿 & 源文件" />
         <DeskSection label="实验" group={groups.experiment} folderLabel="脚本 & 数据" />
         <DeskSection label="调研" group={groups.research} folderLabel="笔记 & 资料" />

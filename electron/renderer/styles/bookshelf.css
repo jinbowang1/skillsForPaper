@@ -73,31 +73,35 @@
 .desk-stack {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 /* ============================================
-   Desk Card — product file on desk
+   Desk Card — compact list item
    ============================================ */
 .desk-card {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: var(--radius-lg);
-  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
   cursor: pointer;
-  transition: background var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
+  transition: background var(--duration-fast);
   border: 1px solid transparent;
-  position: relative;
 }
 
-/* Hover: visual highlight only, no layout shift */
+.desk-card.active {
+  background: rgba(255, 214, 10, 0.06);
+  border-color: rgba(255, 214, 10, 0.3);
+}
+
 .desk-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .desk-card:active {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
   transition-duration: 0.06s;
 }
 
@@ -120,13 +124,13 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: 6px 10px;
   cursor: pointer;
 }
 
 .desk-folder-icon {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   border-radius: var(--radius-sm);
   background: rgba(255, 159, 10, 0.10);
   display: flex;
@@ -145,11 +149,13 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--text-secondary);
+  line-height: 1.3;
 }
 
 .desk-folder-count {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
+  line-height: 1.3;
 }
 
 /* Chevron indicator */
@@ -222,27 +228,15 @@
   opacity: 0.5;
 }
 
-/* Top row: icon + text */
-.desk-card-top {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
 .desk-card-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   color: var(--text-secondary);
-  transition: transform 0.3s var(--ease-spring);
-}
-
-.desk-card:hover .desk-card-icon {
-  transform: scale(1.1);
 }
 
 .desk-card-info {
@@ -251,17 +245,20 @@
 }
 
 .desk-card-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.desk-card-subtitle {
-  font-size: 11px;
+.desk-card-meta {
+  font-size: 10px;
   color: var(--text-tertiary);
   line-height: 1.3;
   overflow: hidden;
@@ -269,27 +266,24 @@
   white-space: nowrap;
 }
 
-/* Footer row */
-.desk-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: var(--space-2);
-  font-size: 11px;
-  color: var(--text-tertiary);
-}
-
-/* Tags */
+/* Tags — inline within title */
 .desk-card-tag {
-  font-size: 10px;
-  padding: 1px 6px;
+  font-size: 9px;
+  padding: 0 5px;
   border-radius: 3px;
   font-weight: 500;
+  line-height: 16px;
+  flex-shrink: 0;
 }
 
 .desk-card-tag.latest {
   background: rgba(48, 209, 88, 0.12);
   color: var(--green);
+}
+
+.desk-card-tag.focus {
+  background: rgba(255, 214, 10, 0.15);
+  color: var(--yellow);
 }
 
 .desk-card-tag.editing {
@@ -308,50 +302,61 @@
 .desk-footer {
   flex-shrink: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding: var(--space-3) var(--space-4);
+  padding: 12px var(--space-4);
 }
 
 .user-row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 10px;
 }
 
 .user-avatar {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), var(--purple));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: white;
   flex-shrink: 0;
 }
 
-.user-detail { flex: 1; min-width: 0; }
+.user-detail {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
 .user-name {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-meta {
   font-size: 11px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  color: var(--text-tertiary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.user-actions-row {
+.user-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: var(--space-1);
-  margin-top: var(--space-2);
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .icon-btn {
@@ -362,7 +367,7 @@
   color: var(--text-tertiary);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,7 +1,10 @@
 import { BrowserWindow } from "electron";
 import path from "path";
+import { installGlobalBridge, setWindow as setDecisionWindow } from "./decision-bridge.js";
+import type { BookshelfWatcher } from "./bookshelf-watcher.js";
 
 const PROJECT_ROOT = path.resolve(__dirname, "../../..");
+const OUTPUT_DIR = path.join(PROJECT_ROOT, "output");
 
 export class SessionBridge {
   private window: BrowserWindow;
@@ -9,9 +12,14 @@ export class SessionBridge {
   private modelRegistry: any = null;
   private isStreaming = false;
   private logger: any = console;
+  private bookshelfWatcher: BookshelfWatcher | null = null;
 
   constructor(window: BrowserWindow) {
     this.window = window;
+  }
+
+  setBookshelfWatcher(watcher: BookshelfWatcher) {
+    this.bookshelfWatcher = watcher;
   }
 
   async initialize() {
@@ -40,6 +48,12 @@ export class SessionBridge {
     const { ROOT_DIR } = parentConfig;
     this.logger = parentLogger.logger;
     const { createResourceLoader } = parentResourceLoader;
+
+    // Install decision bridge BEFORE creating session — the ask_user extension
+    // reads global.__electronDecisionBridge during execute(), which happens
+    // after session creation.
+    installGlobalBridge();
+    setDecisionWindow(this.window);
 
     const cwd = ROOT_DIR;
     const agentDir = getAgentDir();
@@ -173,6 +187,18 @@ export class SessionBridge {
         state: "idle",
         model: this.session?.model?.name || "unknown",
       });
+    }
+
+    // Detect file writes to mark active file in bookshelf
+    if (event.type === "tool_execution_end" && this.bookshelfWatcher) {
+      const toolName = (event.toolName || "").toLowerCase();
+      if (toolName === "write" || toolName === "edit") {
+        const args = event.args || {};
+        const filePath = args.file_path || args.path || "";
+        if (filePath && filePath.startsWith(OUTPUT_DIR)) {
+          this.bookshelfWatcher.setActiveFile(filePath);
+        }
+      }
     }
 
     this.window.webContents.send("agent:event", event);

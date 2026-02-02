@@ -4,6 +4,7 @@
 .think-block {
   align-self: flex-start;
   max-width: 75%;
+  margin-left: 40px;  /* align with bubble content */
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-lg);
@@ -76,137 +77,138 @@
 .think-text p:last-child { margin-bottom: 0; }
 
 /* ============================================
-   Decision Card (ask_user)
+   Decision Card (ask_user) — compact inline card
    ============================================ */
 .decision-card {
   align-self: flex-start;
-  width: min(460px, 80%);
+  width: min(380px, 75%);
+  margin-left: 40px;
   background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-md);
   overflow: hidden;
   animation: fadeUp var(--duration-normal) var(--ease-smooth);
-  border: 1px solid rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
 .dc-header {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-}
-
-.dc-avatar {
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #FF9F0A, #FF375F);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  flex-shrink: 0;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 
 .dc-question {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.4;
 }
 
 .dc-options {
-  padding: 0 var(--space-4) var(--space-4);
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 4px;
 }
 
 .dc-option {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1.5px solid var(--gray3);
-  border-radius: var(--radius-md);
+  gap: 8px;
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s var(--ease-smooth);
+  transition: all 0.15s var(--ease-smooth);
   text-align: left;
   font-family: var(--font-sans);
   color: var(--text-primary);
 }
 .dc-option:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--gray2);
-  transform: translateX(3px);
-}
-
-.dc-option.selected {
-  background: rgba(10, 132, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
   border-color: var(--accent);
 }
 
 .dc-option.recommended {
-  border-color: rgba(10, 132, 255, 0.3);
-  background: rgba(10, 132, 255, 0.04);
-}
-
-.decision-card.answered .dc-option:not(.selected) {
-  opacity: 0.35;
-  pointer-events: none;
-}
-
-.dc-icon {
-  width: 36px; height: 36px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-  background: rgba(255,255,255,0.04);
+  border-color: rgba(10, 132, 255, 0.25);
+  background: rgba(10, 132, 255, 0.03);
 }
 
 .dc-opt-body { flex: 1; min-width: 0; }
 
 .dc-opt-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 6px;
+  line-height: 1.4;
 }
 
 .dc-opt-rec {
   font-size: 10px;
   color: var(--accent);
   background: rgba(10, 132, 255, 0.1);
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: 3px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .dc-opt-desc {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 1px;
+  line-height: 1.35;
 }
 
 .dc-check {
-  width: 20px; height: 20px;
+  width: 16px; height: 16px;
   border-radius: 50%;
-  border: 2px solid var(--gray3);
+  border: 1.5px solid var(--gray3);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   transition: all var(--duration-fast);
-  font-size: 12px;
   color: transparent;
 }
 
-.dc-option.selected .dc-check {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
+/* Answered state — compact single row */
+.decision-card.answered {
+  width: auto;
+  max-width: min(480px, 85%);
+  border-color: rgba(255,255,255,0.04);
+}
+
+.dc-answered-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+}
+
+.dc-answered-q {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.dc-answered-a {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ============================================
@@ -215,6 +217,7 @@
 .code-card {
   align-self: flex-start;
   width: min(520px, 85%);
+  margin-left: 40px;  /* align with bubble content */
   background: #141416;
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -292,6 +295,7 @@
   gap: var(--space-2);
   max-width: 85%;
   align-self: flex-start;
+  margin-left: 40px;  /* align with bubble content */
   animation: fadeUp var(--duration-normal) var(--ease-smooth);
 }
 
@@ -352,6 +356,7 @@
 .step-card {
   align-self: flex-start;
   max-width: 85%;
+  margin-left: 40px;  /* align with bubble content */
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   padding: var(--space-3) var(--space-5);
@@ -597,6 +602,7 @@
   cursor: pointer;
   transition: all 0.2s var(--ease-smooth);
   max-width: 360px;
+  margin-left: 40px;  /* align with bubble content */
   animation: fadeUp var(--duration-normal) var(--ease-smooth);
   border: 1px solid rgba(255,255,255,0.04);
 }
@@ -656,6 +662,7 @@
   align-self: flex-start;
   max-width: 480px;
   padding: 4px 0;
+  margin-left: 40px;  /* align with bubble content: avatar 28px + gap 12px */
 }
 
 /* ============================================

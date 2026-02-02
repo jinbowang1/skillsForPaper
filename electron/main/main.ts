@@ -66,6 +66,7 @@ app.whenReady().then(async () => {
   // Create all components immediately so IPC handlers are available
   sessionBridge = new SessionBridge(win);
   bookshelfWatcher = new BookshelfWatcher(win);
+  sessionBridge.setBookshelfWatcher(bookshelfWatcher);
   taskParser = new TaskParser(win);
   voiceHandler = new VoiceHandler(win);
 

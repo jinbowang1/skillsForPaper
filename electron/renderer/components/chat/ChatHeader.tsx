@@ -2,15 +2,32 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSessionStore } from "../../stores/session-store";
 import { useUserStore } from "../../stores/user-store";
 import DashixiongAvatar from "../DashixiongAvatar";
+import {
+  THINKING_PHRASES,
+  IDLE_PHRASES,
+  pickRandom,
+} from "../../utils/status-phrases";
 
 interface ModelInfo {
   id: string;
   name: string;
 }
 
+/** Pick ONE random phrase per streaming state change (no rotation) */
+function useStatusPhrase(isStreaming: boolean): string {
+  const [phrase, setPhrase] = useState(() => pickRandom(IDLE_PHRASES));
+
+  useEffect(() => {
+    setPhrase(pickRandom(isStreaming ? THINKING_PHRASES : IDLE_PHRASES));
+  }, [isStreaming]);
+
+  return phrase;
+}
+
 export default function ChatHeader() {
   const { isStreaming, currentModel, setModel } = useSessionStore();
   const { aiName } = useUserStore();
+  const statusText = useStatusPhrase(isStreaming);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [isOpen, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -51,7 +68,7 @@ export default function ChatHeader() {
           <div className="chat-header-name">{aiName}</div>
           <div className="chat-header-status">
             <span className="online-dot" />
-            {isStreaming ? "思考中..." : "在线"}
+            {statusText}
           </div>
         </div>
       </div>

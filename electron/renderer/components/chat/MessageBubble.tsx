@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import type { ChatMessage, ContentBlock } from "../../stores/session-store";
 import { useUserStore } from "../../stores/user-store";
 import DashixiongAvatar from "../DashixiongAvatar";
@@ -13,6 +16,49 @@ import StepIndicator from "../cards/StepIndicator";
 import StatusCard from "../cards/StatusCard";
 import CitationCard from "../cards/CitationCard";
 import ToolCard from "../cards/ToolCard";
+
+/**
+ * 将文本中的绝对文件路径转为 markdown 链接，让 ReactMarkdown 渲染为 <a>。
+ * 例: /Users/xx/output/file.md → [file.md](file:///Users/xx/output/file.md)
+ * 自动跳过 code block 和已有的 markdown 链接内的路径。
+ */
+function linkifyFilePaths(text: string): string {
+  // 1. 标记受保护区域（代码块、行内代码、已有链接）
+  const protectedRanges: Array<[number, number]> = [];
+  const protectRe = /```[\s\S]*?```|`[^`\n]+`|\[[^\]]*\]\([^)]*\)/g;
+  let pm: RegExpExecArray | null;
+  while ((pm = protectRe.exec(text)) !== null) {
+    protectedRanges.push([pm.index, pm.index + pm[0].length]);
+  }
+
+  // 2. 匹配以常见根目录开头的绝对路径
+  const pathRe =
+    /(\/(?:Users|home|tmp|var|opt|usr|Library|Desktop|Documents|Downloads|Applications)[^\s"'<>()[\]`]*\.\w{1,10})/g;
+
+  let result = "";
+  let lastIndex = 0;
+
+  while ((pm = pathRe.exec(text)) !== null) {
+    const start = pm.index;
+    const end = start + pm[0].length;
+
+    // 跳过受保护区域
+    const isProtected = protectedRanges.some(
+      ([ps, pe]) => start >= ps && end <= pe
+    );
+    if (isProtected) continue;
+
+    const filePath = pm[1];
+    const filename = filePath.split("/").pop() || filePath;
+
+    result += text.slice(lastIndex, start);
+    result += `[${filename}](file://${filePath})`;
+    lastIndex = end;
+  }
+
+  result += text.slice(lastIndex);
+  return result;
+}
 
 interface Props {
   message: ChatMessage;
@@ -116,11 +162,6 @@ function MessageBubbleInner({ message }: Props) {
 
   return (
     <div className="message-group">
-      {/* Combined think block */}
-      {showThinking && (
-        <ThinkBlock text={combinedThinkingText} isStreaming={isStreaming} />
-      )}
-
       {/* Loading bubble — assistant preparing response */}
       {showLoadingBubble && (
         <div className="msg from-ai">
@@ -158,7 +199,8 @@ function MessageBubbleInner({ message }: Props) {
                   <span style={{ whiteSpace: "pre-wrap" }}>{textContent}</span>
                 ) : (
                   <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
                     components={{
                       code({ className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || "");
@@ -168,9 +210,29 @@ function MessageBubbleInner({ message }: Props) {
                         }
                         return <code className={className} {...props}>{children}</code>;
                       },
+                      a({ href, children, ...props }) {
+                        if (href?.startsWith("file://")) {
+                          const filePath = href.replace("file://", "");
+                          return (
+                            <a
+                              {...props}
+                              className="file-link"
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                window.api.openFile(filePath);
+                              }}
+                              title={`打开 ${filePath}`}
+                            >
+                              {children}
+                            </a>
+                          );
+                        }
+                        return <a href={href} {...props}>{children}</a>;
+                      },
                     }}
                   >
-                    {textContent}
+                    {linkifyFilePaths(textContent)}
                   </ReactMarkdown>
                 )
               ) : (
@@ -201,6 +263,11 @@ function MessageBubbleInner({ message }: Props) {
 
       {/* Other special blocks */}
       {otherBlocks.map((block, i) => renderBlock(block, i, isStreaming))}
+
+      {/* Thinking block — at the bottom so latest thinking is always visible */}
+      {showThinking && (
+        <ThinkBlock text={combinedThinkingText} isStreaming={isStreaming} />
+      )}
     </div>
   );
 }

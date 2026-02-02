@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
-import { GraduationCap, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { useSessionStore } from "../../stores/session-store";
+import DashixiongAvatar from "../DashixiongAvatar";
 
 interface Props {
   toolCallId: string;
@@ -40,31 +41,41 @@ export default function DecisionCard({
     [toolCallId, options, isAnswered, markDecisionAnswered]
   );
 
-  return (
-    <div className={`decision-card ${isAnswered ? "answered" : ""}`}>
-      <div className="dc-header">
-        <div className="dc-avatar">
-          <GraduationCap size={12} color="white" />
+  // Answered → compact single-line showing question + selected answer
+  if (isAnswered && localSelected !== undefined) {
+    const selected = options[localSelected];
+    return (
+      <div className="decision-card answered">
+        <div className="dc-answered-row">
+          <DashixiongAvatar size={18} />
+          <span className="dc-answered-q">{question}</span>
+          <span className="dc-answered-a">
+            <Check size={10} />
+            {selected.label}
+          </span>
         </div>
+      </div>
+    );
+  }
+
+  // Unanswered → full card with all options
+  return (
+    <div className="decision-card">
+      <div className="dc-header">
+        <DashixiongAvatar size={20} />
         <div className="dc-question">{question}</div>
       </div>
       <div className="dc-options">
         {options.map((opt, i) => (
           <button
             key={i}
-            className={`dc-option ${i === 0 ? "recommended" : ""} ${
-              localSelected === i ? "selected" : ""
-            }`}
+            className={`dc-option ${i === 0 ? "recommended" : ""}`}
             onClick={() => handleSelect(i)}
-            disabled={isAnswered && localSelected !== i}
           >
-            <div className="dc-icon">
-              {getOptionIcon(i)}
-            </div>
             <div className="dc-opt-body">
               <div className="dc-opt-title">
                 {opt.label}
-                {i === 0 && !isAnswered && (
+                {i === 0 && (
                   <span className="dc-opt-rec">推荐</span>
                 )}
               </div>
@@ -72,17 +83,10 @@ export default function DecisionCard({
                 <div className="dc-opt-desc">{opt.description}</div>
               )}
             </div>
-            <div className="dc-check">
-              {localSelected === i && <Check size={12} />}
-            </div>
+            <div className="dc-check" />
           </button>
         ))}
       </div>
     </div>
   );
-}
-
-function getOptionIcon(index: number): string {
-  const icons = ["📄", "📝", "📋", "🔬", "📊"];
-  return icons[index % icons.length];
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   Terminal,
   FileText,
@@ -125,23 +125,7 @@ export default function ToolCard({
   const fullDetail = getFullDetail(toolName, toolArgs);
   const clippedResult = toolResult ? truncate(toolResult, 500) : "";
 
-  const [expanded, setExpanded] = useState(toolStatus === "running");
-  const prevStatus = useRef(toolStatus);
-
-  useEffect(() => {
-    // Auto-expand when running starts
-    if (toolStatus === "running" && prevStatus.current !== "running") {
-      setExpanded(true);
-    }
-    // Auto-collapse when done/error
-    if (
-      (toolStatus === "done" || toolStatus === "error") &&
-      prevStatus.current === "running"
-    ) {
-      setExpanded(false);
-    }
-    prevStatus.current = toolStatus;
-  }, [toolStatus]);
+  const [expanded, setExpanded] = useState(false);
 
   const toggleExpanded = () => setExpanded((v) => !v);
 

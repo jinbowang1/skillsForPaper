@@ -16,17 +16,17 @@ interface Props {
 }
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-  ".py": <FileCode size={18} />,
-  ".json": <FileJson size={18} />,
-  ".csv": <FileSpreadsheet size={18} />,
-  ".png": <Image size={18} />,
-  ".jpg": <Image size={18} />,
-  ".svg": <Image size={18} />,
-  ".pdf": <FileText size={18} />,
-  ".tex": <FileText size={18} />,
-  ".md": <FileText size={18} />,
-  ".bib": <BookOpen size={18} />,
-  ".docx": <FileText size={18} />,
+  ".py": <FileCode size={14} />,
+  ".json": <FileJson size={14} />,
+  ".csv": <FileSpreadsheet size={14} />,
+  ".png": <Image size={14} />,
+  ".jpg": <Image size={14} />,
+  ".svg": <Image size={14} />,
+  ".pdf": <FileText size={14} />,
+  ".tex": <FileText size={14} />,
+  ".md": <FileText size={14} />,
+  ".bib": <BookOpen size={14} />,
+  ".docx": <FileText size={14} />,
 };
 
 const ICON_COLORS: Record<string, string> = {
@@ -44,9 +44,10 @@ const ICON_COLORS: Record<string, string> = {
 };
 
 function getTag(item: BookshelfItem): { label: string; cls: string } | null {
+  // Active/focus has highest priority — this is the file the AI just wrote
+  if (item.isActive) return { label: "关注", cls: "focus" };
   const age = Date.now() - item.mtime;
   if (age < 60000) return { label: "最新", cls: "latest" };
-  if (item.isActive) return { label: "撰写中", cls: "editing" };
   if (item.category === "experiment" && (item.ext === ".json" || item.ext === ".csv"))
     return { label: "数据", cls: "data" };
   return null;
@@ -57,27 +58,27 @@ export default function DeskCard({ item }: Props) {
     window.api.openFile(item.path);
   }, [item.path]);
 
-  const icon = ICON_MAP[item.ext] || <File size={18} />;
+  const icon = ICON_MAP[item.ext] || <File size={14} />;
   const bgColor = ICON_COLORS[item.ext] || "rgba(142, 142, 147, 0.12)";
   const tag = getTag(item);
   const displayName = getDisplayName(item.name);
 
+  const meta = [
+    item.size > 0 ? formatFileSize(item.size) : null,
+    formatRelativeTime(item.mtime),
+  ].filter(Boolean).join(" · ");
+
   return (
-    <div className="desk-card" onClick={handleClick}>
-      <div className="desk-card-top">
-        <div className="desk-card-icon" style={{ background: bgColor }}>
-          {icon}
-        </div>
-        <div className="desk-card-info">
-          <div className="desk-card-title">{displayName}</div>
-          <div className="desk-card-subtitle">
-            {item.name} {item.size > 0 && `· ${formatFileSize(item.size)}`}
-          </div>
-        </div>
+    <div className={`desk-card${item.isActive ? " active" : ""}`} onClick={handleClick}>
+      <div className="desk-card-icon" style={{ background: bgColor }}>
+        {icon}
       </div>
-      <div className="desk-card-footer">
-        <span>{formatRelativeTime(item.mtime)}</span>
-        {tag && <span className={`desk-card-tag ${tag.cls}`}>{tag.label}</span>}
+      <div className="desk-card-info">
+        <div className="desk-card-title">
+          {displayName}
+          {tag && <span className={`desk-card-tag ${tag.cls}`}>{tag.label}</span>}
+        </div>
+        <div className="desk-card-meta">{meta}</div>
       </div>
     </div>
   );

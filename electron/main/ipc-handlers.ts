@@ -8,6 +8,7 @@ import type { SessionBridge } from "./session-bridge.js";
 import type { BookshelfWatcher } from "./bookshelf-watcher.js";
 import type { TaskParser } from "./task-parser.js";
 import type { VoiceHandler } from "./voice-handler.js";
+import { respondDecision } from "./decision-bridge.js";
 
 function parseMemoryFile(): {
   name: string;
@@ -84,6 +85,11 @@ export function registerIpcHandlers(
 
   ipcMain.handle("model:set", async (_event, { modelId }) => {
     return sessionBridge.setModel(modelId);
+  });
+
+  // ── Decision channels ──
+  ipcMain.handle("decision:respond", async (_event, { toolCallId, answer }) => {
+    return respondDecision(toolCallId, answer);
   });
 
   // ── File channels ──

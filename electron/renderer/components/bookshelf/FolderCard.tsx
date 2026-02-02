@@ -46,7 +46,7 @@ export default function FolderCard({ label, items }: Props) {
     <div className={`desk-folder ${open ? "open" : ""}`}>
       <div className="desk-folder-header" onClick={handleToggle}>
         <div className="desk-folder-icon">
-          <Folder size={15} />
+          <Folder size={13} />
         </div>
         <div className="desk-folder-info">
           <div className="desk-folder-title">{label}</div>

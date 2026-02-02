@@ -44,7 +44,54 @@ export default function askUser(pi: ExtensionAPI) {
     parameters: AskUserParams,
 
     async execute(_toolCallId, params, _onUpdate, ctx, _signal) {
-      // 非交互模式 fallback
+      // Electron bridge — when running inside the desktop app, ctx.hasUI is false
+      // (no TUI), but we can use the global Electron decision bridge instead.
+      const electronBridge = (global as any).__electronDecisionBridge as
+        | {
+            request: (id: string, q: string, opts: Array<{ label: string; description?: string }>) => Promise<string>;
+            cancel?: (id: string) => boolean;
+          }
+        | undefined;
+
+      if (!ctx.hasUI && electronBridge) {
+        const simpleOptions = params.options.map((o: OptionItem) => o.label);
+        try {
+          // Race the bridge request against the abort signal so that
+          // aborting the agent cleans up the pending decision immediately.
+          const abortPromise = _signal
+            ? new Promise<never>((_, reject) => {
+                if (_signal.aborted) reject(new Error("aborted"));
+                else _signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+              })
+            : null;
+          const reqPromise = electronBridge.request(_toolCallId, params.question, params.options);
+          const answer = await (abortPromise ? Promise.race([reqPromise, abortPromise]) : reqPromise);
+          const idx = simpleOptions.indexOf(answer) + 1;
+          const display = idx > 0 ? `${idx}. ${answer}` : answer;
+          return {
+            content: [{ type: "text", text: `用户选择了：${display}` }],
+            details: {
+              question: params.question,
+              options: simpleOptions,
+              answer,
+              wasCustom: idx === 0,
+            } as AskUserDetails,
+          };
+        } catch (err: any) {
+          // Clean up the pending bridge entry (e.g. on abort, the reqPromise is still pending)
+          electronBridge.cancel?.(_toolCallId);
+          return {
+            content: [{ type: "text", text: `用户未做选择（${err?.message || "超时"}）。请继续。` }],
+            details: {
+              question: params.question,
+              options: simpleOptions,
+              answer: null,
+            } as AskUserDetails,
+          };
+        }
+      }
+
+      // 非交互模式 fallback (no TUI, no Electron)
       if (!ctx.hasUI) {
         return {
           content: [{ type: "text", text: "当前为非交互模式，无法展示选择界面。请用户直接回复。" }],
