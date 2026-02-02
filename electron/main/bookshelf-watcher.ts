@@ -91,7 +91,7 @@ export class BookshelfWatcher {
 
     this.watcher = watch(OUTPUT_DIR, {
       ignoreInitial: true,
-      depth: 1,
+      depth: 2,
       ignored: /(^|[\/\\])\..|TASK\.md$/,
     });
 
@@ -126,34 +126,44 @@ export class BookshelfWatcher {
     }
 
     try {
-      const entries = readdirSync(OUTPUT_DIR);
-      this.items = entries
-        .filter((name) => !name.startsWith(".") && name !== "TASK.md")
-        .map((name) => {
-          const fullPath = path.join(OUTPUT_DIR, name);
-          try {
-            const stat = statSync(fullPath);
-            if (!stat.isFile()) return null;
-            const ext = path.extname(name).toLowerCase();
-            if (shouldIgnore(name, ext)) return null;
-            return {
-              name,
-              path: fullPath,
-              ext,
-              size: stat.size,
-              mtime: stat.mtimeMs,
-              category: categorizeFile(name, ext),
-            } as BookshelfItem;
-          } catch {
-            return null;
-          }
-        })
-        .filter(Boolean) as BookshelfItem[];
-
+      const result: BookshelfItem[] = [];
+      this.scanDir(OUTPUT_DIR, result, 0);
+      this.items = result;
       // Sort by modification time (newest first)
       this.items.sort((a, b) => b.mtime - a.mtime);
     } catch {
       this.items = [];
+    }
+  }
+
+  /** Recursively scan up to MAX_DEPTH levels */
+  private scanDir(dir: string, out: BookshelfItem[], depth: number) {
+    const MAX_DEPTH = 2;
+    if (depth > MAX_DEPTH) return;
+
+    const entries = readdirSync(dir);
+    for (const name of entries) {
+      if (name.startsWith(".") || name === "TASK.md") continue;
+      const fullPath = path.join(dir, name);
+      try {
+        const stat = statSync(fullPath);
+        if (stat.isDirectory()) {
+          this.scanDir(fullPath, out, depth + 1);
+          continue;
+        }
+        const ext = path.extname(name).toLowerCase();
+        if (shouldIgnore(name, ext)) continue;
+        out.push({
+          name,
+          path: fullPath,
+          ext,
+          size: stat.size,
+          mtime: stat.mtimeMs,
+          category: categorizeFile(name, ext),
+        });
+      } catch {
+        // skip unreadable entries
+      }
     }
   }
 

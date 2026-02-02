@@ -1,6 +1,9 @@
 import { ipcMain, shell, BrowserWindow } from "electron";
 import { readFileSync } from "fs";
 import { join } from "path";
+import path from "path";
+import { copyFileSync, mkdirSync, existsSync } from "fs";
+import { tmpdir } from "os";
 import type { SessionBridge } from "./session-bridge.js";
 import type { BookshelfWatcher } from "./bookshelf-watcher.js";
 import type { TaskParser } from "./task-parser.js";
@@ -85,7 +88,21 @@ export function registerIpcHandlers(
 
   // ── File channels ──
   ipcMain.handle("file:open", async (_event, { path: filePath }) => {
-    await shell.openPath(filePath);
+    const ext = path.extname(filePath).toLowerCase();
+    // PDF: copy to temp to avoid WPS file locking
+    if (ext === ".pdf") {
+      const tempDir = path.join(tmpdir(), "dsx-preview");
+      if (!existsSync(tempDir)) mkdirSync(tempDir, { recursive: true });
+      const tempPath = path.join(tempDir, path.basename(filePath));
+      try {
+        copyFileSync(filePath, tempPath);
+        await shell.openPath(tempPath);
+      } catch {
+        await shell.openPath(filePath);
+      }
+    } else {
+      await shell.openPath(filePath);
+    }
   });
 
   ipcMain.handle("file:reveal", async (_event, { path: filePath }) => {
