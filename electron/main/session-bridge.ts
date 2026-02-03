@@ -5,6 +5,7 @@ import { logger } from "./app-logger.js";
 import { createResourceLoader } from "./app-resource-loader.js";
 import { installGlobalBridge, setWindow as setDecisionWindow } from "./decision-bridge.js";
 import type { BookshelfWatcher } from "./bookshelf-watcher.js";
+import { trackEvent } from "./usage-tracker.js";
 
 export class SessionBridge {
   private window: BrowserWindow;
@@ -77,6 +78,7 @@ export class SessionBridge {
     this.modelRegistry = new ModelRegistry(authStorage);
 
     // Register MiniMax
+    // Pricing: $0.30/M input, $1.20/M output (Jan 2026)
     const minimaxKey = process.env.MINIMAX_API_KEY;
     if (minimaxKey) {
       this.modelRegistry.registerProvider("minimax", {
@@ -90,7 +92,7 @@ export class SessionBridge {
             name: "MiniMax M2.1",
             reasoning: true,
             input: ["text", "image"],
-            cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+            cost: { input: 0.3, output: 1.2, cacheRead: 0.3, cacheWrite: 0.3 },
             contextWindow: 1000000,
             maxTokens: 128000,
           },
@@ -102,6 +104,7 @@ export class SessionBridge {
     // DashScope's OpenAI-compatible API does not support several OpenAI-specific
     // params (store, stream_options, max_completion_tokens, developer role).
     // The compat object tells the SDK to skip those and use Qwen-native thinking.
+    // Pricing (≤32K tier): ¥2.5/M input, ¥10/M output → ~$0.34/$1.38 (Jan 2026)
     const dashscopeKey = process.env.DASHSCOPE_API_KEY;
     if (dashscopeKey) {
       this.modelRegistry.registerProvider("dashscope", {
@@ -115,7 +118,7 @@ export class SessionBridge {
             name: "Qwen3 Max",
             reasoning: true,
             input: ["text"],
-            cost: { input: 1.2, output: 6.0, cacheRead: 0.24, cacheWrite: 1.2 },
+            cost: { input: 0.345, output: 1.38, cacheRead: 0.069, cacheWrite: 0.345 },
             contextWindow: 262144,
             maxTokens: 65536,
             compat: {
@@ -131,6 +134,7 @@ export class SessionBridge {
 
     // Register Moonshot (Kimi K2.5)
     // Note: api.moonshot.cn (not .ai) — the .ai domain rejects keys from the CN platform
+    // Pricing: ¥4/M input, ¥16/M output → $0.60/$2.50; cache read $0.15/M (Jan 2026)
     const moonshotKey = process.env.MOONSHOT_API_KEY;
     if (moonshotKey) {
       this.modelRegistry.registerProvider("moonshot", {
@@ -144,7 +148,7 @@ export class SessionBridge {
             name: "Kimi K2.5",
             reasoning: true,
             input: ["text", "image"],
-            cost: { input: 0.6, output: 3.0, cacheRead: 0.1, cacheWrite: 0.6 },
+            cost: { input: 0.6, output: 2.5, cacheRead: 0.15, cacheWrite: 0.6 },
             contextWindow: 262144,
             maxTokens: 65536,
             compat: {
@@ -181,6 +185,19 @@ export class SessionBridge {
     this.session = session;
     this.logger.info(`Electron session created: ${session.sessionId}`);
 
+    // Default to MiniMax for mainland China users (no VPN needed)
+    try {
+      const minimaxModel = this.modelRegistry.getAll().find(
+        (m: any) => m.provider === "minimax" && m.id.startsWith("MiniMax-M2.1")
+      );
+      if (minimaxModel) {
+        await session.setModel(minimaxModel);
+        this.logger.info(`[models] Default model set to minimax/${minimaxModel.id}`);
+      }
+    } catch (err) {
+      this.logger.warn(`[models] Failed to set default model: ${err}`);
+    }
+
     // Log available models for debugging
     try {
       const allModels = this.modelRegistry.getAll();
@@ -205,12 +222,18 @@ export class SessionBridge {
     // Notify renderer that session is ready (resolves race condition:
     // renderer loads before async init completes → model shows "unknown")
     if (this.window && !this.window.isDestroyed()) {
-      this.window.webContents.send("agent:state-change", {
-        isStreaming: false,
-        state: "ready",
-        model: this.session.model?.name || "unknown",
-      });
+      this.isStreaming = false;
+      this.window.webContents.send("agent:state-change", this.buildStatePayload("ready"));
     }
+  }
+
+  private buildStatePayload(state: string) {
+    return {
+      isStreaming: this.isStreaming,
+      state,
+      model: this.session?.model?.name || "unknown",
+      supportsImages: this.session?.model ? SessionBridge.modelSupportsImages(this.session.model) : false,
+    };
   }
 
   private handleSessionEvent(event: any) {
@@ -238,18 +261,10 @@ export class SessionBridge {
 
     if (event.type === "agent_start") {
       this.isStreaming = true;
-      this.window.webContents.send("agent:state-change", {
-        isStreaming: true,
-        state: "working",
-        model: this.session?.model?.name || "unknown",
-      });
+      this.window.webContents.send("agent:state-change", this.buildStatePayload("working"));
     } else if (event.type === "agent_end") {
       this.isStreaming = false;
-      this.window.webContents.send("agent:state-change", {
-        isStreaming: false,
-        state: "idle",
-        model: this.session?.model?.name || "unknown",
-      });
+      this.window.webContents.send("agent:state-change", this.buildStatePayload("idle"));
     }
 
     // Detect file writes to mark active file in bookshelf
@@ -264,14 +279,27 @@ export class SessionBridge {
       }
     }
 
+    // Track token usage for reporting
+    trackEvent(event);
+
     this.window.webContents.send("agent:event", event);
   }
 
-  async prompt(text: string, images?: string[]) {
+  async prompt(text: string, images?: Array<{ data: string; mimeType: string }>) {
     if (!this.session) throw new Error("Session not initialized");
     this.logger.info(`[prompt] Sending to model: ${this.session.model?.provider}/${this.session.model?.id} (${this.session.model?.name})`);
     try {
-      await this.session.prompt(text);
+      if (images && images.length > 0) {
+        const imageContents = images.map((img) => ({
+          type: "image" as const,
+          data: img.data,
+          mimeType: img.mimeType,
+        }));
+        this.logger.info(`[prompt] With ${imageContents.length} image(s)`);
+        await this.session.prompt(text, { images: imageContents });
+      } else {
+        await this.session.prompt(text);
+      }
       this.logger.info("[prompt] Completed successfully");
     } catch (err) {
       this.logger.error("[prompt] Error:", err);
@@ -294,11 +322,7 @@ export class SessionBridge {
   private resetStreamingState() {
     this.isStreaming = false;
     if (this.window && !this.window.isDestroyed()) {
-      this.window.webContents.send("agent:state-change", {
-        isStreaming: false,
-        state: "error",
-        model: this.session?.model?.name || "unknown",
-      });
+      this.window.webContents.send("agent:state-change", this.buildStatePayload("error"));
     }
   }
 
@@ -323,12 +347,20 @@ export class SessionBridge {
     );
   }
 
-  getModels(): Array<{ id: string; name: string; provider: string }> {
+  private static modelSupportsImages(m: any): boolean {
+    // Explicit input array from registration
+    if (Array.isArray(m.input) && m.input.includes("image")) return true;
+    // Anthropic models (Claude) always support vision
+    if (m.provider === "anthropic") return true;
+    return false;
+  }
+
+  getModels(): Array<{ id: string; name: string; provider: string; needsVpn: boolean; supportsImages: boolean }> {
     if (!this.modelRegistry) return [];
     try {
       const all = this.modelRegistry.getAll();
       // Keep only one model per allowed entry (pick shortest id = the alias)
-      const result: Array<{ id: string; name: string; provider: string }> = [];
+      const result: Array<{ id: string; name: string; provider: string; needsVpn: boolean; supportsImages: boolean }> = [];
       for (const rule of SessionBridge.ALLOWED_MODELS) {
         const candidates = all.filter(
           (m: any) => m.provider === rule.provider && m.id.startsWith(rule.idPrefix)
@@ -337,7 +369,13 @@ export class SessionBridge {
           // Prefer the shortest id (alias like "claude-opus-4-5" over dated "claude-opus-4-5-20251101")
           candidates.sort((a: any, b: any) => a.id.length - b.id.length);
           const pick = candidates[0];
-          result.push({ id: pick.id, name: pick.name, provider: pick.provider });
+          result.push({
+            id: pick.id,
+            name: pick.name,
+            provider: pick.provider,
+            needsVpn: pick.provider === "anthropic",
+            supportsImages: SessionBridge.modelSupportsImages(pick),
+          });
         }
       }
       return result;
@@ -361,11 +399,7 @@ export class SessionBridge {
 
     const modelName = this.session.model?.name || target.name || modelId;
     if (this.window && !this.window.isDestroyed()) {
-      this.window.webContents.send("agent:state-change", {
-        isStreaming: this.isStreaming,
-        state: this.isStreaming ? "working" : "idle",
-        model: modelName,
-      });
+      this.window.webContents.send("agent:state-change", this.buildStatePayload(this.isStreaming ? "working" : "idle"));
     }
     return { model: modelName };
   }
@@ -374,6 +408,7 @@ export class SessionBridge {
     return {
       isStreaming: this.isStreaming,
       model: this.session?.model?.name || "unknown",
+      supportsImages: this.session?.model ? SessionBridge.modelSupportsImages(this.session.model) : false,
     };
   }
 

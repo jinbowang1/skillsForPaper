@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import SuggestionBar from "../../renderer/components/chat/SuggestionBar";
 import { useSessionStore } from "../../renderer/stores/session-store";
 
@@ -40,10 +40,12 @@ describe("SuggestionBar", () => {
     expect(container.innerHTML).toBe("");
   });
 
-  it("sends text when a suggestion pill is clicked", () => {
+  it("sends text when a suggestion pill is clicked", async () => {
     render(<SuggestionBar />);
     fireEvent.click(screen.getByText("创新点挖掘"));
-    expect(window.api.prompt).toHaveBeenCalledWith("帮我进行创新点挖掘");
+    await waitFor(() => {
+      expect(window.api.prompt).toHaveBeenCalledWith("帮我进行创新点挖掘", undefined);
+    });
   });
 
   it("renders all 5 suggestion pills", () => {

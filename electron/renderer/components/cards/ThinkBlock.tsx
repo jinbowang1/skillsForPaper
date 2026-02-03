@@ -15,7 +15,7 @@ export default function ThinkBlock({ text, isStreaming }: Props) {
     ? "思考中..."
     : expanded
       ? "思考过程"
-      : "思考了一下";
+      : "思考了一下（点击展开）";
 
   return (
     <div className={`think-block ${expanded ? "expanded" : ""}`}>

@@ -14,6 +14,7 @@ export function useAgentEvents() {
     setStreaming,
     setAgentState,
     setModel,
+    setModelSupportsImages,
   } = useSessionStore();
 
   useEffect(() => {
@@ -137,6 +138,9 @@ export function useAgentEvents() {
       if (state.model) {
         setModel(state.model);
       }
+      if (state.supportsImages !== undefined) {
+        setModelSupportsImages(state.supportsImages);
+      }
     });
 
     // Initialize model name from current session state
@@ -145,6 +149,9 @@ export function useAgentEvents() {
     window.api.getState().then((s) => {
       if (s.model && s.model !== "unknown") {
         setModel(s.model);
+      }
+      if (s.supportsImages !== undefined) {
+        setModelSupportsImages(s.supportsImages);
       }
     }).catch(() => {});
 

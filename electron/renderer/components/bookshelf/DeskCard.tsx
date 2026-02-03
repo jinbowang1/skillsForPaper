@@ -56,7 +56,9 @@ function getTag(item: BookshelfItem): { label: string; cls: string } | null {
 export default function DeskCard({ item }: Props) {
   const handleClick = useCallback(() => {
     window.api.openFile(item.path);
-  }, [item.path]);
+    // Track file open
+    window.api.trackFeature("bookshelf", "open_file", { ext: item.ext, category: item.category }).catch(() => {});
+  }, [item.path, item.ext, item.category]);
 
   const icon = ICON_MAP[item.ext] || <File size={14} />;
   const bgColor = ICON_COLORS[item.ext] || "rgba(142, 142, 147, 0.12)";

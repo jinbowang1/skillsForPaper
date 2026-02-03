@@ -3,9 +3,12 @@ import { create } from "zustand";
 export type MessageRole = "user" | "assistant";
 
 export interface ContentBlock {
-  type: "text" | "thinking" | "code" | "file" | "citation" | "decision" | "status" | "steps" | "tool";
+  type: "text" | "thinking" | "code" | "file" | "citation" | "decision" | "status" | "steps" | "tool" | "image";
   // For text
   text?: string;
+  // For image
+  imageData?: string;   // base64
+  imageMimeType?: string;
   // For code
   language?: string;
   filename?: string;
@@ -60,6 +63,7 @@ interface SessionState {
   isStreaming: boolean;
   agentState: "idle" | "working" | "thinking";
   currentModel: string;
+  currentModelSupportsImages: boolean;
   pendingDecision: PendingDecision | null;
 
   addMessage: (msg: ChatMessage) => void;
@@ -68,6 +72,7 @@ interface SessionState {
   setStreaming: (isStreaming: boolean) => void;
   setAgentState: (state: SessionState["agentState"]) => void;
   setModel: (model: string) => void;
+  setModelSupportsImages: (supports: boolean) => void;
   markDecisionAnswered: (toolCallId: string, selectedIndex: number, customAnswer?: string) => void;
   setPendingDecision: (decision: PendingDecision | null) => void;
 }
@@ -82,6 +87,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   isStreaming: false,
   agentState: "idle",
   currentModel: "Claude Opus 4.5",
+  currentModelSupportsImages: true,
   pendingDecision: null,
 
   addMessage: (msg) => set((state) => ({
@@ -125,6 +131,8 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   setAgentState: (agentState) => set({ agentState }),
 
   setModel: (currentModel) => set({ currentModel }),
+
+  setModelSupportsImages: (currentModelSupportsImages) => set({ currentModelSupportsImages }),
 
   markDecisionAnswered: (toolCallId, selectedIndex, customAnswer?) => set((state) => {
     const messages = state.messages.map((msg) => ({

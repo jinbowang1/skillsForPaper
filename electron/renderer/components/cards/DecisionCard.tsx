@@ -1,7 +1,10 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { Check } from "lucide-react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
+import { Check, Clock } from "lucide-react";
 import { useSessionStore } from "../../stores/session-store";
+import { useToastStore } from "../../stores/toast-store";
 import DashixiongAvatar from "../DashixiongAvatar";
+
+const AUTO_SELECT_TIMEOUT = 60; // seconds
 
 interface Props {
   toolCallId: string;
@@ -23,9 +26,12 @@ export default function DecisionCard({
 }: Props) {
   const [localSelected, setLocalSelected] = useState<number | undefined>(selectedIndex);
   const [isAnswered, setIsAnswered] = useState(answered);
+  const [countdown, setCountdown] = useState(AUTO_SELECT_TIMEOUT);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const markDecisionAnswered = useSessionStore((s) => s.markDecisionAnswered);
   const setPendingDecision = useSessionStore((s) => s.setPendingDecision);
   const pendingDecision = useSessionStore((s) => s.pendingDecision);
+  const addToast = useToastStore((s) => s.addToast);
 
   // Sync store → local state (when InputBar answers this decision externally)
   useEffect(() => {
@@ -35,6 +41,34 @@ export default function DecisionCard({
     }
   }, [answered, selectedIndex]);
 
+  // Auto-select timeout: countdown and auto-select recommended option
+  useEffect(() => {
+    if (isAnswered || options.length === 0) return;
+
+    timerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          // Auto-select first (recommended) option
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isAnswered, options.length]);
+
+  // Trigger auto-select when countdown reaches 0
+  useEffect(() => {
+    if (countdown === 0 && !isAnswered && options.length > 0) {
+      handleSelect(0);
+      addToast("已自动选择推荐选项");
+    }
+  }, [countdown, isAnswered, options.length]);
+
   const handleSelect = useCallback(
     async (index: number) => {
       if (isAnswered) return;
@@ -42,13 +76,13 @@ export default function DecisionCard({
       setLocalSelected(index);
       setIsAnswered(true);
 
-      const answer = options[index].label;
+      const answer = options[index]?.label || "";
       markDecisionAnswered(toolCallId, index);
 
       try {
         await window.api.respondDecision(toolCallId, answer);
-      } catch (err) {
-        console.error("Failed to respond to decision:", err);
+      } catch {
+        addToast("回复发送失败，请重试");
       }
     },
     [toolCallId, options, isAnswered, markDecisionAnswered]
@@ -87,6 +121,12 @@ export default function DecisionCard({
       <div className="dc-header">
         <DashixiongAvatar size={20} />
         <div className="dc-question">{question}</div>
+        {countdown > 0 && countdown <= 30 && (
+          <div className="dc-countdown" title="将自动选择推荐选项">
+            <Clock size={12} />
+            <span>{countdown}s</span>
+          </div>
+        )}
       </div>
       <div className="dc-options">
         {options.map((opt, i) => (

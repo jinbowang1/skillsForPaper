@@ -1,8 +1,12 @@
 import React, { useMemo } from "react";
 import { useBookshelfStore } from "../../stores/bookshelf-store";
+import { useUIStore } from "../../stores/ui-store";
 import DeskCard from "./DeskCard";
 import FolderCard from "./FolderCard";
 import UserPanel from "./UserPanel";
+import ProfilePanel from "./ProfilePanel";
+import GuidePanel from "./GuidePanel";
+import FaqPanel from "./FaqPanel";
 import type { BookshelfItem } from "../../../preload/api";
 
 /** Per-category: which extensions count as "finished product" (shown as cards) */
@@ -17,6 +21,7 @@ interface CategoryGroup {
 
 export default function Bookshelf() {
   const items = useBookshelfStore((s) => s.items);
+  const activePanel = useUIStore((s) => s.activePanel);
 
   const { activeItems, groups } = useMemo(() => {
     const active: BookshelfItem[] = [];
@@ -83,12 +88,21 @@ export default function Bookshelf() {
 
         {!hasAnything && (
           <div className="desk-empty">
-            output/ 目录中的文件<br />会出现在这里
+            <div className="desk-empty-icon">📁</div>
+            <div className="desk-empty-title">书桌空空如也</div>
+            <div className="desk-empty-desc">
+              和大师兄对话时生成的文件<br />
+              会自动出现在这里
+            </div>
           </div>
         )}
       </div>
 
       <UserPanel />
+
+      {activePanel === "profile" && <ProfilePanel />}
+      {activePanel === "guide" && <GuidePanel />}
+      {activePanel === "faq" && <FaqPanel />}
     </aside>
   );
 }

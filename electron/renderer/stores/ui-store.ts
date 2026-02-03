@@ -29,12 +29,17 @@ if (window.api?.platform) {
   document.documentElement.setAttribute("data-platform", window.api.platform);
 }
 
+type PanelType = "profile" | "guide" | "faq";
+
 interface UIState {
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
   theme: Theme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  activePanel: PanelType | null;
+  openPanel: (panel: PanelType) => void;
+  closePanel: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -52,4 +57,8 @@ export const useUIStore = create<UIState>((set) => ({
       applyTheme(next);
       return { theme: next };
     }),
+
+  activePanel: null,
+  openPanel: (panel) => set({ activePanel: panel }),
+  closePanel: () => set({ activePanel: null }),
 }));

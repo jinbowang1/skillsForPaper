@@ -35,7 +35,7 @@ export default function StepIndicator({ title, steps }: Props) {
                   i + 1
                 )}
               </div>
-              <div className="step-label">{truncate(step.label, 6)}</div>
+              <div className="step-label" title={step.label}>{truncate(step.label, 6)}</div>
             </div>
             {i < steps.length - 1 && (
               <span className="step-arrow">

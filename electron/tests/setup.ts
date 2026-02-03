@@ -33,6 +33,20 @@ const mockApi = {
   onBookshelfUpdate: vi.fn(() => vi.fn()),
   onTaskUpdate: vi.fn(() => vi.fn()),
   onDecisionRequest: vi.fn(() => vi.fn()),
+  // Usage & Limits
+  getUsageStats: vi.fn().mockResolvedValue(null),
+  sendUsageReport: vi.fn().mockResolvedValue(undefined),
+  checkUsageLimit: vi.fn().mockResolvedValue({ dailyLimitCny: 50, currentUsageCny: 0, percentUsed: 0, isAtLimit: false, isNearLimit: false }),
+  // Crash
+  getCrashReports: vi.fn().mockResolvedValue([]),
+  getRecentCrashCount: vi.fn().mockResolvedValue(0),
+  onCrashNotify: vi.fn(() => vi.fn()),
+  // Analytics
+  getAnalyticsSummary: vi.fn().mockResolvedValue({ totalEvents: 0, startDate: "", topFeatures: [], recentActivity: [] }),
+  trackFeature: vi.fn().mockResolvedValue(undefined),
+  // Log Export
+  exportLogs: vi.fn().mockResolvedValue({ ok: true }),
+  exportLogsAndReveal: vi.fn().mockResolvedValue({ ok: true }),
 };
 
 Object.defineProperty(window, "api", { value: mockApi, writable: true });

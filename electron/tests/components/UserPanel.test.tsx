@@ -25,9 +25,9 @@ describe("UserPanel", () => {
     expect(screen.getByText("用")).toBeInTheDocument();
   });
 
-  it("renders '未设置' when no institution/identity", () => {
+  it("renders setup prompt when no institution/identity", () => {
     render(<UserPanel />);
-    expect(screen.getByText("未设置")).toBeInTheDocument();
+    expect(screen.getByText("点击设置个人信息")).toBeInTheDocument();
   });
 
   it("displays user info from store", () => {
@@ -53,9 +53,8 @@ describe("UserPanel", () => {
 
   it("renders action buttons", () => {
     render(<UserPanel />);
-    expect(screen.getByTitle("设置")).toBeInTheDocument();
-    expect(screen.getByTitle("记忆")).toBeInTheDocument();
-    expect(screen.getByTitle("帮助")).toBeInTheDocument();
+    expect(screen.getByTitle("使用指南")).toBeInTheDocument();
+    expect(screen.getByTitle("常见问题")).toBeInTheDocument();
   });
 
   it("shows only institution when identity is empty", () => {

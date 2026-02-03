@@ -63,7 +63,7 @@ describe("InputBar", () => {
     fireEvent.click(sendBtn);
 
     await waitFor(() => {
-      expect(window.api.prompt).toHaveBeenCalledWith("Hello");
+      expect(window.api.prompt).toHaveBeenCalledWith("Hello", undefined);
     });
   });
 
@@ -107,7 +107,8 @@ describe("InputBar", () => {
   it("textarea is disabled when streaming", () => {
     useSessionStore.setState({ isStreaming: true });
     render(<InputBar />);
-    const textarea = screen.getByPlaceholderText(PLACEHOLDER);
+    // When streaming, placeholder changes to status phrase (大师兄xxx中…)
+    const textarea = screen.getByRole("textbox");
     expect(textarea).toBeDisabled();
   });
 

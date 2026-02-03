@@ -133,6 +133,9 @@ function MessageBubbleInner({ message }: Props) {
   const isAI = role === "assistant";
   const { userName, userInitial, aiName } = useUserStore();
 
+  // Gather image blocks (user messages only)
+  const imageBlocks = blocks.filter((b) => b.type === "image");
+
   // Gather all text blocks into one combined text
   const textContent = blocks
     .filter((b) => b.type === "text")
@@ -183,7 +186,7 @@ function MessageBubbleInner({ message }: Props) {
       )}
 
       {/* Main message bubble */}
-      {textContent && (
+      {(textContent || imageBlocks.length > 0) && (
         <div className={`msg ${isAI ? "from-ai" : "from-user"}`}>
           <div className="msg-avatar">
             {isAI ? (
@@ -194,6 +197,18 @@ function MessageBubbleInner({ message }: Props) {
           </div>
           <div className="msg-body">
             <div className="msg-name">{isAI ? aiName : userName}</div>
+            {imageBlocks.length > 0 && (
+              <div className="msg-images">
+                {imageBlocks.map((b, i) => (
+                  <img
+                    key={`img-${i}`}
+                    className="msg-image"
+                    src={`data:${b.imageMimeType};base64,${b.imageData}`}
+                    alt="uploaded"
+                  />
+                ))}
+              </div>
+            )}
             <div className="bubble">
               {isAI ? (
                 isStreaming ? (

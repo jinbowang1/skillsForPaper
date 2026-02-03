@@ -27,7 +27,7 @@ const api = {
   },
 
   // ── Session ──
-  prompt: (text: string, images?: string[]) =>
+  prompt: (text: string, images?: Array<{ data: string; mimeType: string }>) =>
     ipcRenderer.invoke("session:prompt", { text, images }),
 
   steer: (text: string) => ipcRenderer.invoke("session:steer", { text }),
@@ -67,6 +67,11 @@ const api = {
 
   // ── User ──
   getUserInfo: () => ipcRenderer.invoke("user:getInfo"),
+  updateUserInfo: (info: { name: string; identity: string; institution: string; researchField: string; advisor: string; project: string }) =>
+    ipcRenderer.invoke("user:updateInfo", info),
+  getAvatar: () => ipcRenderer.invoke("user:getAvatar"),
+  setAvatar: (data: string, mimeType: string) =>
+    ipcRenderer.invoke("user:setAvatar", { data, mimeType }),
 
   // ── Voice ──
   voiceAvailable: () => ipcRenderer.invoke("voice:available"),
@@ -116,6 +121,39 @@ const api = {
     ipcRenderer.on("task:update", handler);
     return () => ipcRenderer.removeListener("task:update", handler);
   },
+
+  // ── Usage ──
+  getUsageStats: () => ipcRenderer.invoke("usage:getStats"),
+  sendUsageReport: () => ipcRenderer.invoke("usage:sendReport"),
+  checkUsageLimit: () => ipcRenderer.invoke("usage:checkLimit"),
+
+  // ── Crash ──
+  getCrashReports: () => ipcRenderer.invoke("crash:getReports"),
+  getRecentCrashCount: (days: number = 7) => ipcRenderer.invoke("crash:getRecentCount", days),
+
+  onCrashNotify: (callback: (data: { title: string; message: string }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { title: string; message: string }) => callback(data);
+    ipcRenderer.on("crash:notify", handler);
+    return () => ipcRenderer.removeListener("crash:notify", handler);
+  },
+
+  // ── Analytics ──
+  getAnalyticsSummary: () => ipcRenderer.invoke("analytics:getSummary"),
+  trackFeature: (feature: string, action: string, metadata?: Record<string, any>) =>
+    ipcRenderer.invoke("analytics:track", { feature, action, metadata }),
+
+  // ── Log Export ──
+  exportLogs: () => ipcRenderer.invoke("logs:export"),
+  exportLogsAndReveal: () => ipcRenderer.invoke("logs:exportAndReveal"),
+
+  // ── Update ──
+  onUpdateAvailable: (callback: (info: { version: string; releaseUrl: string; downloadUrl: string; releaseNotes: string }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: any) => callback(data);
+    ipcRenderer.on("update:available", handler);
+    return () => ipcRenderer.removeListener("update:available", handler);
+  },
+
+  openUpdateUrl: (url: string) => ipcRenderer.invoke("update:openUrl", { url }),
 
   onDecisionRequest: (callback: DecisionRequestCallback) => {
     const handler = (_event: Electron.IpcRendererEvent, data: any) => callback(data);

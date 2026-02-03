@@ -4,12 +4,17 @@ import path from "path";
 import { copyFileSync, mkdirSync, existsSync } from "fs";
 import { tmpdir } from "os";
 import dotenv from "dotenv";
-import { MEMORY_PATH, ENV_PATH } from "./paths.js";
+import { MEMORY_PATH, MEMORY_DIR, ENV_PATH } from "./paths.js";
 import type { SessionBridge } from "./session-bridge.js";
 import type { BookshelfWatcher } from "./bookshelf-watcher.js";
 import type { TaskParser } from "./task-parser.js";
 import type { VoiceHandler } from "./voice-handler.js";
 import { respondDecision } from "./decision-bridge.js";
+import { openReleaseUrl } from "./auto-updater.js";
+import { getUsageStats, sendReportNow, checkUsageLimit } from "./usage-tracker.js";
+import { getCrashReports, getRecentCrashCount } from "./crash-reporter.js";
+import { getAnalyticsSummary, trackFeature } from "./feature-analytics.js";
+import { exportLogs, exportLogsAndReveal } from "./log-exporter.js";
 
 function parseMemoryFile(): {
   name: string;
@@ -169,6 +174,86 @@ export function registerIpcHandlers(
     return parseMemoryFile();
   });
 
+  ipcMain.handle("user:updateInfo", async (_event, info: {
+    name: string;
+    identity: string;
+    institution: string;
+    researchField: string;
+    advisor: string;
+    project: string;
+  }) => {
+    try {
+      if (!existsSync(MEMORY_DIR)) mkdirSync(MEMORY_DIR, { recursive: true });
+      let content = "";
+      try {
+        content = readFileSync(MEMORY_PATH, "utf-8");
+      } catch {
+        // File doesn't exist yet
+      }
+
+      const fieldMap: Array<[string, string]> = [
+        ["姓名", info.name],
+        ["身份", info.identity],
+        ["单位", info.institution],
+        ["研究领域", info.researchField],
+        ["导师", info.advisor],
+        ["项目", info.project],
+      ];
+
+      // If file has content, update existing fields or append
+      if (content.trim()) {
+        for (const [label, value] of fieldMap) {
+          const regex = new RegExp(`^(- ${label}：)(.*)$`, "m");
+          if (regex.test(content)) {
+            content = content.replace(regex, `$1${value}`);
+          } else {
+            // Find the "基本信息" section and append
+            const sectionRegex = /^(## 基本信息\n)/m;
+            if (sectionRegex.test(content)) {
+              content = content.replace(sectionRegex, `$1- ${label}：${value}\n`);
+            }
+          }
+        }
+      } else {
+        // Create new file with basic info section
+        const lines = ["## 基本信息"];
+        for (const [label, value] of fieldMap) {
+          lines.push(`- ${label}：${value}`);
+        }
+        content = lines.join("\n") + "\n";
+      }
+
+      writeFileSync(MEMORY_PATH, content, "utf-8");
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle("user:getAvatar", async () => {
+    try {
+      const avatarPath = path.join(MEMORY_DIR, "avatar.png");
+      if (!existsSync(avatarPath)) return null;
+      const buf = readFileSync(avatarPath);
+      return `data:image/png;base64,${buf.toString("base64")}`;
+    } catch {
+      return null;
+    }
+  });
+
+  ipcMain.handle("user:setAvatar", async (_event, { data, mimeType }: { data: string; mimeType: string }) => {
+    try {
+      if (!existsSync(MEMORY_DIR)) mkdirSync(MEMORY_DIR, { recursive: true });
+      const avatarPath = path.join(MEMORY_DIR, "avatar.png");
+      // Strip data URL prefix if present
+      const base64Data = data.replace(/^data:[^;]+;base64,/, "");
+      writeFileSync(avatarPath, Buffer.from(base64Data, "base64"));
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err.message };
+    }
+  });
+
   // ── Voice channels ──
   ipcMain.handle("voice:available", async () => {
     return voiceHandler.isAvailable();
@@ -205,6 +290,51 @@ export function registerIpcHandlers(
 
   ipcMain.handle("window:isMaximized", () => {
     return window.isMaximized();
+  });
+
+  // ── Update channels ──
+  ipcMain.handle("update:openUrl", async (_event, { url }) => {
+    await openReleaseUrl(url);
+  });
+
+  // ── Usage channels ──
+  ipcMain.handle("usage:getStats", async () => {
+    return getUsageStats();
+  });
+
+  ipcMain.handle("usage:sendReport", async () => {
+    sendReportNow();
+  });
+
+  ipcMain.handle("usage:checkLimit", async () => {
+    return checkUsageLimit();
+  });
+
+  // ── Crash channels ──
+  ipcMain.handle("crash:getReports", async () => {
+    return getCrashReports();
+  });
+
+  ipcMain.handle("crash:getRecentCount", async (_event, days: number = 7) => {
+    return getRecentCrashCount(days);
+  });
+
+  // ── Analytics channels ──
+  ipcMain.handle("analytics:getSummary", async () => {
+    return getAnalyticsSummary();
+  });
+
+  ipcMain.handle("analytics:track", async (_event, { feature, action, metadata }) => {
+    trackFeature(feature, action, metadata);
+  });
+
+  // ── Log export channels ──
+  ipcMain.handle("logs:export", async () => {
+    return exportLogs();
+  });
+
+  ipcMain.handle("logs:exportAndReveal", async () => {
+    return exportLogsAndReveal();
   });
 
   window.on("maximize", () => {

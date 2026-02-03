@@ -124,6 +124,7 @@ export default function ToolCard({
   const summary = getToolSummary(toolName, toolArgs);
   const fullDetail = getFullDetail(toolName, toolArgs);
   const clippedResult = toolResult ? truncate(toolResult, 500) : "";
+  const isResultTruncated = toolResult && toolResult.length > 500;
 
   const [expanded, setExpanded] = useState(false);
 
@@ -158,6 +159,14 @@ export default function ToolCard({
           {clippedResult && (
             <div className={`tool-card-result${isError ? " is-error" : ""}`}>
               <pre>{clippedResult}</pre>
+              {isResultTruncated && !expanded && (
+                <div className="tool-card-more">内容已截断，点击卡片展开查看完整结果</div>
+              )}
+            </div>
+          )}
+          {expanded && toolResult && toolResult.length > 500 && (
+            <div className="tool-card-result-full">
+              <pre>{toolResult}</pre>
             </div>
           )}
         </div>

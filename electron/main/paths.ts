@@ -19,3 +19,4 @@ export const ENV_PATH = IS_PACKAGED
   : path.join(DEV_ROOT, ".env");
 export const EXTENSIONS_DIR = path.join(USER_DATA_DIR, ".pi", "extensions");
 export const BUNDLED_EXTENSIONS_DIR = path.join(RESOURCES_DIR, "extensions");
+export const BUNDLED_ENV_PATH = path.join(RESOURCES_DIR, ".env.bundled");

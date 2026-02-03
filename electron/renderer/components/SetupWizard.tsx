@@ -32,10 +32,27 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
       if (result.ok) {
         onComplete();
       } else {
-        setError(result.error || "配置失败，请重试");
+        // Parse specific error types
+        const errMsg = result.error?.toLowerCase() || "";
+        if (errMsg.includes("invalid") || errMsg.includes("401") || errMsg.includes("unauthorized")) {
+          setError("API Key 格式或内容无效，请检查后重试");
+        } else if (errMsg.includes("network") || errMsg.includes("fetch") || errMsg.includes("econnrefused")) {
+          setError("网络连接失败，请检查网络设置后重试");
+        } else if (errMsg.includes("timeout")) {
+          setError("连接超时，请检查网络或稍后重试");
+        } else {
+          setError(result.error || "配置失败，请重试");
+        }
       }
     } catch (err: any) {
-      setError(err.message || "配置失败，请重试");
+      const errMsg = err.message?.toLowerCase() || "";
+      if (errMsg.includes("network") || errMsg.includes("fetch")) {
+        setError("网络连接失败，请检查网络设置");
+      } else if (errMsg.includes("timeout")) {
+        setError("连接超时，请稍后重试");
+      } else {
+        setError(err.message || "配置失败，请重试");
+      }
     } finally {
       setSubmitting(false);
     }

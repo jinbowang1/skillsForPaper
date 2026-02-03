@@ -8,6 +8,10 @@ import { SessionBridge } from "./session-bridge.js";
 import { BookshelfWatcher } from "./bookshelf-watcher.js";
 import { TaskParser } from "./task-parser.js";
 import { VoiceHandler } from "./voice-handler.js";
+import { initAutoUpdater } from "./auto-updater.js";
+import { initUsageTracker, stopUsageTracker } from "./usage-tracker.js";
+import { initCrashReporter } from "./crash-reporter.js";
+import { initFeatureAnalytics } from "./feature-analytics.js";
 
 // Load .env early so all modules can read env vars
 dotenv.config({ path: ENV_PATH });
@@ -99,6 +103,18 @@ app.whenReady().then(async () => {
     console.error("[main] Failed to start task parser:", err);
   }
 
+  // Auto-updater (checks GitHub Releases for new versions)
+  if (IS_PACKAGED) initAutoUpdater(win);
+
+  // Usage tracking (token/cost reporting to WeChat webhook)
+  initUsageTracker();
+
+  // Crash reporter (local crash collection)
+  initCrashReporter(win);
+
+  // Feature analytics (track feature usage)
+  initFeatureAnalytics();
+
   // First run: show setup wizard instead of initializing session
   if (isFirstRun()) {
     win.webContents.once("did-finish-load", () => {
@@ -116,6 +132,7 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => {
+  stopUsageTracker();
   bookshelfWatcher?.stop();
   taskParser?.stop();
   app.quit();

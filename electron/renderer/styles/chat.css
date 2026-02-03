@@ -1,4 +1,52 @@
 /* ============================================
+   Update Banner
+   ============================================ */
+.update-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-size: 13px;
+  font-weight: 500;
+  -webkit-app-region: drag;
+  z-index: 100;
+}
+
+.update-banner span { flex: 1; }
+
+.update-btn {
+  -webkit-app-region: no-drag;
+  padding: 2px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.2);
+  color: var(--text-on-accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background var(--duration-fast);
+}
+.update-btn:hover { background: rgba(255,255,255,0.35); }
+
+.update-dismiss {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-on-accent);
+  border: none;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--duration-fast);
+}
+.update-dismiss:hover { opacity: 1; }
+
+/* ============================================
    RIGHT: Chat Area
    ============================================ */
 .chat {
@@ -77,6 +125,8 @@
   transition: all var(--duration-fast);
 }
 .model-pill:hover { border-color: var(--gray1); color: var(--text-secondary); }
+.model-pill:disabled { cursor: not-allowed; opacity: 0.7; }
+.model-pill.loading { color: var(--accent); border-color: var(--accent); }
 
 .model-dropdown {
   -webkit-app-region: no-drag;
@@ -115,6 +165,18 @@
 .model-option.active {
   color: var(--accent);
   font-weight: 600;
+}
+
+.vpn-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--orange);
+  background: rgba(255, 159, 10, 0.12);
+  border-radius: 3px;
+  vertical-align: middle;
 }
 
 /* ============================================
@@ -367,6 +429,12 @@
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.suggestion-hint {
+  font-size: 12px;
+  color: var(--text-tertiary);
   margin-bottom: var(--space-4);
 }
 
@@ -555,6 +623,68 @@
 .input-box.decision-mode {
   border-color: var(--accent);
 }
+
+/* Image attach button */
+.circle-btn.attach { background: transparent; color: var(--text-secondary); }
+.circle-btn.attach:hover { color: var(--text-primary); background: var(--overlay-strong); }
+
+/* Image preview strip — above input box */
+.image-preview-strip {
+  display: flex;
+  gap: 8px;
+  padding: 4px var(--space-5) 6px;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.image-preview-item {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.image-preview-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--gray3);
+}
+
+.image-preview-remove {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gray1);
+  color: var(--text-on-accent);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-fast);
+}
+.image-preview-remove:hover { background: var(--red); }
+
+/* Images in sent messages */
+.msg-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.msg-image {
+  max-width: 240px;
+  max-height: 180px;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  cursor: pointer;
+  transition: opacity var(--duration-fast);
+}
+.msg-image:hover { opacity: 0.85; }
 
 .input-hint {
   text-align: center;

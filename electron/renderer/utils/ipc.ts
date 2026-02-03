@@ -3,7 +3,7 @@
  * These are thin wrappers around window.api for convenience.
  */
 
-export async function sendPrompt(text: string, images?: string[]) {
+export async function sendPrompt(text: string, images?: Array<{ data: string; mimeType: string }>) {
   return window.api.prompt(text, images);
 }
 

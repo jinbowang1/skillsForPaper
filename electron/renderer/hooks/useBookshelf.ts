@@ -6,7 +6,7 @@ export function useBookshelf() {
 
   useEffect(() => {
     // Initial load
-    window.api.getBookshelfItems().then(setItems);
+    window.api.getBookshelfItems().then(setItems).catch(() => {});
 
     // Listen for updates
     const unsub = window.api.onBookshelfUpdate(setItems);

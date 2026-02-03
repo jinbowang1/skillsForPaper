@@ -3,6 +3,7 @@ import path from "path";
 import {
   IS_PACKAGED,
   ENV_PATH,
+  BUNDLED_ENV_PATH,
   MEMORY_DIR,
   OUTPUT_DIR,
   LOGS_DIR,
@@ -24,6 +25,11 @@ export function bootstrapUserData(): void {
   // Create writable directories
   for (const dir of [MEMORY_DIR, OUTPUT_DIR, LOGS_DIR, EXTENSIONS_DIR]) {
     mkdirSync(dir, { recursive: true });
+  }
+
+  // Copy bundled .env (pre-set API keys) if user hasn't created one yet
+  if (!existsSync(ENV_PATH) && existsSync(BUNDLED_ENV_PATH)) {
+    copyFileSync(BUNDLED_ENV_PATH, ENV_PATH);
   }
 
   // Copy bundled memory templates (MEMORY.md, SOUL.md) if not present

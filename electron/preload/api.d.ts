@@ -28,6 +28,7 @@ export interface DecisionRequest {
 export interface SessionState {
   isStreaming: boolean;
   model: string;
+  supportsImages: boolean;
 }
 
 export interface UserInfo {
@@ -51,6 +52,45 @@ export interface SetupResult {
   error?: string;
 }
 
+export interface UpdateInfo {
+  version: string;
+  releaseUrl: string;
+  downloadUrl: string;
+  releaseNotes: string;
+}
+
+export interface CrashReport {
+  id: string;
+  timestamp: string;
+  type: "uncaughtException" | "unhandledRejection" | "rendererCrash" | "gpuCrash";
+  message: string;
+  stack?: string;
+  appVersion: string;
+  platform: string;
+  arch: string;
+}
+
+export interface UsageLimitStatus {
+  dailyLimitCny: number;
+  currentUsageCny: number;
+  percentUsed: number;
+  isAtLimit: boolean;
+  isNearLimit: boolean;
+}
+
+export interface AnalyticsSummary {
+  totalEvents: number;
+  startDate: string;
+  topFeatures: Array<{ name: string; count: number }>;
+  recentActivity: Array<{ feature: string; action: string; time: string }>;
+}
+
+export interface ExportResult {
+  ok: boolean;
+  path?: string;
+  error?: string;
+}
+
 export interface ElectronAPI {
   // Platform
   platform: string;
@@ -63,11 +103,11 @@ export interface ElectronAPI {
   onMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
 
   // Session
-  prompt: (text: string, images?: string[]) => Promise<void>;
+  prompt: (text: string, images?: Array<{ data: string; mimeType: string }>) => Promise<void>;
   steer: (text: string) => Promise<void>;
   abort: () => Promise<void>;
   getState: () => Promise<SessionState>;
-  getModels: () => Promise<Array<{ id: string; name: string }>>;
+  getModels: () => Promise<Array<{ id: string; name: string; needsVpn?: boolean; supportsImages?: boolean }>>;
   setModel: (modelId: string) => Promise<{ model: string }>;
 
   // Decision
@@ -89,6 +129,9 @@ export interface ElectronAPI {
 
   // User
   getUserInfo: () => Promise<UserInfo>;
+  updateUserInfo: (info: UserInfo) => Promise<{ ok: boolean }>;
+  getAvatar: () => Promise<string | null>;
+  setAvatar: (data: string, mimeType: string) => Promise<{ ok: boolean }>;
 
   // Voice
   voiceAvailable: () => Promise<boolean>;
@@ -98,6 +141,28 @@ export interface ElectronAPI {
   onVoiceInterim: (callback: (text: string) => void) => () => void;
   onVoiceCompleted: (callback: (text: string) => void) => () => void;
   onVoiceError: (callback: (error: string) => void) => () => void;
+
+  // Usage
+  getUsageStats: () => Promise<{ date: string; userId: string; models: Array<{ name: string; count: number; tokens: number; cny: number }>; totalCount: number; totalTokens: number; totalCny: number } | null>;
+  sendUsageReport: () => Promise<void>;
+  checkUsageLimit: () => Promise<UsageLimitStatus>;
+
+  // Crash
+  getCrashReports: () => Promise<CrashReport[]>;
+  getRecentCrashCount: (days?: number) => Promise<number>;
+  onCrashNotify: (callback: (data: { title: string; message: string }) => void) => () => void;
+
+  // Analytics
+  getAnalyticsSummary: () => Promise<AnalyticsSummary>;
+  trackFeature: (feature: string, action: string, metadata?: Record<string, any>) => Promise<void>;
+
+  // Log Export
+  exportLogs: () => Promise<ExportResult>;
+  exportLogsAndReveal: () => Promise<ExportResult>;
+
+  // Update
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
+  openUpdateUrl: (url: string) => Promise<void>;
 
   // Event listeners (return unsubscribe function)
   onAgentEvent: (callback: (event: any) => void) => () => void;

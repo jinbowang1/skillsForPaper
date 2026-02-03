@@ -6,7 +6,7 @@ export function useTaskProgress() {
 
   useEffect(() => {
     // Initial load
-    window.api.getTaskState().then(setTask);
+    window.api.getTaskState().then(setTask).catch(() => {});
 
     // Listen for updates
     const unsub = window.api.onTaskUpdate(setTask);

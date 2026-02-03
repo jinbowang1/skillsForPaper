@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSessionStore } from "../../stores/session-store";
 import { useUserStore } from "../../stores/user-store";
+import { useToastStore } from "../../stores/toast-store";
 import DashixiongAvatar from "../DashixiongAvatar";
 import WindowControls from "./WindowControls";
 import {
@@ -12,6 +13,7 @@ import {
 interface ModelInfo {
   id: string;
   name: string;
+  needsVpn?: boolean;
 }
 
 /** Pick ONE random phrase per streaming state change (no rotation) */
@@ -28,9 +30,11 @@ function useStatusPhrase(isStreaming: boolean): string {
 export default function ChatHeader() {
   const { isStreaming, currentModel, setModel } = useSessionStore();
   const { aiName } = useUserStore();
+  const addToast = useToastStore((s) => s.addToast);
   const statusText = useStatusPhrase(isStreaming);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [isOpen, setOpen] = useState(false);
+  const [isSwitching, setSwitching] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   // Fetch models lazily when dropdown opens (session may not be ready on mount)
@@ -49,16 +53,28 @@ export default function ChatHeader() {
   }, [isOpen]);
 
   const handleSelect = useCallback(
-    async (modelId: string) => {
+    async (m: ModelInfo) => {
+      if (m.needsVpn) {
+        const ok = window.confirm(
+          "Claude Opus 4.5 需要科学上网（VPN）才能使用。\n如果你没有开启 VPN，切换后将无法正常对话。\n\n确定切换吗？"
+        );
+        if (!ok) return;
+      }
       setOpen(false);
+      setSwitching(true);
       try {
-        const { model } = await window.api.setModel(modelId);
+        const previousModel = currentModel;
+        const { model } = await window.api.setModel(m.id);
         setModel(model);
-      } catch (err) {
-        console.error("Failed to set model:", err);
+        // Track model switching
+        window.api.trackFeature("model", "switch", { from: previousModel, to: model }).catch(() => {});
+      } catch {
+        addToast("模型切换失败，请检查网络连接");
+      } finally {
+        setSwitching(false);
       }
     },
-    [setModel]
+    [setModel, addToast, currentModel]
   );
 
   return (
@@ -75,10 +91,11 @@ export default function ChatHeader() {
       </div>
       <div className="model-selector" ref={ref}>
         <button
-          className="model-pill"
-          onClick={() => setOpen((o) => !o)}
+          className={`model-pill ${isSwitching ? "loading" : ""}`}
+          onClick={() => !isSwitching && setOpen((o) => !o)}
+          disabled={isSwitching}
         >
-          {currentModel} &#9662;
+          {isSwitching ? "切换中..." : currentModel} {!isSwitching && <>&#9662;</>}
         </button>
         {isOpen && models.length > 0 && (
           <div className="model-dropdown">
@@ -86,9 +103,10 @@ export default function ChatHeader() {
               <button
                 key={m.id}
                 className={`model-option${m.name === currentModel ? " active" : ""}`}
-                onClick={() => handleSelect(m.id)}
+                onClick={() => handleSelect(m)}
               >
                 {m.name}
+                {m.needsVpn && <span className="vpn-tag">需VPN</span>}
               </button>
             ))}
           </div>

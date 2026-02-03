@@ -26,6 +26,9 @@ export default function SuggestionBar() {
       <div className="suggestion-greeting">
         有什么我能帮你的？
       </div>
+      <div className="suggestion-hint">
+        点击下方按钮快速开始，或在输入框输入你的问题
+      </div>
       <div className="suggestion-pills">
         {WELCOME_SUGGESTIONS.map((s, i) => (
           <button
