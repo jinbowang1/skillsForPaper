@@ -125,6 +125,26 @@ describe("InputBar", () => {
     expect(window.api.abort).toHaveBeenCalled();
   });
 
+  it("handles abort error gracefully", async () => {
+    vi.mocked(window.api.abort).mockRejectedValueOnce(new Error("Abort failed"));
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    useSessionStore.setState({ isStreaming: true });
+    render(<InputBar />);
+    fireEvent.click(screen.getByTitle("停止"));
+
+    await waitFor(() => {
+      expect(window.api.abort).toHaveBeenCalled();
+    });
+
+    // Should not throw, error is caught internally
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("Abort failed:", expect.any(Error));
+    });
+
+    consoleSpy.mockRestore();
+  });
+
   it("does not show mic button when voice is not available", () => {
     render(<InputBar />);
     expect(screen.queryByTitle("语音输入")).not.toBeInTheDocument();
