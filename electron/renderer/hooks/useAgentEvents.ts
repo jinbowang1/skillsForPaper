@@ -22,7 +22,7 @@ export function useAgentEvents() {
     const unsubEvent = window.api.onAgentEvent((event: any) => {
       // Handle tool timeout event
       if (event.type === "tool_timeout") {
-        useToastStore.getState().addToast(event.message || "工具执行超时，已自动中断");
+        useToastStore.getState().addToast(event.message || "工具执行超时，正在尝试其他方法...");
         return;
       }
 

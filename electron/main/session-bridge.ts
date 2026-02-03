@@ -285,20 +285,22 @@ export class SessionBridge {
       }
 
       // Set timeout timer
-      const timer = setTimeout(() => {
-        this.logger.warn(`[timeout] Tool ${toolName} (${toolCallId}) exceeded ${TOOL_TIMEOUT_MS / 1000}s, aborting...`);
+      const timer = setTimeout(async () => {
+        this.logger.warn(`[timeout] Tool ${toolName} (${toolCallId}) exceeded ${TOOL_TIMEOUT_MS / 1000}s`);
         this.activeToolTimers.delete(toolCallId);
+
         // Notify user about the timeout
         if (this.window && !this.window.isDestroyed()) {
           this.window.webContents.send("agent:event", {
             type: "tool_timeout",
             toolName,
             toolCallId,
-            message: `工具 ${toolName} 执行超时（超过5分钟），已自动中断`,
+            message: `工具 ${toolName} 执行超时，正在尝试其他方法...`,
           });
         }
-        // Abort the session
-        this.abort();
+
+        // Abort current operation and tell agent to try another approach
+        await this.abortAndRetry(toolName);
       }, TOOL_TIMEOUT_MS);
 
       this.activeToolTimers.set(toolCallId, timer);
@@ -401,6 +403,44 @@ export class SessionBridge {
         this.window.webContents.send("agent:state-change", this.buildStatePayload("idle"));
       }
       this.logger.info("[abort] Force reset streaming state to idle");
+    }
+  }
+
+  /**
+   * Abort current operation due to tool timeout and ask agent to try another approach.
+   */
+  private async abortAndRetry(toolName: string) {
+    if (!this.session) return;
+    this.logger.info(`[timeout] Aborting due to tool timeout: ${toolName}`);
+
+    // Clear all tool timers
+    this.clearAllToolTimers();
+
+    try {
+      // Abort the current operation
+      await this.session.abort();
+      this.logger.info("[timeout] Session aborted, sending retry message");
+
+      // Wait a moment for the session to settle
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Send a follow-up message to the agent explaining what happened
+      const retryMessage = `刚才的工具 "${toolName}" 执行超时了（超过5分钟还没完成）。请尝试其他方法来完成任务，比如：
+- 如果是在执行复杂的命令，可以拆分成更小的步骤
+- 如果是在等待网络请求，可以检查网络或换一个方法
+- 如果是在处理大文件，可以分块处理
+请继续完成之前的任务。`;
+
+      await this.session.followUp(retryMessage);
+      this.logger.info("[timeout] Retry message sent to agent");
+
+    } catch (err) {
+      this.logger.error("[timeout] Error during abort and retry:", err);
+      // Reset streaming state as fallback
+      this.isStreaming = false;
+      if (this.window && !this.window.isDestroyed()) {
+        this.window.webContents.send("agent:state-change", this.buildStatePayload("idle"));
+      }
     }
   }
 
