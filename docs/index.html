@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大师兄 - AI 学术写作助手</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 24px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 72px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #f5af19, #f12711);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tagline {
+      font-size: 20px;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 48px;
+    }
+
+    .download-section {
+      margin-bottom: 60px;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #f5af19, #f12711);
+      color: #fff;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(245, 175, 25, 0.3);
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(245, 175, 25, 0.4);
+    }
+
+    .download-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .version {
+      margin-top: 12px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+      margin-bottom: 60px;
+      text-align: left;
+    }
+
+    .feature {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .feature h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #f5af19;
+    }
+
+    .feature p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .screenshot {
+      margin-bottom: 60px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .screenshot img {
+      width: 100%;
+      display: block;
+    }
+
+    .footer {
+      padding-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: #f5af19;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .platforms {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .platform {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.1);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .beta-badge {
+      display: inline-block;
+      background: #f12711;
+      color: #fff;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">🐵</div>
+    <h1>大师兄 <span class="beta-badge">Beta</span></h1>
+    <p class="tagline">你的 AI 学术写作助手，让论文写作更轻松</p>
+
+    <div class="download-section">
+      <a href="https://github.com/jinbowang1/skillsForPaper/releases/latest" class="download-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        下载最新版本
+      </a>
+      <p class="version">当前版本：v1.0.0 (Beta)</p>
+
+      <div class="platforms">
+        <span class="platform">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          macOS
+        </span>
+        <span class="platform">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.75l6-1.32v6.48L3 12zm17-9v8.75l-10 .15V5.21L20 3zM3 13l6 .09v6.81l-6-1.15V13zm17 .25V22l-10-1.91V13.1l10 .15z"/></svg>
+          Windows (即将支持)
+        </span>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">📝</div>
+        <h3>论文撰写</h3>
+        <p>支持 LaTeX、Markdown、Word 格式，逐章节智能写作，让你专注于研究内容</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📚</div>
+        <h3>文献调研</h3>
+        <p>给出关键词或论文，帮你梳理研究脉络，快速了解领域前沿</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📊</div>
+        <h3>实验分析</h3>
+        <p>上传数据或截图，帮你解读实验结果，生成专业可视化图表</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">✨</div>
+        <h3>润色修改</h3>
+        <p>粘贴段落即可获得专业的学术表达优化建议</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🤖</div>
+        <h3>多模型支持</h3>
+        <p>MiniMax、Kimi、Qwen、Claude 多种模型可选，国内直连无需 VPN</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔒</div>
+        <h3>本地优先</h3>
+        <p>数据存储在本地，保护你的研究隐私</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>
+        <a href="https://github.com/jinbowang1/skillsForPaper">GitHub</a> ·
+        <a href="https://github.com/jinbowang1/skillsForPaper/issues">反馈问题</a> ·
+        <a href="https://github.com/jinbowang1/skillsForPaper/releases">更新日志</a>
+      </p>
+      <p style="margin-top: 12px;">Made with ❤️ for researchers</p>
+    </div>
+  </div>
+</body>
+</html>
