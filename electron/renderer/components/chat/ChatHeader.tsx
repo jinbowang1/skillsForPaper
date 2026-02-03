@@ -92,8 +92,8 @@ export default function ChatHeader() {
       <div className="model-selector" ref={ref}>
         <button
           className={`model-pill ${isSwitching ? "loading" : ""}`}
-          onClick={() => !isSwitching && setOpen((o) => !o)}
-          disabled={isSwitching}
+          onClick={() => !isSwitching && !isStreaming && setOpen((o) => !o)}
+          disabled={isSwitching || isStreaming}
         >
           {isSwitching ? "切换中..." : currentModel} {!isSwitching && <>&#9662;</>}
         </button>

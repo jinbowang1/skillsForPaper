@@ -328,7 +328,21 @@ export class SessionBridge {
 
   async abort() {
     if (!this.session) return;
-    await this.session.abort();
+    this.logger.info("[abort] User requested abort");
+    try {
+      await this.session.abort();
+      this.logger.info("[abort] Session abort completed");
+    } catch (err) {
+      this.logger.error("[abort] Error:", err);
+    }
+    // Force reset streaming state in case agent_end event doesn't fire
+    if (this.isStreaming) {
+      this.isStreaming = false;
+      if (this.window && !this.window.isDestroyed()) {
+        this.window.webContents.send("agent:state-change", this.buildStatePayload("idle"));
+      }
+      this.logger.info("[abort] Force reset streaming state to idle");
+    }
   }
 
   // Only expose the two models the user actually uses.

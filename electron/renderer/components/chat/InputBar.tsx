@@ -267,8 +267,12 @@ export default function InputBar() {
     await sendMessage(msgText, currentImages);
   }, [text, images, isStreaming, isVoiceRecording, sendMessage, pendingDecision, markDecisionAnswered, setPendingDecision]);
 
-  const handleAbort = useCallback(() => {
-    window.api.abort();
+  const handleAbort = useCallback(async () => {
+    try {
+      await window.api.abort();
+    } catch (err) {
+      console.error("Abort failed:", err);
+    }
   }, []);
 
   const handleKeyDown = useCallback(
