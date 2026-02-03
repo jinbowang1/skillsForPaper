@@ -42,11 +42,9 @@ let currentDay = "";
 let dailyUsage: DailyUsage | null = null;
 let reportTimer: ReturnType<typeof setInterval> | null = null;
 
-// ── Daily Limits ──
-// Cost in USD (converted from CNY for display)
-const DAILY_LIMIT_CNY = 1000; // 1000 CNY per day (beta testing phase)
-const WARNING_THRESHOLD = 0.8; // Warn at 80% of limit
-let limitWarningShown = false;
+// ── Daily Limits (for reference, not blocking) ──
+const DAILY_LIMIT_CNY = Number(process.env.DAILY_LIMIT_CNY) || 100;
+const WARNING_THRESHOLD = 0.8;
 
 // ── Public API ──
 
@@ -109,6 +107,9 @@ export function trackEvent(event: any) {
 
   dailyUsage.records.push(record);
   save(dailyUsage);
+
+  // Check if user hit a new milestone (every 100 CNY)
+  checkAndNotifyMilestone();
 
   logger.info(
     `[usage] ${record.provider}/${record.model} in=${record.inputTokens} out=${record.outputTokens} cost=$${record.cost.toFixed(4)}`
@@ -292,6 +293,61 @@ export function sendReportNow() {
   }
 }
 
+// ── Milestone Notifications ──
+
+let lastNotifiedMilestone = 0;
+
+/** Send milestone notification to WeChat webhook */
+function checkAndNotifyMilestone() {
+  if (!dailyUsage) return;
+
+  const totalCny = dailyUsage.records.reduce((sum, r) => sum + r.cost, 0) * USD_TO_CNY;
+  const currentMilestone = Math.floor(totalCny / 100) * 100;
+
+  if (currentMilestone > 0 && currentMilestone > lastNotifiedMilestone) {
+    lastNotifiedMilestone = currentMilestone;
+    sendMilestoneNotification(dailyUsage.userId, currentMilestone, totalCny);
+  }
+}
+
+function sendMilestoneNotification(userId: string, milestone: number, totalCny: number) {
+  const webhookUrl = process.env.USAGE_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  const emoji = milestone >= 500 ? "🔥" : milestone >= 300 ? "🚀" : milestone >= 200 ? "⭐" : "🎉";
+  const markdown = `${emoji} <font color="info">${userId}</font> 突破 <font color="warning">¥${milestone}</font> 里程碑！（当前 ¥${totalCny.toFixed(2)}）`;
+
+  const body = JSON.stringify({
+    msgtype: "markdown",
+    markdown: { content: markdown },
+  });
+
+  try {
+    const url = new URL(webhookUrl);
+    const req = https.request(
+      {
+        hostname: url.hostname,
+        port: url.port || 443,
+        path: url.pathname + url.search,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(body),
+        },
+      },
+      (res) => {
+        logger.info(`[usage] Milestone notification sent: ${milestone} CNY, status=${res.statusCode}`);
+      }
+    );
+    req.on("error", (err) => logger.error("[usage] Milestone webhook error:", err));
+    req.setTimeout(5000, () => req.destroy());
+    req.write(body);
+    req.end();
+  } catch (err) {
+    logger.error("[usage] Failed to send milestone notification:", err);
+  }
+}
+
 // ── Usage Limits ──
 
 export interface UsageLimitStatus {
@@ -319,21 +375,6 @@ export function checkUsageLimit(): UsageLimitStatus {
     isAtLimit,
     isNearLimit,
   };
-}
-
-/** Reset the warning flag (called when day changes) */
-export function resetLimitWarning() {
-  limitWarningShown = false;
-}
-
-/** Check if we should show a warning (only once per threshold crossing) */
-export function shouldShowLimitWarning(): boolean {
-  const status = checkUsageLimit();
-  if (status.isNearLimit && !limitWarningShown) {
-    limitWarningShown = true;
-    return true;
-  }
-  return false;
 }
 
 function buildMarkdown(data: DailyUsage): string {

@@ -8,8 +8,8 @@ export interface ImageAttachment {
   mimeType: string;  // e.g. "image/png"
 }
 
-// Track whether we've shown the limit warning this session
-let limitWarningShown = false;
+// Track milestones we've celebrated (every 100 CNY)
+let lastCelebratedMilestone = 0;
 
 /**
  * 共享的消息发送逻辑，InputBar 和 SuggestionBar 共用。
@@ -32,16 +32,24 @@ export function useSendMessage(): (text: string, images?: ImageAttachment[]) => 
         });
       } catch {}
 
-      // Check usage limit (non-blocking warning)
+      // Celebrate usage milestones (every 100 CNY, but don't show amounts)
       try {
         const limit = await window.api.checkUsageLimit();
-        if (limit.isAtLimit) {
-          showToast(`今日用量已达上限 (${limit.dailyLimitCny}元)，请明日再试`, "error");
-          return;
-        }
-        if (limit.isNearLimit && !limitWarningShown) {
-          limitWarningShown = true;
-          showToast(`今日用量已达 ${limit.percentUsed.toFixed(0)}%，请注意控制`, "info");
+        const currentMilestone = Math.floor(limit.currentUsageCny / 100) * 100;
+        if (currentMilestone > 0 && currentMilestone > lastCelebratedMilestone) {
+          lastCelebratedMilestone = currentMilestone;
+          const milestoneNum = currentMilestone / 100;
+          const messages = [
+            "恭喜达成今日第 1 个里程碑！你是真正的科研达人！",
+            "厉害！第 2 个里程碑达成，大师兄为你骄傲！",
+            "太棒了！第 3 个里程碑解锁，继续加油！",
+            "了不起！第 4 个里程碑！研究进展神速！",
+            "超级用户！第 5 个里程碑达成！感谢支持内测！",
+          ];
+          const msg = milestoneNum <= 5
+            ? messages[milestoneNum - 1]
+            : `太强了！今日第 ${milestoneNum} 个里程碑！你是内测之星！`;
+          showToast(msg, "success");
         }
       } catch {}
 

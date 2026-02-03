@@ -1,6 +1,6 @@
 {
   "name": "dashixiong",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "大师兄 — 学术写作助手桌面应用",
   "main": ".vite/build/main.js",
   "scripts": {
