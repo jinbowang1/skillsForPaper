@@ -10,10 +10,10 @@ const config: ForgeConfig = {
     executableName: "dashixiong",
     asar: true,
     icon: "./assets/icon",
-    extraResource: ["../skills", "../memory", "../.pi/extensions"],
+    extraResource: ["../skills", "../memory", "../.pi/extensions", "./.env.bundled"],
   },
   makers: [
-    new MakerZIP({}, ["darwin"]),
+    new MakerZIP({}, ["darwin", "win32"]),
     new MakerDMG({ format: "ULFO" }),
     new MakerSquirrel({ name: "dashixiong" }),
   ],
