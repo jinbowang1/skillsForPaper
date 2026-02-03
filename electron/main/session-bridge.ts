@@ -288,17 +288,6 @@ export class SessionBridge {
       const timer = setTimeout(async () => {
         this.logger.warn(`[timeout] Tool ${toolName} (${toolCallId}) exceeded ${TOOL_TIMEOUT_MS / 1000}s`);
         this.activeToolTimers.delete(toolCallId);
-
-        // Notify user about the timeout
-        if (this.window && !this.window.isDestroyed()) {
-          this.window.webContents.send("agent:event", {
-            type: "tool_timeout",
-            toolName,
-            toolCallId,
-            message: `工具 ${toolName} 执行超时，正在尝试其他方法...`,
-          });
-        }
-
         // Abort current operation and tell agent to try another approach
         await this.abortAndRetry(toolName);
       }, TOOL_TIMEOUT_MS);
