@@ -13,7 +13,7 @@ const config: ForgeConfig = {
     extraResource: ["../skills", "../memory", "../.pi/extensions", "./.env.bundled"],
   },
   makers: [
-    new MakerZIP({}, ["darwin", "win32"]),
+    new MakerZIP({}, ["darwin", "win32", "linux"]),
     new MakerDMG({ format: "ULFO" }),
     new MakerSquirrel({ name: "dashixiong" }),
   ],
