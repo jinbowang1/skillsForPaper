@@ -14,3 +14,5 @@ electron/node_modules/
 electron/dist/
 electron/.vite/
 electron/out/
+electron/.env.bundled
+mammoth/
