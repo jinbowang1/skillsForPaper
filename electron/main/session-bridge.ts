@@ -7,6 +7,9 @@ import { installGlobalBridge, setWindow as setDecisionWindow } from "./decision-
 import type { BookshelfWatcher } from "./bookshelf-watcher.js";
 import { trackEvent } from "./usage-tracker.js";
 
+// Tool execution timeout in milliseconds (5 minutes)
+const TOOL_TIMEOUT_MS = 5 * 60 * 1000;
+
 export class SessionBridge {
   private window: BrowserWindow;
   private session: any = null;
@@ -14,6 +17,8 @@ export class SessionBridge {
   private isStreaming = false;
   private logger: any = logger;
   private bookshelfWatcher: BookshelfWatcher | null = null;
+  // Track active tool executions for timeout handling
+  private activeToolTimers: Map<string, NodeJS.Timeout> = new Map();
 
   constructor(window: BrowserWindow) {
     this.window = window;
@@ -264,17 +269,58 @@ export class SessionBridge {
       this.window.webContents.send("agent:state-change", this.buildStatePayload("working"));
     } else if (event.type === "agent_end") {
       this.isStreaming = false;
+      this.clearAllToolTimers();
       this.window.webContents.send("agent:state-change", this.buildStatePayload("idle"));
     }
 
-    // Detect file writes to mark active file in bookshelf
-    if (event.type === "tool_execution_end" && this.bookshelfWatcher) {
-      const toolName = (event.toolName || "").toLowerCase();
-      if (toolName === "write" || toolName === "edit") {
-        const args = event.args || {};
-        const filePath = args.file_path || args.path || "";
-        if (filePath && filePath.startsWith(OUTPUT_DIR)) {
-          this.bookshelfWatcher.setActiveFile(filePath);
+    // Tool execution timeout handling
+    if (event.type === "tool_execution_start") {
+      const toolCallId = event.toolCallId || event.id || `tool-${Date.now()}`;
+      const toolName = event.toolName || "unknown";
+      this.logger.info(`[timeout] Tool started: ${toolName} (${toolCallId})`);
+
+      // Clear any existing timer for this tool
+      if (this.activeToolTimers.has(toolCallId)) {
+        clearTimeout(this.activeToolTimers.get(toolCallId));
+      }
+
+      // Set timeout timer
+      const timer = setTimeout(() => {
+        this.logger.warn(`[timeout] Tool ${toolName} (${toolCallId}) exceeded ${TOOL_TIMEOUT_MS / 1000}s, aborting...`);
+        this.activeToolTimers.delete(toolCallId);
+        // Notify user about the timeout
+        if (this.window && !this.window.isDestroyed()) {
+          this.window.webContents.send("agent:event", {
+            type: "tool_timeout",
+            toolName,
+            toolCallId,
+            message: `工具 ${toolName} 执行超时（超过5分钟），已自动中断`,
+          });
+        }
+        // Abort the session
+        this.abort();
+      }, TOOL_TIMEOUT_MS);
+
+      this.activeToolTimers.set(toolCallId, timer);
+    }
+
+    if (event.type === "tool_execution_end") {
+      const toolCallId = event.toolCallId || event.id;
+      if (toolCallId && this.activeToolTimers.has(toolCallId)) {
+        clearTimeout(this.activeToolTimers.get(toolCallId));
+        this.activeToolTimers.delete(toolCallId);
+        this.logger.info(`[timeout] Tool completed: ${event.toolName || "unknown"} (${toolCallId})`);
+      }
+
+      // Detect file writes to mark active file in bookshelf
+      if (this.bookshelfWatcher) {
+        const toolName = (event.toolName || "").toLowerCase();
+        if (toolName === "write" || toolName === "edit") {
+          const args = event.args || {};
+          const filePath = args.file_path || args.path || "";
+          if (filePath && filePath.startsWith(OUTPUT_DIR)) {
+            this.bookshelfWatcher.setActiveFile(filePath);
+          }
         }
       }
     }
@@ -321,14 +367,27 @@ export class SessionBridge {
 
   private resetStreamingState() {
     this.isStreaming = false;
+    this.clearAllToolTimers();
     if (this.window && !this.window.isDestroyed()) {
       this.window.webContents.send("agent:state-change", this.buildStatePayload("error"));
+    }
+  }
+
+  private clearAllToolTimers() {
+    if (this.activeToolTimers.size > 0) {
+      this.logger.info(`[timeout] Clearing ${this.activeToolTimers.size} active tool timer(s)`);
+      for (const timer of this.activeToolTimers.values()) {
+        clearTimeout(timer);
+      }
+      this.activeToolTimers.clear();
     }
   }
 
   async abort() {
     if (!this.session) return;
     this.logger.info("[abort] User requested abort");
+    // Clear all tool timers first
+    this.clearAllToolTimers();
     try {
       await this.session.abort();
       this.logger.info("[abort] Session abort completed");

@@ -4,6 +4,7 @@ import {
   generateMsgId,
   type ContentBlock,
 } from "../stores/session-store";
+import { useToastStore } from "../stores/toast-store";
 import { parseAgentEvent } from "../utils/message-parser";
 
 export function useAgentEvents() {
@@ -19,6 +20,12 @@ export function useAgentEvents() {
 
   useEffect(() => {
     const unsubEvent = window.api.onAgentEvent((event: any) => {
+      // Handle tool timeout event
+      if (event.type === "tool_timeout") {
+        useToastStore.getState().addToast(event.message || "工具执行超时，已自动中断");
+        return;
+      }
+
       const parsed = parseAgentEvent(event);
       if (!parsed) return;
 
