@@ -16,6 +16,10 @@
 
 .update-banner span { flex: 1; }
 
+:root[data-platform="win32"] .update-banner {
+  padding-right: 140px;
+}
+
 .update-btn {
   -webkit-app-region: no-drag;
   padding: 2px 10px;
@@ -694,42 +698,12 @@
 }
 
 /* ============================================
-   Window Controls (Windows only)
+   Windows titleBarOverlay — reserve space for native controls
    ============================================ */
-.window-controls {
-  position: absolute;
-  right: 0;
-  top: 0;
-  display: flex;
-  height: var(--titlebar-height);
-  -webkit-app-region: no-drag;
-  z-index: 20;
-}
-
-.window-control-btn {
-  width: 46px;
-  height: var(--titlebar-height);
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--duration-fast), color var(--duration-fast);
-  font-family: var(--font-sans);
-}
-
-.window-control-btn:hover {
-  background: var(--overlay-hover);
-}
-
-.window-control-btn.close:hover {
-  background: var(--red);
-  color: var(--text-on-accent);
-}
-
-/* Shift model-selector right on Windows to avoid overlapping window controls */
 :root[data-platform="win32"] .model-selector {
-  right: calc(46px * 3 + var(--space-5));
+  right: calc(140px + var(--space-3));
+}
+
+:root[data-platform="win32"] .chat-header {
+  padding-right: 140px;
 }

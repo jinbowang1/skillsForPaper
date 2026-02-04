@@ -23,6 +23,12 @@
   flex-shrink: 0;
 }
 
+/* On Windows, ensure interactive elements in sidebar titlebar are clickable */
+:root[data-platform="win32"] .desk-titlebar button,
+:root[data-platform="win32"] .desk-titlebar a {
+  -webkit-app-region: no-drag;
+}
+
 .desk-title {
   font-size: 13px;
   font-weight: 600;

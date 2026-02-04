@@ -48,7 +48,8 @@ export class VoiceHandler {
   isAvailable(): boolean {
     if (!this.apiKey) return false;
     try {
-      execSync("which rec", { stdio: "ignore" });
+      const cmd = process.platform === "win32" ? "where rec" : "which rec";
+      execSync(cmd, { stdio: "ignore" });
       return true;
     } catch {
       return false;
@@ -65,9 +66,13 @@ export class VoiceHandler {
     }
 
     try {
-      execSync("which rec", { stdio: "ignore" });
+      const cmd = process.platform === "win32" ? "where rec" : "which rec";
+      execSync(cmd, { stdio: "ignore" });
     } catch {
-      return { ok: false, error: "SoX not installed. Run: brew install sox" };
+      const hint = process.platform === "win32"
+        ? "SoX not installed. Download from https://sox.sourceforge.net/ and add to PATH"
+        : "SoX not installed. Run: brew install sox";
+      return { ok: false, error: hint };
     }
 
     this.completedTexts = [];
@@ -209,7 +214,7 @@ export class VoiceHandler {
       sampleRate: DEFAULT_CONFIG.sampleRate,
       channels: 1,
       audioType: "raw",
-      recorder: "rec",
+      recorder: process.platform === "win32" ? "sox" : "rec",
     });
 
     const stream: Readable = recording.stream();

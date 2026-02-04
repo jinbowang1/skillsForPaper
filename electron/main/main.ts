@@ -50,6 +50,11 @@ function createWindow() {
     windowOptions.vibrancy = "under-window";
   } else {
     windowOptions.frame = false;
+    windowOptions.titleBarOverlay = {
+      color: "#000000",
+      symbolColor: "#ffffff",
+      height: 40,
+    };
   }
 
   mainWindow = new BrowserWindow(windowOptions);

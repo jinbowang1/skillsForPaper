@@ -31,8 +31,8 @@
 
   --separator: rgba(84, 84, 88, 0.6);
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro", system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  --font-mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI Variable", system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: "SF Mono", SFMono-Regular, "Cascadia Code", ui-monospace, Menlo, Monaco, Consolas, monospace;
 
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
   --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
@@ -143,5 +143,5 @@
    Platform: Windows titlebar height
    ============================================ */
 :root[data-platform="win32"] {
-  --titlebar-height: 32px;
+  --titlebar-height: 40px;
 }
