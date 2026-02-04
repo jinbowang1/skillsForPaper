@@ -15,4 +15,6 @@ electron/dist/
 electron/.vite/
 electron/out/
 electron/.env.bundled
-mammoth/
+docs/downloads/*.zip
+docs/downloads/*.dmg
+docs/downloads/*.exe

@@ -13,7 +13,15 @@ const config: ForgeConfig = {
     executableName: "dashixiong",
     asar: false,
     icon: "./assets/icon",
-    extraResource: ["../skills", "../memory", "../.pi/extensions", "./.env.bundled"],
+    extraResource: ["../skills", "../memory", "../.pi/extensions", "./.env.bundled", "./tools/sox-win32"],
+    osxSign: {},
+    ...(process.env.APPLE_ID && process.env.APPLE_ID_PASSWORD && {
+      osxNotarize: {
+        appleId: process.env.APPLE_ID,
+        appleIdPassword: process.env.APPLE_ID_PASSWORD,
+        teamId: process.env.APPLE_TEAM_ID || "7P3NKWKF4K",
+      },
+    }),
   },
   hooks: {
     postPackage: async (_config, options) => {

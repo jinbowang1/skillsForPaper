@@ -14,7 +14,8 @@ export interface RecorderHandle {
 
 export function isSoxInstalled(): boolean {
   try {
-    execSync("which rec", { stdio: "ignore" });
+    const cmd = process.platform === "win32" ? "where sox" : "which rec";
+    execSync(cmd, { stdio: "ignore" });
     return true;
   } catch {
     return false;

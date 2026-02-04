@@ -1,0 +1,14 @@
+# Dynamic-CTDR configuration
+model: dynamic_ctdr
+dataset: seq-cifar100
+backbone: resnet18
+n_epochs: 10
+batch_size: 32
+lr: 0.01
+optim_wd: 0.0001
+optim_mom: 0.9
+lr_scheduler: cosine
+
+# Dynamic-CTDR specific parameters
+e_lambda: 1000.0
+alpha: 0.1

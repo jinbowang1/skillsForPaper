@@ -190,14 +190,14 @@ export class SessionBridge {
     this.session = session;
     this.logger.info(`Electron session created: ${session.sessionId}`);
 
-    // Default to MiniMax for mainland China users (no VPN needed)
+    // Default to Claude Opus 4.5 (best skill-following capability)
     try {
-      const minimaxModel = this.modelRegistry.getAll().find(
-        (m: any) => m.provider === "minimax" && m.id.startsWith("MiniMax-M2.1")
+      const claudeModel = this.modelRegistry.getAll().find(
+        (m: any) => m.provider === "anthropic" && m.id.startsWith("claude-opus-4-5")
       );
-      if (minimaxModel) {
-        await session.setModel(minimaxModel);
-        this.logger.info(`[models] Default model set to minimax/${minimaxModel.id}`);
+      if (claudeModel) {
+        await session.setModel(claudeModel);
+        this.logger.info(`[models] Default model set to anthropic/${claudeModel.id}`);
       }
     } catch (err) {
       this.logger.warn(`[models] Failed to set default model: ${err}`);
@@ -257,7 +257,8 @@ export class SessionBridge {
         ? JSON.stringify(msg.content).slice(0, 300)
         : "no-content";
       const stopReason = msg?.stop_reason || msg?.stopReason || "none";
-      this.logger.info(`[event] ${event.type} stop=${stopReason} content=${contentSummary}`);
+      const errMsg = msg?.errorMessage ? ` error="${msg.errorMessage}"` : "";
+      this.logger.info(`[event] ${event.type} stop=${stopReason}${errMsg} content=${contentSummary}`);
     } else if (event.type === "auto_retry_start" || event.type === "auto_retry_end") {
       this.logger.info(`[event] ${event.type} reason=${event.reason || "unknown"}`);
     } else {

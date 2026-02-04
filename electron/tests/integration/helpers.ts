@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 
 const MAIN_JS = path.join(__dirname, "../../.vite/build/main.js");
-const OUTPUT_DIR = "/Users/wangjinbo/Desktop/skillsForPaper/output";
+const OUTPUT_DIR = path.resolve(__dirname, "../../../output");
 
 /** Default non-Claude model. MiniMax is free tier. Override via TEST_MODEL env var. */
 const DEFAULT_MODEL = process.env.TEST_MODEL ?? "MiniMax-M2.1";
@@ -69,6 +69,16 @@ export async function launchApp(): Promise<{
     await page.screenshot({ path: "/tmp/integration-debug.png" }).catch(() => {});
     throw err;
   }
+
+  // Dismiss onboarding overlay if present (blocks pointer events on first run)
+  const onboarding = page.locator(".onboarding-overlay");
+  if (await onboarding.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await page.evaluate(() => localStorage.setItem("onboarding_seen", "1"));
+    await page.reload();
+    await page.waitForLoadState("domcontentloaded");
+    await page.locator("textarea").waitFor({ state: "visible", timeout: 30_000 });
+  }
+
   return { app, page };
 }
 
@@ -163,25 +173,56 @@ export function cleanOutput(dir: string = OUTPUT_DIR): void {
 /**
  * Wait for the agent to finish streaming (the send button with ArrowUp reappears,
  * meaning isStreaming is false and textarea is enabled again).
+ *
+ * Two-phase detection:
+ *   Phase 1 — wait for streaming to START (textarea becomes disabled).
+ *             Caps at 60s. Fixes race with slow-starting models (e.g. Qwen3)
+ *             whose API takes >3s to respond.
+ *   Phase 2 — wait for streaming to END (textarea enabled + no stop button).
  */
 export async function waitForIdle(
   page: Page,
   timeout = 240_000
 ): Promise<void> {
   const start = Date.now();
-  // First, wait a moment for streaming to actually begin
-  await sleep(3_000);
 
+  // ── Phase 1: wait for streaming to begin ──
+  let sawBusy = false;
+  const phase1Deadline = start + Math.min(60_000, timeout);
+  while (Date.now() < phase1Deadline) {
+    try {
+      const disabled = await page.locator("textarea").getAttribute("disabled");
+      if (disabled !== null) {
+        sawBusy = true;
+        break;
+      }
+    } catch {
+      // ignore transient errors
+    }
+    await sleep(500);
+  }
+
+  if (!sawBusy) {
+    console.warn("waitForIdle: streaming never started within 60s");
+  }
+
+  // ── Phase 2: wait for idle ──
   while (Date.now() - start < timeout) {
     try {
-      // When idle, the textarea is enabled and the send button has the ArrowUp icon
-      // (not the Square/stop icon). Check that textarea is not disabled.
       const disabled = await page.locator("textarea").getAttribute("disabled");
       if (disabled === null) {
-        // Double-check: the stop button (red square) should not be visible
+        // Textarea is enabled — check stop button is also gone
         const stopBtn = page.locator("button.circle-btn.send[style*='red']");
         const stopVisible = await stopBtn.isVisible().catch(() => false);
-        if (!stopVisible) return;
+        if (!stopVisible) {
+          // Only return idle if we previously saw the model busy,
+          // or we've waited past the phase-1 deadline (model may have
+          // responded instantly or failed silently).
+          if (sawBusy || Date.now() - start > 60_000) return;
+        }
+      } else {
+        // Textarea is disabled — model is working
+        sawBusy = true;
       }
     } catch {
       // ignore transient errors

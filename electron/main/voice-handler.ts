@@ -2,6 +2,8 @@ import { BrowserWindow } from "electron";
 import { EventEmitter } from "events";
 import { execSync } from "child_process";
 import { createRequire } from "module";
+import * as path from "path";
+import * as fs from "fs";
 import WebSocket from "ws";
 import type { Readable } from "stream";
 
@@ -45,11 +47,22 @@ export class VoiceHandler {
     return process.env.DASHSCOPE_API_KEY || "";
   }
 
+  private getSoxDir(): string | null {
+    if (process.platform !== "win32") return null;
+    const dir = path.join(process.resourcesPath, "sox-win32");
+    return fs.existsSync(dir) ? dir : null;
+  }
+
   isAvailable(): boolean {
     if (!this.apiKey) return false;
     try {
-      const cmd = process.platform === "win32" ? "where rec" : "which rec";
-      execSync(cmd, { stdio: "ignore" });
+      if (process.platform === "win32") {
+        const soxDir = this.getSoxDir();
+        if (soxDir && fs.existsSync(path.join(soxDir, "sox.exe"))) return true;
+        execSync("where sox", { stdio: "ignore" });
+      } else {
+        execSync("which rec", { stdio: "ignore" });
+      }
       return true;
     } catch {
       return false;
@@ -66,11 +79,17 @@ export class VoiceHandler {
     }
 
     try {
-      const cmd = process.platform === "win32" ? "where rec" : "which rec";
-      execSync(cmd, { stdio: "ignore" });
+      if (process.platform === "win32") {
+        const soxDir = this.getSoxDir();
+        if (!(soxDir && fs.existsSync(path.join(soxDir, "sox.exe")))) {
+          execSync("where sox", { stdio: "ignore" });
+        }
+      } else {
+        execSync("which rec", { stdio: "ignore" });
+      }
     } catch {
       const hint = process.platform === "win32"
-        ? "SoX not installed. Download from https://sox.sourceforge.net/ and add to PATH"
+        ? "SoX not found. Place sox.exe in the sox-win32 resource folder, or install SoX and add it to PATH"
         : "SoX not installed. Run: brew install sox";
       return { ok: false, error: hint };
     }
@@ -207,6 +226,11 @@ export class VoiceHandler {
   }
 
   private startRecording(): void {
+    const soxDir = this.getSoxDir();
+    if (soxDir) {
+      process.env.PATH = soxDir + path.delimiter + (process.env.PATH || "");
+    }
+
     const require_ = createRequire(import.meta.url);
     const { record } = require_("node-record-lpcm16") as any;
 

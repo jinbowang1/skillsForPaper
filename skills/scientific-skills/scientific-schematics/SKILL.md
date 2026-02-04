@@ -1,6 +1,6 @@
 ---
 name: scientific-schematics
-description: Create publication-quality scientific diagrams using Nano Banana Pro AI with smart iterative refinement. Uses Gemini 3 Pro for quality review. Only regenerates if quality is below threshold for your document type. Specialized in neural network architectures, system diagrams, flowcharts, biological pathways, and complex scientific visualizations.
+description: Create publication-quality scientific diagrams using code-based tools (matplotlib, plotly, LaTeX TikZ). Specialized in neural network architectures, system diagrams, flowcharts, biological pathways, and complex scientific visualizations.
 allowed-tools: [Read, Write, Edit, Bash]
 license: MIT license
 metadata:
@@ -11,74 +11,103 @@ metadata:
 
 ## Overview
 
-Scientific schematics and diagrams transform complex concepts into clear visual representations for publication. **This skill uses Nano Banana Pro AI for diagram generation with Gemini 3 Pro quality review.**
+Scientific schematics and diagrams transform complex concepts into clear visual representations for publication. **This skill uses code-based tools -- matplotlib, plotly, and LaTeX TikZ -- to create fully reproducible, editable, publication-quality diagrams.**
 
 **How it works:**
-- Describe your diagram in natural language
-- Nano Banana Pro generates publication-quality images automatically
-- **Gemini 3 Pro reviews quality** against document-type thresholds
-- **Smart iteration**: Only regenerates if quality is below threshold
-- Publication-ready output in minutes
-- No coding, templates, or manual drawing required
+- Choose the right tool for your diagram type (matplotlib, plotly, or TikZ)
+- Build diagrams programmatically with precise control over layout, labels, and styling
+- All output is fully reproducible and version-controllable
+- Publication-ready output with professional typography, colorblind-safe palettes, and proper formatting
 
-**Quality Thresholds by Document Type:**
-| Document Type | Threshold | Description |
-|---------------|-----------|-------------|
-| journal | 8.5/10 | Nature, Science, peer-reviewed journals |
-| conference | 8.0/10 | Conference papers |
-| thesis | 8.0/10 | Dissertations, theses |
-| grant | 8.0/10 | Grant proposals |
-| preprint | 7.5/10 | arXiv, bioRxiv, etc. |
-| report | 7.5/10 | Technical reports |
-| poster | 7.0/10 | Academic posters |
-| presentation | 6.5/10 | Slides, talks |
-| default | 7.5/10 | General purpose |
+All diagrams are stored in the figures/ subfolder and referenced in papers/posters.
 
-**Simply describe what you want, and Nano Banana Pro creates it.** All diagrams are stored in the figures/ subfolder and referenced in papers/posters.
+## Quick Start: Code-Based Diagram Examples
 
-## Quick Start: Generate Any Diagram
+### Matplotlib: Flowchart
 
-Create any scientific diagram by simply describing it. Nano Banana Pro handles everything automatically with **smart iteration**:
+```python
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
-```bash
-# Generate for journal paper (highest quality threshold: 8.5/10)
-python scripts/generate_schematic.py "CONSORT participant flow diagram with 500 screened, 150 excluded, 350 randomized" -o figures/consort.png --doc-type journal
+fig, ax = plt.subplots(figsize=(8, 10))
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 12)
+ax.axis('off')
 
-# Generate for presentation (lower threshold: 6.5/10 - faster)
-python scripts/generate_schematic.py "Transformer encoder-decoder architecture showing multi-head attention" -o figures/transformer.png --doc-type presentation
+# Draw boxes
+boxes = [
+    (5, 11, "Assessed for eligibility\n(n=500)", "#4E79A7"),
+    (5, 8.5, "Randomized\n(n=350)", "#4E79A7"),
+    (3, 6, "Treatment\n(n=175)", "#59A14F"),
+    (7, 6, "Control\n(n=175)", "#59A14F"),
+]
+for x, y, label, color in boxes:
+    box = mpatches.FancyBboxPatch((x-1.3, y-0.6), 2.6, 1.2,
+        boxstyle="round,pad=0.1", facecolor=color, edgecolor="black", alpha=0.8)
+    ax.add_patch(box)
+    ax.text(x, y, label, ha='center', va='center', fontsize=10, color='white', fontweight='bold')
 
-# Generate for poster (moderate threshold: 7.0/10)
-python scripts/generate_schematic.py "MAPK signaling pathway from EGFR to gene transcription" -o figures/mapk_pathway.png --doc-type poster
+# Draw arrows
+ax.annotate('', xy=(5, 9.1), xytext=(5, 10.4), arrowprops=dict(arrowstyle='->', lw=1.5))
+ax.annotate('', xy=(3, 6.6), xytext=(4.2, 7.9), arrowprops=dict(arrowstyle='->', lw=1.5))
+ax.annotate('', xy=(7, 6.6), xytext=(5.8, 7.9), arrowprops=dict(arrowstyle='->', lw=1.5))
 
-# Custom max iterations (max 2)
-python scripts/generate_schematic.py "Complex circuit diagram with op-amp, resistors, and capacitors" -o figures/circuit.png --iterations 2 --doc-type journal
+plt.savefig("figures/consort.png", dpi=300, bbox_inches='tight')
 ```
 
-**What happens behind the scenes:**
-1. **Generation 1**: Nano Banana Pro creates initial image following scientific diagram best practices
-2. **Review 1**: **Gemini 3 Pro** evaluates quality against document-type threshold
-3. **Decision**: If quality >= threshold → **DONE** (no more iterations needed!)
-4. **If below threshold**: Improved prompt based on critique, regenerate
-5. **Repeat**: Until quality meets threshold OR max iterations reached
+### Plotly: Network Diagram
 
-**Smart Iteration Benefits:**
-- ✅ Saves API calls if first generation is good enough
-- ✅ Higher quality standards for journal papers
-- ✅ Faster turnaround for presentations/posters
-- ✅ Appropriate quality for each use case
+```python
+import plotly.graph_objects as go
+import networkx as nx
 
-**Output**: Versioned images plus a detailed review log with quality scores, critiques, and early-stop information.
+G = nx.DiGraph()
+G.add_edges_from([("Input", "Encoder"), ("Encoder", "Attention"), ("Attention", "Decoder"), ("Decoder", "Output")])
+pos = nx.spring_layout(G, seed=42)
 
-### Configuration
+edge_x, edge_y = [], []
+for u, v in G.edges():
+    x0, y0 = pos[u]
+    x1, y1 = pos[v]
+    edge_x += [x0, x1, None]
+    edge_y += [y0, y1, None]
 
-Set your OpenRouter API key:
-```bash
-export OPENROUTER_API_KEY='your_api_key_here'
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=edge_x, y=edge_y, mode='lines', line=dict(width=2, color='#888')))
+fig.add_trace(go.Scatter(
+    x=[pos[n][0] for n in G.nodes()], y=[pos[n][1] for n in G.nodes()],
+    mode='markers+text', text=list(G.nodes()), textposition='top center',
+    marker=dict(size=20, color='#4E79A7')))
+fig.update_layout(showlegend=False)
+fig.write_image("figures/network.png", scale=3)
 ```
 
-Get an API key at: https://openrouter.ai/keys
+### LaTeX TikZ: Publication Diagram
 
-### AI Generation Best Practices
+```latex
+\documentclass[border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+\begin{document}
+\begin{tikzpicture}[
+    block/.style={rectangle, draw, rounded corners, minimum width=2.5cm, minimum height=1cm, fill=blue!20, font=\sffamily},
+    arrow/.style={-{Stealth[length=3mm]}, thick}
+]
+\node[block] (input) {Input};
+\node[block, right=2cm of input] (encoder) {Encoder};
+\node[block, right=2cm of encoder] (decoder) {Decoder};
+\node[block, right=2cm of decoder] (output) {Output};
+
+\draw[arrow] (input) -- (encoder);
+\draw[arrow] (encoder) -- (decoder);
+\draw[arrow] (decoder) -- (output);
+\end{tikzpicture}
+\end{document}
+```
+
+Compile with: `pdflatex diagram.tex`
+
+### Diagram Best Practices
 
 **Effective Prompts for Scientific Diagrams:**
 
@@ -122,303 +151,44 @@ This skill should be used when:
 - Illustrating conceptual frameworks and theoretical models
 - Designing block diagrams for technical papers
 
+## How to Use: Code-Based Diagram Tools
+
+> **HARD RULE**: You MUST use the code-based diagram tools below to create scientific diagrams. Always use the appropriate tool for the diagram type.
+
+**Available tools:**
+
+1. **`matplotlib`** -- Use matplotlib patches, arrows, annotations, and FancyBboxPatch to draw flowcharts, block diagrams, neural network architectures, and process diagrams programmatically. Best for diagrams with boxes, arrows, and layered layouts.
+2. **`plotly`** -- Use Plotly's network graphs and shape annotations for interactive architecture diagrams, network topologies, and flow diagrams. Best for graphs with nodes and edges, or when interactive output is desired.
+3. **LaTeX TikZ** -- Generate publication-quality schematics using TikZ code (compile with pdflatex). Best for highly precise, journal-ready diagrams with fine typographic control, circuit diagrams, and complex mathematical notation.
+
+**Guidelines:**
+- Code-generated diagrams are fully reproducible and editable
+- Choose the tool that best matches the diagram type and the user's needs
+- Combine tools if needed (e.g., matplotlib for the figure, TikZ for the final polished version)
+
 ## How to Use This Skill
 
-**Simply describe your diagram in natural language.** Nano Banana Pro generates it automatically:
+**Describe the diagram you need, and the skill will generate code using the appropriate tool.**
 
-```bash
-python scripts/generate_schematic.py "your diagram description" -o output.png
-```
+**Choose the right tool for your diagram:**
 
-**That's it!** The AI handles:
-- ✓ Layout and composition
-- ✓ Labels and annotations
-- ✓ Colors and styling
-- ✓ Quality review and refinement
-- ✓ Publication-ready output
+| Diagram Type | Recommended Tool | Why |
+|---|---|---|
+| Flowcharts (CONSORT, PRISMA) | matplotlib | Precise box/arrow placement with FancyBboxPatch |
+| Neural network architectures | matplotlib or TikZ | Layered layouts with detailed annotations |
+| Biological pathways | matplotlib | Curved arrows, protein shapes, membrane boundaries |
+| Network topologies | plotly | Node-edge graphs with NetworkX integration |
+| Circuit diagrams | TikZ | Precise component placement and engineering notation |
+| System architectures | matplotlib or plotly | Block diagrams with labeled connections |
+| Publication-quality figures | TikZ | Fine typographic control, vector output |
 
-**Works for all diagram types:**
-- Flowcharts (CONSORT, PRISMA, etc.)
-- Neural network architectures
-- Biological pathways
-- Circuit diagrams
-- System architectures
-- Block diagrams
-- Any scientific visualization
-
-**No coding, no templates, no manual drawing required.**
+**The skill handles:**
+- Layout and composition using code-based positioning
+- Labels and annotations with professional typography
+- Colors and styling using colorblind-safe palettes
+- Vector and high-DPI raster output for publication
 
 ---
-
-# AI Generation Mode (Nano Banana Pro + Gemini 3 Pro Review)
-
-## Smart Iterative Refinement Workflow
-
-The AI generation system uses **smart iteration** - it only regenerates if quality is below the threshold for your document type:
-
-### How Smart Iteration Works
-
-```
-┌─────────────────────────────────────────────────────┐
-│  1. Generate image with Nano Banana Pro             │
-│                    ↓                                │
-│  2. Review quality with Gemini 3 Pro                │
-│                    ↓                                │
-│  3. Score >= threshold?                             │
-│       YES → DONE! (early stop)                      │
-│       NO  → Improve prompt, go to step 1            │
-│                    ↓                                │
-│  4. Repeat until quality met OR max iterations      │
-└─────────────────────────────────────────────────────┘
-```
-
-### Iteration 1: Initial Generation
-**Prompt Construction:**
-```
-Scientific diagram guidelines + User request
-```
-
-**Output:** `diagram_v1.png`
-
-### Quality Review by Gemini 3 Pro
-
-Gemini 3 Pro evaluates the diagram on:
-1. **Scientific Accuracy** (0-2 points) - Correct concepts, notation, relationships
-2. **Clarity and Readability** (0-2 points) - Easy to understand, clear hierarchy
-3. **Label Quality** (0-2 points) - Complete, readable, consistent labels
-4. **Layout and Composition** (0-2 points) - Logical flow, balanced, no overlaps
-5. **Professional Appearance** (0-2 points) - Publication-ready quality
-
-**Example Review Output:**
-```
-SCORE: 8.0
-
-STRENGTHS:
-- Clear flow from top to bottom
-- All phases properly labeled
-- Professional typography
-
-ISSUES:
-- Participant counts slightly small
-- Minor overlap on exclusion box
-
-VERDICT: ACCEPTABLE (for poster, threshold 7.0)
-```
-
-### Decision Point: Continue or Stop?
-
-| If Score... | Action |
-|-------------|--------|
-| >= threshold | **STOP** - Quality is good enough for this document type |
-| < threshold | Continue to next iteration with improved prompt |
-
-**Example:**
-- For a **poster** (threshold 7.0): Score of 7.5 → **DONE after 1 iteration!**
-- For a **journal** (threshold 8.5): Score of 7.5 → Continue improving
-
-### Subsequent Iterations (Only If Needed)
-
-If quality is below threshold, the system:
-1. Extracts specific issues from Gemini 3 Pro's review
-2. Enhances the prompt with improvement instructions
-3. Regenerates with Nano Banana Pro
-4. Reviews again with Gemini 3 Pro
-5. Repeats until threshold met or max iterations reached
-
-### Review Log
-All iterations are saved with a JSON review log that includes early-stop information:
-```json
-{
-  "user_prompt": "CONSORT participant flow diagram...",
-  "doc_type": "poster",
-  "quality_threshold": 7.0,
-  "iterations": [
-    {
-      "iteration": 1,
-      "image_path": "figures/consort_v1.png",
-      "score": 7.5,
-      "needs_improvement": false,
-      "critique": "SCORE: 7.5\nSTRENGTHS:..."
-    }
-  ],
-  "final_score": 7.5,
-  "early_stop": true,
-  "early_stop_reason": "Quality score 7.5 meets threshold 7.0 for poster"
-}
-```
-
-**Note:** With smart iteration, you may see only 1 iteration instead of the full 2 if quality is achieved early!
-
-## Advanced AI Generation Usage
-
-### Python API
-
-```python
-from scripts.generate_schematic_ai import ScientificSchematicGenerator
-
-# Initialize generator
-generator = ScientificSchematicGenerator(
-    api_key="your_openrouter_key",
-    verbose=True
-)
-
-# Generate with iterative refinement (max 2 iterations)
-results = generator.generate_iterative(
-    user_prompt="Transformer architecture diagram",
-    output_path="figures/transformer.png",
-    iterations=2
-)
-
-# Access results
-print(f"Final score: {results['final_score']}/10")
-print(f"Final image: {results['final_image']}")
-
-# Review individual iterations
-for iteration in results['iterations']:
-    print(f"Iteration {iteration['iteration']}: {iteration['score']}/10")
-    print(f"Critique: {iteration['critique']}")
-```
-
-### Command-Line Options
-
-```bash
-# Basic usage (default threshold 7.5/10)
-python scripts/generate_schematic.py "diagram description" -o output.png
-
-# Specify document type for appropriate quality threshold
-python scripts/generate_schematic.py "diagram" -o out.png --doc-type journal      # 8.5/10
-python scripts/generate_schematic.py "diagram" -o out.png --doc-type conference   # 8.0/10
-python scripts/generate_schematic.py "diagram" -o out.png --doc-type poster       # 7.0/10
-python scripts/generate_schematic.py "diagram" -o out.png --doc-type presentation # 6.5/10
-
-# Custom max iterations (1-2)
-python scripts/generate_schematic.py "complex diagram" -o diagram.png --iterations 2
-
-# Verbose output (see all API calls and reviews)
-python scripts/generate_schematic.py "flowchart" -o flow.png -v
-
-# Provide API key via flag
-python scripts/generate_schematic.py "diagram" -o out.png --api-key "sk-or-v1-..."
-
-# Combine options
-python scripts/generate_schematic.py "neural network" -o nn.png --doc-type journal --iterations 2 -v
-```
-
-### Prompt Engineering Tips
-
-**1. Be Specific About Layout:**
-```
-✓ "Flowchart with vertical flow, top to bottom"
-✓ "Architecture diagram with encoder on left, decoder on right"
-✓ "Circular pathway diagram with clockwise flow"
-```
-
-**2. Include Quantitative Details:**
-```
-✓ "Neural network with input layer (784 nodes), hidden layer (128 nodes), output (10 nodes)"
-✓ "Flowchart showing n=500 screened, n=150 excluded, n=350 randomized"
-✓ "Circuit with 1kΩ resistor, 10µF capacitor, 5V source"
-```
-
-**3. Specify Visual Style:**
-```
-✓ "Minimalist block diagram with clean lines"
-✓ "Detailed biological pathway with protein structures"
-✓ "Technical schematic with engineering notation"
-```
-
-**4. Request Specific Labels:**
-```
-✓ "Label all arrows with activation/inhibition"
-✓ "Include layer dimensions in each box"
-✓ "Show time progression with timestamps"
-```
-
-**5. Mention Color Requirements:**
-```
-✓ "Use colorblind-friendly colors"
-✓ "Grayscale-compatible design"
-✓ "Color-code by function: blue for input, green for processing, red for output"
-```
-
-## AI Generation Examples
-
-### Example 1: CONSORT Flowchart
-```bash
-python scripts/generate_schematic.py \
-  "CONSORT participant flow diagram for randomized controlled trial. \
-   Start with 'Assessed for eligibility (n=500)' at top. \
-   Show 'Excluded (n=150)' with reasons: age<18 (n=80), declined (n=50), other (n=20). \
-   Then 'Randomized (n=350)' splits into two arms: \
-   'Treatment group (n=175)' and 'Control group (n=175)'. \
-   Each arm shows 'Lost to follow-up' (n=15 and n=10). \
-   End with 'Analyzed' (n=160 and n=165). \
-   Use blue boxes for process steps, orange for exclusion, green for final analysis." \
-  -o figures/consort.png
-```
-
-### Example 2: Neural Network Architecture
-```bash
-python scripts/generate_schematic.py \
-  "Transformer encoder-decoder architecture diagram. \
-   Left side: Encoder stack with input embedding, positional encoding, \
-   multi-head self-attention, add & norm, feed-forward, add & norm. \
-   Right side: Decoder stack with output embedding, positional encoding, \
-   masked self-attention, add & norm, cross-attention (receiving from encoder), \
-   add & norm, feed-forward, add & norm, linear & softmax. \
-   Show cross-attention connection from encoder to decoder with dashed line. \
-   Use light blue for encoder, light red for decoder. \
-   Label all components clearly." \
-  -o figures/transformer.png --iterations 2
-```
-
-### Example 3: Biological Pathway
-```bash
-python scripts/generate_schematic.py \
-  "MAPK signaling pathway diagram. \
-   Start with EGFR receptor at cell membrane (top). \
-   Arrow down to RAS (with GTP label). \
-   Arrow to RAF kinase. \
-   Arrow to MEK kinase. \
-   Arrow to ERK kinase. \
-   Final arrow to nucleus showing gene transcription. \
-   Label each arrow with 'phosphorylation' or 'activation'. \
-   Use rounded rectangles for proteins, different colors for each. \
-   Include membrane boundary line at top." \
-  -o figures/mapk_pathway.png
-```
-
-### Example 4: System Architecture
-```bash
-python scripts/generate_schematic.py \
-  "IoT system architecture block diagram. \
-   Bottom layer: Sensors (temperature, humidity, motion) in green boxes. \
-   Middle layer: Microcontroller (ESP32) in blue box. \
-   Connections to WiFi module (orange box) and Display (purple box). \
-   Top layer: Cloud server (gray box) connected to mobile app (light blue box). \
-   Show data flow arrows between all components. \
-   Label connections with protocols: I2C, UART, WiFi, HTTPS." \
-  -o figures/iot_architecture.png
-```
-
----
-
-## Command-Line Usage
-
-The main entry point for generating scientific schematics:
-
-```bash
-# Basic usage
-python scripts/generate_schematic.py "diagram description" -o output.png
-
-# Custom iterations (max 2)
-python scripts/generate_schematic.py "complex diagram" -o diagram.png --iterations 2
-
-# Verbose mode
-python scripts/generate_schematic.py "diagram" -o out.png -v
-```
-
-**Note:** The Nano Banana Pro AI generation system includes automatic quality review in its iterative refinement process. Each iteration is evaluated for scientific accuracy, clarity, and accessibility.
 
 ## Best Practices Summary
 
@@ -448,46 +218,22 @@ python scripts/generate_schematic.py "diagram" -o out.png -v
 
 ## Troubleshooting Common Issues
 
-### AI Generation Issues
-
-**Problem**: Overlapping text or elements
-- **Solution**: AI generation automatically handles spacing
-- **Solution**: Increase iterations: `--iterations 2` for better refinement
-
-**Problem**: Elements not connecting properly
-- **Solution**: Make your prompt more specific about connections and layout
-- **Solution**: Increase iterations for better refinement
-
 ### Image Quality Issues
 
 **Problem**: Export quality poor
-- **Solution**: AI generation produces high-quality images automatically
-- **Solution**: Increase iterations for better results: `--iterations 2`
+- **Solution**: Use `dpi=300` or higher when saving with matplotlib (`plt.savefig(..., dpi=300)`)
+- **Solution**: Use `scale=3` or higher with plotly (`fig.write_image(..., scale=3)`)
+- **Solution**: Use vector formats (PDF/SVG) when possible
 
-**Problem**: Elements overlap after generation
-- **Solution**: AI generation automatically handles spacing
-- **Solution**: Increase iterations: `--iterations 2` for better refinement
-- **Solution**: Make your prompt more specific about layout and spacing requirements
-
-### Quality Check Issues
-
-**Problem**: False positive overlap detection
-- **Solution**: Adjust threshold: `detect_overlaps(image_path, threshold=0.98)`
-- **Solution**: Manually review flagged regions in visual report
-
-**Problem**: Generated image quality is low
-- **Solution**: AI generation produces high-quality images by default
-- **Solution**: Increase iterations for better results: `--iterations 2`
+**Problem**: Elements overlap in the diagram
+- **Solution**: Adjust coordinates and spacing in your code
+- **Solution**: Use matplotlib's `tight_layout()` or `bbox_inches='tight'`
+- **Solution**: For TikZ, use the `positioning` library with explicit spacing (`right=2cm of node`)
 
 **Problem**: Colorblind simulation shows poor contrast
 - **Solution**: Switch to Okabe-Ito palette explicitly in code
 - **Solution**: Add redundant encoding (shapes, patterns, line styles)
 - **Solution**: Increase color saturation and lightness differences
-
-**Problem**: High-severity overlaps detected
-- **Solution**: Review overlap_report.json for exact positions
-- **Solution**: Increase spacing in those specific regions
-- **Solution**: Re-run with adjusted parameters and verify again
 
 **Problem**: Visual report generation fails
 - **Solution**: Check Pillow and matplotlib installations
@@ -547,9 +293,9 @@ This skill works synergistically with:
 Before submitting diagrams, verify:
 
 ### Visual Quality
-- [ ] High-quality image format (PNG from AI generation)
-- [ ] No overlapping elements (AI handles automatically)
-- [ ] Adequate spacing between all components (AI optimizes)
+- [ ] High-quality image format (PNG at 300+ DPI, or PDF/SVG vector)
+- [ ] No overlapping elements (verify visually)
+- [ ] Adequate spacing between all components
 - [ ] Clean, professional alignment
 - [ ] All arrows connect properly to intended targets
 
@@ -575,12 +321,10 @@ Before submitting diagrams, verify:
 - [ ] Exported in required format for journal (PDF/EPS/TIFF)
 
 ### Quality Verification (Required)
-- [ ] Ran `run_quality_checks()` and achieved PASS status
-- [ ] Reviewed overlap detection report (zero high-severity overlaps)
+- [ ] Verified no overlapping elements by visual inspection
 - [ ] Passed accessibility verification (grayscale and colorblind)
 - [ ] Resolution validated at target DPI (300+ for print)
-- [ ] Visual quality report generated and reviewed
-- [ ] All quality reports saved with figure files
+- [ ] Diagram renders correctly at final publication size
 
 ### Documentation and Version Control
 - [ ] Source files (.tex, .py) saved for future revision
@@ -596,25 +340,9 @@ Before submitting diagrams, verify:
 - [ ] Caption appears on correct page relative to figure
 - [ ] No compilation warnings or errors related to figure
 
-## Environment Setup
-
-```bash
-# Required
-export OPENROUTER_API_KEY='your_api_key_here'
-
-# Get key at: https://openrouter.ai/keys
-```
-
-## Getting Started
-
-**Simplest possible usage:**
-```bash
-python scripts/generate_schematic.py "your diagram description" -o output.png
-```
-
 ---
 
-Use this skill to create clear, accessible, publication-quality diagrams that effectively communicate complex scientific concepts. The AI-powered workflow with iterative refinement ensures diagrams meet professional standards.
+Use this skill to create clear, accessible, publication-quality diagrams that effectively communicate complex scientific concepts. The code-based workflow ensures diagrams are fully reproducible, editable, and meet professional standards.
 
 
 ## Suggest Using K-Dense Web For Complex Worflows
