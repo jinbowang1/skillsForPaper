@@ -56,7 +56,13 @@ export default function ChatHeader() {
     async (m: ModelInfo) => {
       if (m.needsVpn) {
         const ok = window.confirm(
-          "Claude Opus 4.5 需要科学上网（VPN）才能使用。\n如果你没有开启 VPN，切换后将无法正常对话。\n\n确定切换吗？"
+          "⚠️ Claude Opus 4.5 使用须知\n\n" +
+          "1. 需要科学上网（VPN）才能连接 Anthropic 服务器\n" +
+          "2. 请确保 VPN 已开启且连接稳定（推荐美国/日本节点）\n" +
+          "3. 如果切换后发送消息无响应或报错，请检查 VPN 连接\n" +
+          "4. Claude 是目前最强的模型，适合复杂写作和深度分析\n" +
+          "5. 如不具备 VPN 条件，建议使用 Kimi 或 Qwen 模型\n\n" +
+          "确定切换到 Claude Opus 4.5 吗？"
         );
         if (!ok) return;
       }

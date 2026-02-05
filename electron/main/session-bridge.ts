@@ -190,14 +190,14 @@ export class SessionBridge {
     this.session = session;
     this.logger.info(`Electron session created: ${session.sessionId}`);
 
-    // Default to Claude Opus 4.5 (best skill-following capability)
+    // Default to Kimi K2.5 (no VPN required, good for domestic users)
     try {
-      const claudeModel = this.modelRegistry.getAll().find(
-        (m: any) => m.provider === "anthropic" && m.id.startsWith("claude-opus-4-5")
+      const kimiModel = this.modelRegistry.getAll().find(
+        (m: any) => m.provider === "moonshot" && m.id.startsWith("kimi-k2.5")
       );
-      if (claudeModel) {
-        await session.setModel(claudeModel);
-        this.logger.info(`[models] Default model set to anthropic/${claudeModel.id}`);
+      if (kimiModel) {
+        await session.setModel(kimiModel);
+        this.logger.info(`[models] Default model set to moonshot/${kimiModel.id}`);
       }
     } catch (err) {
       this.logger.warn(`[models] Failed to set default model: ${err}`);
