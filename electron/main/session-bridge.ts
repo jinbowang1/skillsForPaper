@@ -9,6 +9,8 @@ import { trackEvent } from "./usage-tracker.js";
 
 // Tool execution timeout in milliseconds (5 minutes)
 const TOOL_TIMEOUT_MS = 5 * 60 * 1000;
+// Maximum number of concurrent tool timers to prevent memory leak
+const MAX_TOOL_TIMERS = 100;
 
 export class SessionBridge {
   private window: BrowserWindow;
@@ -285,6 +287,12 @@ export class SessionBridge {
         clearTimeout(this.activeToolTimers.get(toolCallId));
       }
 
+      // Prevent memory leak: if too many timers accumulated, clear old ones
+      if (this.activeToolTimers.size >= MAX_TOOL_TIMERS) {
+        this.logger.warn(`[timeout] Too many tool timers (${this.activeToolTimers.size}), clearing all`);
+        this.clearAllToolTimers();
+      }
+
       // Set timeout timer
       const timer = setTimeout(async () => {
         this.logger.warn(`[timeout] Tool ${toolName} (${toolCallId}) exceeded ${TOOL_TIMEOUT_MS / 1000}s`);
@@ -517,5 +525,12 @@ export class SessionBridge {
 
   getSession() {
     return this.session;
+  }
+
+  /**
+   * Check if the session is initialized and ready to accept commands.
+   */
+  isReady(): boolean {
+    return this.session !== null;
   }
 }

@@ -35,12 +35,17 @@ export default function ChatHeader() {
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [isOpen, setOpen] = useState(false);
   const [isSwitching, setSwitching] = useState(false);
+  const [isLoadingModels, setLoadingModels] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   // Fetch models lazily when dropdown opens (session may not be ready on mount)
   useEffect(() => {
-    if (isOpen && models.length === 0) {
-      window.api.getModels().then(setModels).catch(() => {});
+    if (isOpen && models.length === 0 && !isLoadingModels) {
+      setLoadingModels(true);
+      window.api.getModels()
+        .then(setModels)
+        .catch(() => {})
+        .finally(() => setLoadingModels(false));
     }
     if (!isOpen) return;
     const handler = (e: MouseEvent) => {
@@ -50,7 +55,7 @@ export default function ChatHeader() {
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [isOpen]);
+  }, [isOpen, isLoadingModels]);
 
   const handleSelect = useCallback(
     async (m: ModelInfo) => {
@@ -103,18 +108,24 @@ export default function ChatHeader() {
         >
           {isSwitching ? "切换中..." : currentModel} {!isSwitching && <>&#9662;</>}
         </button>
-        {isOpen && models.length > 0 && (
+        {isOpen && (
           <div className="model-dropdown">
-            {models.map((m) => (
-              <button
-                key={m.id}
-                className={`model-option${m.name === currentModel ? " active" : ""}`}
-                onClick={() => handleSelect(m)}
-              >
-                {m.name}
-                {m.needsVpn && <span className="vpn-tag">需VPN</span>}
-              </button>
-            ))}
+            {isLoadingModels ? (
+              <div className="model-option loading">加载中...</div>
+            ) : models.length > 0 ? (
+              models.map((m) => (
+                <button
+                  key={m.id}
+                  className={`model-option${m.name === currentModel ? " active" : ""}`}
+                  onClick={() => handleSelect(m)}
+                >
+                  {m.name}
+                  {m.needsVpn && <span className="vpn-tag">需VPN</span>}
+                </button>
+              ))
+            ) : (
+              <div className="model-option disabled">暂无可用模型</div>
+            )}
           </div>
         )}
       </div>

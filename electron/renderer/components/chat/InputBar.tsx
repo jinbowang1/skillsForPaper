@@ -60,6 +60,17 @@ export default function InputBar() {
     }
   }, [currentModelSupportsImages]);
 
+  // Track images ref for cleanup on unmount
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
+
+  // Cleanup Object URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      imagesRef.current.forEach((img) => URL.revokeObjectURL(img.preview));
+    };
+  }, []);
+
   // When entering decision reply mode, auto-focus the input
   useEffect(() => {
     if (pendingDecision) {

@@ -135,6 +135,44 @@ describe("Tool Timeout Logic", () => {
     vi.advanceTimersByTime(TIMEOUT_MS / 2);
     expect(abortCalled).toBe(true);
   });
+
+  it("clears all timers when max limit is reached to prevent memory leak", () => {
+    const MAX_TIMERS = 5; // Use small limit for testing
+    let warningLogged = false;
+
+    // Modified function that enforces max limit
+    function startToolTimerWithLimit(toolCallId: string, toolName: string) {
+      if (timers.has(toolCallId)) {
+        clearTimeout(timers.get(toolCallId));
+      }
+
+      // Prevent memory leak: if too many timers, clear all
+      if (timers.size >= MAX_TIMERS) {
+        warningLogged = true;
+        clearAllTimers();
+      }
+
+      const timer = setTimeout(async () => {
+        timers.delete(toolCallId);
+        abortCalled = true;
+      }, TIMEOUT_MS);
+
+      timers.set(toolCallId, timer);
+    }
+
+    // Add MAX_TIMERS tools
+    for (let i = 0; i < MAX_TIMERS; i++) {
+      startToolTimerWithLimit(`tool-${i}`, "test");
+    }
+    expect(timers.size).toBe(MAX_TIMERS);
+    expect(warningLogged).toBe(false);
+
+    // Adding one more should trigger cleanup
+    startToolTimerWithLimit("tool-overflow", "test");
+    expect(warningLogged).toBe(true);
+    // After cleanup, only the new timer remains
+    expect(timers.size).toBe(1);
+  });
 });
 
 describe("Abort Button Async Handling", () => {
