@@ -143,8 +143,41 @@ app.on("window-all-closed", () => {
   app.quit();
 });
 
-app.on("activate", () => {
+app.on("activate", async () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    const win = createWindow();
+
+    // Reinitialize all components with new window
+    sessionBridge = new SessionBridge(win);
+    bookshelfWatcher = new BookshelfWatcher(win);
+    sessionBridge.setBookshelfWatcher(bookshelfWatcher);
+    taskParser = new TaskParser(win);
+    voiceHandler = new VoiceHandler(win);
+
+    // Re-register IPC handlers for new window
+    registerIpcHandlers(win, sessionBridge, bookshelfWatcher, taskParser, voiceHandler);
+
+    // Restart watchers
+    try {
+      bookshelfWatcher.start();
+    } catch (err) {
+      console.error("[main] Failed to restart bookshelf watcher:", err);
+    }
+
+    try {
+      taskParser.start();
+    } catch (err) {
+      console.error("[main] Failed to restart task parser:", err);
+    }
+
+    // Initialize session bridge
+    if (!isFirstRun()) {
+      try {
+        await sessionBridge.initialize();
+        console.log("[main] Session bridge reinitialized");
+      } catch (err) {
+        console.error("[main] Failed to reinitialize session bridge:", err);
+      }
+    }
   }
 });
