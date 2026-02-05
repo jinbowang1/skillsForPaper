@@ -98,4 +98,53 @@ describe("ChatHeader", () => {
       expect(screen.getByText("需VPN")).toBeInTheDocument();
     });
   });
+
+  it("shows loading state when models are being fetched", async () => {
+    // Make getModels slow
+    vi.mocked(window.api.getModels).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve([
+        { id: "test", name: "Test Model" },
+      ]), 100))
+    );
+
+    render(<ChatHeader />);
+    const modelBtn = screen.getByText(/MiniMax M2.1/);
+    fireEvent.click(modelBtn);
+
+    // Should show loading
+    expect(screen.getByText("加载中...")).toBeInTheDocument();
+
+    // Wait for models to load
+    await waitFor(() => {
+      expect(screen.getByText("Test Model")).toBeInTheDocument();
+    });
+  });
+
+  it("shows empty state when no models available", async () => {
+    vi.mocked(window.api.getModels).mockResolvedValue([]);
+
+    render(<ChatHeader />);
+    const modelBtn = screen.getByText(/MiniMax M2.1/);
+    fireEvent.click(modelBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("暂无可用模型")).toBeInTheDocument();
+    });
+  });
+
+  it("closes dropdown when clicking outside", async () => {
+    render(<ChatHeader />);
+    const modelBtn = screen.getByText(/MiniMax M2.1/);
+    fireEvent.click(modelBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Claude Opus 4.5")).toBeInTheDocument();
+    });
+
+    // Click outside
+    fireEvent.mouseDown(document.body);
+
+    // Dropdown should be closed
+    expect(screen.queryByText("Claude Opus 4.5")).not.toBeInTheDocument();
+  });
 });

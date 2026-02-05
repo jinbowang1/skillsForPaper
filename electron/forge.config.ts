@@ -121,6 +121,38 @@ const config: ForgeConfig = {
       }
 
       console.log("External dependencies installed successfully.\n");
+
+      // Re-sign the app bundle after adding external deps
+      // (postPackage runs AFTER electron-packager's code signing,
+      //  so newly installed node_modules break the sealed signature)
+      if (platform === "darwin") {
+        const appBundle = path.join(outputPath, "大师兄.app");
+        const signIdentity = "Developer ID Application: jinbo wang (7P3NKWKF4K)";
+
+        // Sign native .node binaries first (inside-out signing order)
+        console.log("Signing native .node binaries...");
+        const findResult = execSync(
+          `find "${appBundle}/Contents/Resources/app/node_modules" -name "*.node" -type f`,
+          { encoding: "utf-8" }
+        ).trim();
+        if (findResult) {
+          for (const nodeFile of findResult.split("\n")) {
+            console.log(`  Signing: ${path.basename(nodeFile)}`);
+            execSync(
+              `codesign --force --sign "${signIdentity}" --timestamp --options runtime "${nodeFile}"`,
+              { stdio: "inherit" }
+            );
+          }
+        }
+
+        // Re-sign the entire app bundle
+        console.log("Re-signing app bundle...");
+        execSync(
+          `codesign --deep --force --sign "${signIdentity}" --timestamp --options runtime "${appBundle}"`,
+          { stdio: "inherit" }
+        );
+        console.log("App bundle re-signed successfully.\n");
+      }
     },
   },
   makers: [

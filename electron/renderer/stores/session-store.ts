@@ -113,9 +113,20 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === "assistant") {
         const blocks = [...messages[i].blocks];
-        const lastTextBlock = blocks.findLast((b) => b.type === "text");
-        if (lastTextBlock) {
-          lastTextBlock.text = (lastTextBlock.text || "") + text;
+        // Find last text block index (ES5 compatible)
+        let lastTextBlockIndex = -1;
+        for (let j = blocks.length - 1; j >= 0; j--) {
+          if (blocks[j].type === "text") {
+            lastTextBlockIndex = j;
+            break;
+          }
+        }
+        if (lastTextBlockIndex >= 0) {
+          // Create a new block object to maintain immutability
+          blocks[lastTextBlockIndex] = {
+            ...blocks[lastTextBlockIndex],
+            text: (blocks[lastTextBlockIndex].text || "") + text,
+          };
         } else {
           blocks.push({ type: "text", text });
         }

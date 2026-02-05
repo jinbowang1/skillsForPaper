@@ -9,6 +9,8 @@ import { trackEvent } from "./usage-tracker.js";
 
 // Tool execution timeout in milliseconds (5 minutes)
 const TOOL_TIMEOUT_MS = 5 * 60 * 1000;
+// Maximum number of concurrent tool timers to prevent memory leak
+const MAX_TOOL_TIMERS = 100;
 
 export class SessionBridge {
   private window: BrowserWindow;
@@ -190,14 +192,14 @@ export class SessionBridge {
     this.session = session;
     this.logger.info(`Electron session created: ${session.sessionId}`);
 
-    // Default to Claude Opus 4.5 (best skill-following capability)
+    // Default to Kimi K2.5 (no VPN required, good for domestic users)
     try {
-      const claudeModel = this.modelRegistry.getAll().find(
-        (m: any) => m.provider === "anthropic" && m.id.startsWith("claude-opus-4-5")
+      const kimiModel = this.modelRegistry.getAll().find(
+        (m: any) => m.provider === "moonshot" && m.id.startsWith("kimi-k2.5")
       );
-      if (claudeModel) {
-        await session.setModel(claudeModel);
-        this.logger.info(`[models] Default model set to anthropic/${claudeModel.id}`);
+      if (kimiModel) {
+        await session.setModel(kimiModel);
+        this.logger.info(`[models] Default model set to moonshot/${kimiModel.id}`);
       }
     } catch (err) {
       this.logger.warn(`[models] Failed to set default model: ${err}`);
@@ -283,6 +285,12 @@ export class SessionBridge {
       // Clear any existing timer for this tool
       if (this.activeToolTimers.has(toolCallId)) {
         clearTimeout(this.activeToolTimers.get(toolCallId));
+      }
+
+      // Prevent memory leak: if too many timers accumulated, clear old ones
+      if (this.activeToolTimers.size >= MAX_TOOL_TIMERS) {
+        this.logger.warn(`[timeout] Too many tool timers (${this.activeToolTimers.size}), clearing all`);
+        this.clearAllToolTimers();
       }
 
       // Set timeout timer
@@ -517,5 +525,12 @@ export class SessionBridge {
 
   getSession() {
     return this.session;
+  }
+
+  /**
+   * Check if the session is initialized and ready to accept commands.
+   */
+  isReady(): boolean {
+    return this.session !== null;
   }
 }

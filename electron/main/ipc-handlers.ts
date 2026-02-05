@@ -1,7 +1,7 @@
 import { ipcMain, shell, BrowserWindow } from "electron";
-import { readFileSync, writeFileSync } from "fs";
+import { readFile, writeFile, copyFile, mkdir } from "fs/promises";
+import { existsSync } from "fs";
 import path from "path";
-import { copyFileSync, mkdirSync, existsSync } from "fs";
 import { tmpdir } from "os";
 import dotenv from "dotenv";
 import { MEMORY_PATH, MEMORY_DIR, ENV_PATH } from "./paths.js";
@@ -16,14 +16,14 @@ import { getCrashReports, getRecentCrashCount } from "./crash-reporter.js";
 import { getAnalyticsSummary, trackFeature } from "./feature-analytics.js";
 import { exportLogs, exportLogsAndReveal } from "./log-exporter.js";
 
-function parseMemoryFile(): {
+async function parseMemoryFile(): Promise<{
   name: string;
   identity: string;
   institution: string;
   researchField: string;
   advisor: string;
   project: string;
-} {
+}> {
   const defaults = {
     name: "",
     identity: "",
@@ -33,7 +33,7 @@ function parseMemoryFile(): {
     project: "",
   };
   try {
-    const content = readFileSync(MEMORY_PATH, "utf-8");
+    const content = await readFile(MEMORY_PATH, "utf-8");
 
     const fieldMap: Record<string, keyof typeof defaults> = {
       "姓名": "name",
@@ -69,10 +69,16 @@ export function registerIpcHandlers(
 ) {
   // ── Session channels ──
   ipcMain.handle("session:prompt", async (_event, { text, images }) => {
+    if (!sessionBridge.isReady()) {
+      throw new Error("会话尚未初始化，请稍等片刻再试");
+    }
     await sessionBridge.prompt(text, images);
   });
 
   ipcMain.handle("session:steer", async (_event, { text }) => {
+    if (!sessionBridge.isReady()) {
+      throw new Error("会话尚未初始化，请稍等片刻再试");
+    }
     await sessionBridge.steer(text);
   });
 
@@ -85,10 +91,16 @@ export function registerIpcHandlers(
   });
 
   ipcMain.handle("model:list", async () => {
+    if (!sessionBridge.isReady()) {
+      return []; // Return empty list if not ready yet
+    }
     return sessionBridge.getModels();
   });
 
   ipcMain.handle("model:set", async (_event, { modelId }) => {
+    if (!sessionBridge.isReady()) {
+      throw new Error("会话尚未初始化，请稍等片刻再试");
+    }
     return sessionBridge.setModel(modelId);
   });
 
@@ -119,10 +131,10 @@ export function registerIpcHandlers(
 
       // Ensure parent directory exists
       const envDir = path.dirname(ENV_PATH);
-      if (!existsSync(envDir)) mkdirSync(envDir, { recursive: true });
+      if (!existsSync(envDir)) await mkdir(envDir, { recursive: true });
 
       // Write .env file
-      writeFileSync(ENV_PATH, envContent, "utf-8");
+      await writeFile(ENV_PATH, envContent, "utf-8");
 
       // Reload env vars into process
       dotenv.config({ path: ENV_PATH, override: true });
@@ -142,10 +154,10 @@ export function registerIpcHandlers(
     // PDF: copy to temp to avoid WPS file locking
     if (ext === ".pdf") {
       const tempDir = path.join(tmpdir(), "dsx-preview");
-      if (!existsSync(tempDir)) mkdirSync(tempDir, { recursive: true });
+      if (!existsSync(tempDir)) await mkdir(tempDir, { recursive: true });
       const tempPath = path.join(tempDir, path.basename(filePath));
       try {
-        copyFileSync(filePath, tempPath);
+        await copyFile(filePath, tempPath);
         await shell.openPath(tempPath);
       } catch {
         await shell.openPath(filePath);
@@ -183,10 +195,10 @@ export function registerIpcHandlers(
     project: string;
   }) => {
     try {
-      if (!existsSync(MEMORY_DIR)) mkdirSync(MEMORY_DIR, { recursive: true });
+      if (!existsSync(MEMORY_DIR)) await mkdir(MEMORY_DIR, { recursive: true });
       let content = "";
       try {
-        content = readFileSync(MEMORY_PATH, "utf-8");
+        content = await readFile(MEMORY_PATH, "utf-8");
       } catch {
         // File doesn't exist yet
       }
@@ -223,7 +235,7 @@ export function registerIpcHandlers(
         content = lines.join("\n") + "\n";
       }
 
-      writeFileSync(MEMORY_PATH, content, "utf-8");
+      await writeFile(MEMORY_PATH, content, "utf-8");
       return { ok: true };
     } catch (err: any) {
       return { ok: false, error: err.message };
@@ -234,7 +246,7 @@ export function registerIpcHandlers(
     try {
       const avatarPath = path.join(MEMORY_DIR, "avatar.png");
       if (!existsSync(avatarPath)) return null;
-      const buf = readFileSync(avatarPath);
+      const buf = await readFile(avatarPath);
       return `data:image/png;base64,${buf.toString("base64")}`;
     } catch {
       return null;
@@ -243,11 +255,11 @@ export function registerIpcHandlers(
 
   ipcMain.handle("user:setAvatar", async (_event, { data, mimeType }: { data: string; mimeType: string }) => {
     try {
-      if (!existsSync(MEMORY_DIR)) mkdirSync(MEMORY_DIR, { recursive: true });
+      if (!existsSync(MEMORY_DIR)) await mkdir(MEMORY_DIR, { recursive: true });
       const avatarPath = path.join(MEMORY_DIR, "avatar.png");
       // Strip data URL prefix if present
       const base64Data = data.replace(/^data:[^;]+;base64,/, "");
-      writeFileSync(avatarPath, Buffer.from(base64Data, "base64"));
+      await writeFile(avatarPath, Buffer.from(base64Data, "base64"));
       return { ok: true };
     } catch (err: any) {
       return { ok: false, error: err.message };

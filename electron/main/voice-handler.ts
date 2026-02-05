@@ -228,7 +228,8 @@ export class VoiceHandler {
 
   private startRecording(): void {
     const soxDir = this.getSoxDir();
-    if (soxDir) {
+    const originalPath = process.env.PATH;
+    if (soxDir && !process.env.PATH?.includes(soxDir)) {
       process.env.PATH = soxDir + path.delimiter + (process.env.PATH || "");
     }
 

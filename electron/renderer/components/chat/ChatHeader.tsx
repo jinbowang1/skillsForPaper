@@ -35,12 +35,17 @@ export default function ChatHeader() {
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [isOpen, setOpen] = useState(false);
   const [isSwitching, setSwitching] = useState(false);
+  const [isLoadingModels, setLoadingModels] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   // Fetch models lazily when dropdown opens (session may not be ready on mount)
   useEffect(() => {
-    if (isOpen && models.length === 0) {
-      window.api.getModels().then(setModels).catch(() => {});
+    if (isOpen && models.length === 0 && !isLoadingModels) {
+      setLoadingModels(true);
+      window.api.getModels()
+        .then(setModels)
+        .catch(() => {})
+        .finally(() => setLoadingModels(false));
     }
     if (!isOpen) return;
     const handler = (e: MouseEvent) => {
@@ -50,23 +55,19 @@ export default function ChatHeader() {
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [isOpen]);
+  }, [isOpen, isLoadingModels]);
 
   const handleSelect = useCallback(
     async (m: ModelInfo) => {
       if (m.needsVpn) {
         const ok = window.confirm(
-          "Claude Opus 4.5 需要科学上网（VPN）才能使用。\n\n" +
-          "【配置方法】\n" +
-          "1. 确保 VPN 已开启\n" +
-          "2. 编辑项目根目录的 .env 文件\n" +
-          "3. 添加以下配置（如已配置可忽略）：\n" +
-          "   HTTP_PROXY=http://127.0.0.1:端口号\n" +
-          "   HTTPS_PROXY=http://127.0.0.1:端口号\n" +
-          "   （常见端口：Clash=7890, V2Ray=10808, SS=1080）\n" +
-          "4. 重启应用生效\n\n" +
-          "如果你已配置代理，点击确定切换模型。\n未配置将无法正常对话。\n\n" +
-          "确定切换吗？"
+          "⚠️ Claude Opus 4.5 使用须知\n\n" +
+          "1. 需要科学上网（VPN）才能连接 Anthropic 服务器\n" +
+          "2. 请确保 VPN 已开启且连接稳定（推荐美国/日本节点）\n" +
+          "3. 如果切换后发送消息无响应或报错，请检查 VPN 连接\n" +
+          "4. Claude 是目前最强的模型，适合复杂写作和深度分析\n" +
+          "5. 如不具备 VPN 条件，建议使用 Kimi 或 Qwen 模型\n\n" +
+          "确定切换到 Claude Opus 4.5 吗？"
         );
         if (!ok) return;
       }
@@ -107,18 +108,24 @@ export default function ChatHeader() {
         >
           {isSwitching ? "切换中..." : currentModel} {!isSwitching && <>&#9662;</>}
         </button>
-        {isOpen && models.length > 0 && (
+        {isOpen && (
           <div className="model-dropdown">
-            {models.map((m) => (
-              <button
-                key={m.id}
-                className={`model-option${m.name === currentModel ? " active" : ""}`}
-                onClick={() => handleSelect(m)}
-              >
-                {m.name}
-                {m.needsVpn && <span className="vpn-tag">需VPN</span>}
-              </button>
-            ))}
+            {isLoadingModels ? (
+              <div className="model-option loading">加载中...</div>
+            ) : models.length > 0 ? (
+              models.map((m) => (
+                <button
+                  key={m.id}
+                  className={`model-option${m.name === currentModel ? " active" : ""}`}
+                  onClick={() => handleSelect(m)}
+                >
+                  {m.name}
+                  {m.needsVpn && <span className="vpn-tag">需VPN</span>}
+                </button>
+              ))
+            ) : (
+              <div className="model-option disabled">暂无可用模型</div>
+            )}
           </div>
         )}
       </div>
