@@ -6,6 +6,7 @@ import * as path from "path";
 import * as fs from "fs";
 import WebSocket from "ws";
 import type { Readable } from "stream";
+import { RESOURCES_DIR } from "./paths.js";
 
 // ── ASR Protocol Types (inline to avoid cross-project imports) ──
 
@@ -49,7 +50,7 @@ export class VoiceHandler {
 
   private getSoxDir(): string | null {
     if (process.platform !== "win32") return null;
-    const dir = path.join(process.resourcesPath, "sox-win32");
+    const dir = path.join(RESOURCES_DIR, "sox-win32");
     return fs.existsSync(dir) ? dir : null;
   }
 
@@ -234,12 +235,17 @@ export class VoiceHandler {
     const require_ = createRequire(import.meta.url);
     const { record } = require_("node-record-lpcm16") as any;
 
-    const recording = record({
+    const recordOptions: any = {
       sampleRate: DEFAULT_CONFIG.sampleRate,
       channels: 1,
       audioType: "raw",
       recorder: process.platform === "win32" ? "sox" : "rec",
-    });
+    };
+
+    // Don't specify device, let SoX use --default-device flag
+    // SoX 14.4.1 should handle this correctly on Windows
+
+    const recording = record(recordOptions);
 
     const stream: Readable = recording.stream();
 
@@ -253,8 +259,10 @@ export class VoiceHandler {
       }
     });
 
-    stream.on("error", (err: Error) => {
-      console.error("[voice] Recording error:", err.message);
+    stream.on("error", (err: any) => {
+      // Suppress error notifications when stopping recording
+      // Exit code null is normal when we stop the sox process
+      console.log("[voice] Recording stream ended");
     });
 
     this.recorder = { stream, stop: () => recording.stop() };

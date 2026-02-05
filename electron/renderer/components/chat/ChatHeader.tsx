@@ -56,7 +56,17 @@ export default function ChatHeader() {
     async (m: ModelInfo) => {
       if (m.needsVpn) {
         const ok = window.confirm(
-          "Claude Opus 4.5 需要科学上网（VPN）才能使用。\n如果你没有开启 VPN，切换后将无法正常对话。\n\n确定切换吗？"
+          "Claude Opus 4.5 需要科学上网（VPN）才能使用。\n\n" +
+          "【配置方法】\n" +
+          "1. 确保 VPN 已开启\n" +
+          "2. 编辑项目根目录的 .env 文件\n" +
+          "3. 添加以下配置（如已配置可忽略）：\n" +
+          "   HTTP_PROXY=http://127.0.0.1:端口号\n" +
+          "   HTTPS_PROXY=http://127.0.0.1:端口号\n" +
+          "   （常见端口：Clash=7890, V2Ray=10808, SS=1080）\n" +
+          "4. 重启应用生效\n\n" +
+          "如果你已配置代理，点击确定切换模型。\n未配置将无法正常对话。\n\n" +
+          "确定切换吗？"
         );
         if (!ok) return;
       }

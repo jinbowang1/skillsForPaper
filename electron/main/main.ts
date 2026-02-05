@@ -59,6 +59,11 @@ function createWindow() {
 
   mainWindow = new BrowserWindow(windowOptions);
 
+  // Ensure window is visible and centered
+  mainWindow.center();
+  mainWindow.show();
+  mainWindow.focus();
+
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {

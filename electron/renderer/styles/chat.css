@@ -698,12 +698,45 @@
 }
 
 /* ============================================
-   Windows titleBarOverlay — reserve space for native controls
+   Windows Custom Window Controls
    ============================================ */
+.window-controls {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+  z-index: 20;
+}
+
+.window-control-btn {
+  width: 46px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.window-control-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.window-control-btn.close:hover {
+  background: #e81123;
+  color: white;
+}
+
 :root[data-platform="win32"] .model-selector {
-  right: calc(140px + var(--space-3));
+  right: calc(138px + var(--space-3));
 }
 
 :root[data-platform="win32"] .chat-header {
-  padding-right: 140px;
+  padding-right: 138px;
 }

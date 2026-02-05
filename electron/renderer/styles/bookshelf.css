@@ -667,3 +667,14 @@
   font-size: 11px;
   color: var(--text-tertiary);
 }
+
+/* ============================================
+   Windows-specific adjustments
+   ============================================ */
+:root[data-platform="win32"] .desk-titlebar {
+  justify-content: center;
+}
+
+:root[data-platform="win32"] .desk-footer {
+  padding: 16px var(--space-4) 16px;
+}
