@@ -1,11 +1,11 @@
 node_modules/
 dist/
 .env
-logs/*.log
+logs/**/*.log
+logs/**/*.json
 !logs/.gitkeep
 *.tsbuildinfo
 .idea/
-logs/*.json
 .pi/*
 !.pi/extensions/
 
