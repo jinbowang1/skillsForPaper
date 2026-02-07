@@ -14,7 +14,13 @@ const config: ForgeConfig = {
     asar: false,
     icon: "./assets/icon",
     extraResource: ["../skills", "../memory", "../.pi/extensions", "./.env.bundled", "./tools/sox-win32"],
-    osxSign: {},
+    osxSign: {
+      identity: "Developer ID Application: jinbo wang (7P3NKWKF4K)",
+      optionsForFile: () => ({
+        entitlements: "./assets/entitlements.mac.plist",
+        hardenedRuntime: true,
+      }),
+    },
     ...(process.env.APPLE_ID && process.env.APPLE_ID_PASSWORD && {
       osxNotarize: {
         appleId: process.env.APPLE_ID,
@@ -128,6 +134,7 @@ const config: ForgeConfig = {
       if (platform === "darwin") {
         const appBundle = path.join(outputPath, "大师兄.app");
         const signIdentity = "Developer ID Application: jinbo wang (7P3NKWKF4K)";
+        const entitlements = path.resolve(__dirname, "assets/entitlements.mac.plist");
 
         // Sign native .node binaries first (inside-out signing order)
         console.log("Signing native .node binaries...");
@@ -139,16 +146,16 @@ const config: ForgeConfig = {
           for (const nodeFile of findResult.split("\n")) {
             console.log(`  Signing: ${path.basename(nodeFile)}`);
             execSync(
-              `codesign --force --sign "${signIdentity}" --timestamp --options runtime "${nodeFile}"`,
+              `codesign --force --sign "${signIdentity}" --timestamp --options runtime --entitlements "${entitlements}" "${nodeFile}"`,
               { stdio: "inherit" }
             );
           }
         }
 
-        // Re-sign the entire app bundle
-        console.log("Re-signing app bundle...");
+        // Re-sign the entire app bundle with entitlements
+        console.log("Re-signing app bundle with entitlements...");
         execSync(
-          `codesign --deep --force --sign "${signIdentity}" --timestamp --options runtime "${appBundle}"`,
+          `codesign --deep --force --sign "${signIdentity}" --timestamp --options runtime --entitlements "${entitlements}" "${appBundle}"`,
           { stdio: "inherit" }
         );
         console.log("App bundle re-signed successfully.\n");
