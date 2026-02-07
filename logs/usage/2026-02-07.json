@@ -11,6 +11,46 @@
       "cacheWriteTokens": 0,
       "cost": 0,
       "timestamp": 1770452612170
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "cost": 0,
+      "timestamp": 1770466562338
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "cost": 0,
+      "timestamp": 1770466598133
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "cost": 0,
+      "timestamp": 1770466601498
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "cost": 0,
+      "timestamp": 1770466606704
     }
   ],
   "reported": false
