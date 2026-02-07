@@ -10,9 +10,11 @@ export interface BookshelfItem {
   ext: string;
   size: number;
   mtime: number;
-  category: "paper" | "experiment" | "research" | "draft" | "other";
+  category: "paper" | "experiment" | "reference";
   isActive?: boolean;
 }
+
+// ── 忽略规则 ──
 
 // LaTeX / build intermediates to ignore
 const IGNORED_EXTS = new Set([
@@ -20,10 +22,16 @@ const IGNORED_EXTS = new Set([
   ".synctex.gz", ".fls", ".fdb_latexmk", ".nav",
   ".snm", ".vrb", ".xdv",
   ".bak", ".tmp", ".temp", ".swp",
+  ".pyc", ".pyo", ".class", ".o", ".obj",
 ]);
+
 const IGNORED_FILES = new Set([
-  "missfont.log", "hello_world.py",
+  "missfont.log",
+  ".DS_Store",
+  "Thumbs.db",
+  "desktop.ini",
 ]);
+
 // Patterns for temp/intermediate filenames to skip
 const IGNORED_NAME_PATTERNS = [
   /^temp[_-]/i,
@@ -31,14 +39,31 @@ const IGNORED_NAME_PATTERNS = [
   /[_-]backup\./i,
   /^~\$/,           // Word lock files
   /^__.*__$/,       // Dunder files
+  /^\./,            // Hidden files
 ];
 
-const PAPER_EXTS = new Set([".tex", ".md", ".docx", ".bib", ".pdf"]);
-const EXPERIMENT_EXTS = new Set([".py", ".json", ".csv", ".png", ".jpg", ".svg"]);
-const RESEARCH_KEYWORDS = ["review", "plan", "design", "survey", "analysis"];
+// ── 分类规则 ──
 
-// Match chapter drafts: chapter1.md, chapter_2.md, chapter-03.md, etc.
-const CHAPTER_PATTERN = /^chapter[\s_-]?\d/i;
+// 资料类关键词（优先级最高）
+const REFERENCE_KEYWORDS = [
+  "review", "survey", "note", "reference", "literature",
+  "参考", "笔记", "调研", "综述", "文献",
+];
+
+// 实验类扩展名
+const EXPERIMENT_EXTS = new Set([
+  ".py", ".ipynb", ".r", ".m", ".jl",           // 代码
+  ".csv", ".xlsx", ".xls", ".json", ".yaml",    // 数据
+  ".png", ".jpg", ".jpeg", ".svg", ".gif",      // 图表
+  ".pkl", ".npy", ".pt", ".pth", ".h5",         // 模型/数据
+]);
+
+// 论文类扩展名
+const PAPER_EXTS = new Set([
+  ".tex", ".md", ".docx", ".doc", ".pdf",       // 文档
+  ".bib", ".cls", ".sty",                       // LaTeX 相关
+  ".pptx", ".ppt",                              // 演示文稿
+]);
 
 function shouldIgnore(name: string, ext: string): boolean {
   if (IGNORED_FILES.has(name)) return true;
@@ -52,24 +77,24 @@ function shouldIgnore(name: string, ext: string): boolean {
 
 function categorizeFile(name: string, ext: string): BookshelfItem["category"] {
   const lower = name.toLowerCase();
-  const base = name.replace(/\.[^.]+$/, "");
 
-  // Chapter drafts get their own category
-  if (CHAPTER_PATTERN.test(base) && (ext === ".md" || ext === ".tex")) {
-    return "draft";
+  // 1. 资料类优先：文件名包含关键词
+  if (REFERENCE_KEYWORDS.some((kw) => lower.includes(kw))) {
+    return "reference";
   }
 
-  // Check research keywords first (higher priority)
-  if (
-    RESEARCH_KEYWORDS.some((kw) => lower.includes(kw)) &&
-    (ext === ".md" || ext === ".tex" || ext === ".pdf")
-  ) {
-    return "research";
+  // 2. 实验类：代码、数据、图表
+  if (EXPERIMENT_EXTS.has(ext)) {
+    return "experiment";
   }
 
-  if (PAPER_EXTS.has(ext)) return "paper";
-  if (EXPERIMENT_EXTS.has(ext)) return "experiment";
-  return "other";
+  // 3. 论文类：文档、LaTeX
+  if (PAPER_EXTS.has(ext)) {
+    return "paper";
+  }
+
+  // 4. 默认归到论文类
+  return "paper";
 }
 
 export class BookshelfWatcher {

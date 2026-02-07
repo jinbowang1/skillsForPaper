@@ -17,7 +17,7 @@
   height: var(--titlebar-height);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding: 0 var(--space-5);
   -webkit-app-region: drag;
   flex-shrink: 0;
@@ -34,6 +34,26 @@
   font-weight: 600;
   color: var(--text-secondary);
   letter-spacing: 0.3px;
+}
+
+.desk-folder-btn {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.desk-folder-btn:hover {
+  background: var(--overlay-strong);
+  color: var(--text-primary);
 }
 
 /* Scrollable content */
@@ -89,6 +109,72 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: var(--space-2) var(--space-1) 0;
+}
+
+.desk-category-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-1);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast);
+}
+
+.desk-category-header:hover {
+  background: var(--overlay-faint);
+}
+
+.desk-category-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.desk-category-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex: 1;
+  text-align: left;
+}
+
+.desk-category-count {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: var(--overlay-strong);
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.desk-category-chevron {
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+}
+
+.desk-show-more {
+  display: block;
+  width: 100%;
+  padding: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: 1px dashed var(--gray3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  font-family: var(--font-sans);
+}
+
+.desk-show-more:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(10, 132, 255, 0.05);
 }
 
 /* ============================================
