@@ -61,6 +61,66 @@
       "cacheWriteTokens": 0,
       "cost": 0,
       "timestamp": 1770466674753
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "cost": 0,
+      "timestamp": 1770466678757
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "cost": 0,
+      "timestamp": 1770466729202
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "cost": 0,
+      "timestamp": 1770466731549
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "cost": 0,
+      "timestamp": 1770466771343
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "cost": 0,
+      "timestamp": 1770466773980
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshot",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "cost": 0,
+      "timestamp": 1770466779968
     }
   ],
   "reported": false
