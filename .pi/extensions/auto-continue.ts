@@ -43,6 +43,10 @@ export default function autoContinue(pi: ExtensionAPI) {
     if (messages.length > 0) {
       const last = messages[messages.length - 1];
       if ("role" in last && last.role === "assistant" && "stopReason" in last) {
+        // 用户主动中止，不续跑
+        if (last.stopReason === "aborted") {
+          return;
+        }
         // 模型主动结束（不是 token 用完）
         if (last.stopReason === "stop") {
           // 提取文本内容
