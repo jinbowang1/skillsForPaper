@@ -10,7 +10,7 @@ export interface BookshelfItem {
   ext: string;
   size: number;
   mtime: number;
-  category: "paper" | "experiment" | "reference";
+  category: "paper" | "experiment" | "reference" | "draft";
   isActive?: boolean;
 }
 
@@ -107,8 +107,8 @@ function categorizeFile(name: string, ext: string): BookshelfItem["category"] {
     return "paper";
   }
 
-  // 4. 默认归到论文类
-  return "paper";
+  // 4. 未识别的文件归到草稿
+  return "draft";
 }
 
 export class BookshelfWatcher {

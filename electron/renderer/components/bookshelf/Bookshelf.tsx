@@ -16,7 +16,7 @@ export default function Bookshelf() {
   const items = useBookshelfStore((s) => s.items);
   const activePanel = useUIStore((s) => s.activePanel);
 
-  const { recent, paper, experiment, reference } = useMemo(() => {
+  const { recent, paper, experiment, reference, draft } = useMemo(() => {
     // 按修改时间排序（最新的在前）
     const sorted = [...items].sort((a, b) => b.mtime - a.mtime);
 
@@ -27,18 +27,21 @@ export default function Bookshelf() {
     const paper: BookshelfItem[] = [];
     const experiment: BookshelfItem[] = [];
     const reference: BookshelfItem[] = [];
+    const draft: BookshelfItem[] = [];
 
     for (const item of sorted) {
       if (item.category === "reference") {
         reference.push(item);
       } else if (item.category === "experiment") {
         experiment.push(item);
+      } else if (item.category === "draft") {
+        draft.push(item);
       } else {
         paper.push(item);
       }
     }
 
-    return { recent, paper, experiment, reference };
+    return { recent, paper, experiment, reference, draft };
   }, [items]);
 
   const hasAnything = items.length > 0;
@@ -91,6 +94,13 @@ export default function Bookshelf() {
               label="资料"
               items={reference}
               defaultExpanded={reference.length <= MAX_VISIBLE}
+              maxVisible={MAX_VISIBLE}
+            />
+            <DeskSection
+              icon="📋"
+              label="草稿"
+              items={draft}
+              defaultExpanded={false}
               maxVisible={MAX_VISIBLE}
             />
           </>

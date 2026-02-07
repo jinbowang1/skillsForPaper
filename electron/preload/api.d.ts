@@ -4,7 +4,7 @@ export interface BookshelfItem {
   ext: string;
   size: number;
   mtime: number;
-  category: "paper" | "experiment" | "reference";
+  category: "paper" | "experiment" | "reference" | "draft";
   isActive?: boolean;
 }
 
