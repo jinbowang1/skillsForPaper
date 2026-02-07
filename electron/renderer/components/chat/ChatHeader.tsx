@@ -107,43 +107,45 @@ export default function ChatHeader() {
           </div>
         </div>
       </div>
-      <div className="model-selector" ref={ref}>
+      <div className="chat-header-right">
         <button
-          className={`model-pill ${isSwitching ? "loading" : ""}`}
-          onClick={() => !isSwitching && !isStreaming && setOpen((o) => !o)}
-          disabled={isSwitching || isStreaming}
+          className="new-chat-btn"
+          onClick={handleNewChat}
+          disabled={isStreaming}
+          title="开始新对话"
         >
-          {isSwitching ? "切换中..." : currentModel} {!isSwitching && <>&#9662;</>}
+          新建对话
         </button>
-        {isOpen && (
-          <div className="model-dropdown">
-            {isLoadingModels ? (
-              <div className="model-option loading">加载中...</div>
-            ) : models.length > 0 ? (
-              models.map((m) => (
-                <button
-                  key={m.id}
-                  className={`model-option${m.name === currentModel ? " active" : ""}`}
-                  onClick={() => handleSelect(m)}
-                >
-                  {m.name}
-                  {m.needsVpn && <span className="vpn-tag">需VPN</span>}
-                </button>
-              ))
-            ) : (
-              <div className="model-option disabled">暂无可用模型</div>
-            )}
-          </div>
-        )}
+        <div className="model-selector" ref={ref}>
+          <button
+            className={`model-pill ${isSwitching ? "loading" : ""}`}
+            onClick={() => !isSwitching && !isStreaming && setOpen((o) => !o)}
+            disabled={isSwitching || isStreaming}
+          >
+            {isSwitching ? "切换中..." : currentModel} {!isSwitching && <>&#9662;</>}
+          </button>
+          {isOpen && (
+            <div className="model-dropdown">
+              {isLoadingModels ? (
+                <div className="model-option loading">加载中...</div>
+              ) : models.length > 0 ? (
+                models.map((m) => (
+                  <button
+                    key={m.id}
+                    className={`model-option${m.name === currentModel ? " active" : ""}`}
+                    onClick={() => handleSelect(m)}
+                  >
+                    {m.name}
+                    {m.needsVpn && <span className="vpn-tag">需VPN</span>}
+                  </button>
+                ))
+              ) : (
+                <div className="model-option disabled">暂无可用模型</div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-      <button
-        className="new-chat-btn"
-        onClick={handleNewChat}
-        disabled={isStreaming}
-        title="开始新对话"
-      >
-        新建对话
-      </button>
       <WindowControls />
     </div>
   );

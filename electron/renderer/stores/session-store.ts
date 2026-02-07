@@ -110,7 +110,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   messages: [],
   isStreaming: false,
   agentState: "idle",
-  currentModel: "Claude Opus 4.5",
+  currentModel: "",
   currentModelSupportsImages: true,
   pendingDecision: null,
   statusPhrase: "静候差遣",

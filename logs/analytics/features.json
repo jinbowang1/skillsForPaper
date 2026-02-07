@@ -25,6 +25,78 @@
       "metadata": {
         "textLength": 28
       }
+    },
+    {
+      "feature": "model",
+      "action": "switch",
+      "timestamp": 1770468524983,
+      "metadata": {
+        "from": "Claude Opus 4.5",
+        "to": "Kimi K2.5"
+      }
+    },
+    {
+      "feature": "model",
+      "action": "switch",
+      "timestamp": 1770468528982,
+      "metadata": {
+        "from": "Kimi K2.5",
+        "to": "Claude Opus 4.5 (latest)"
+      }
+    },
+    {
+      "feature": "model",
+      "action": "switch",
+      "timestamp": 1770468530871,
+      "metadata": {
+        "from": "Claude Opus 4.5 (latest)",
+        "to": "MiniMax M2.1"
+      }
+    },
+    {
+      "feature": "model",
+      "action": "switch",
+      "timestamp": 1770468532411,
+      "metadata": {
+        "from": "MiniMax M2.1",
+        "to": "Qwen3 Max"
+      }
+    },
+    {
+      "feature": "model",
+      "action": "switch",
+      "timestamp": 1770468533916,
+      "metadata": {
+        "from": "Qwen3 Max",
+        "to": "Kimi K2.5"
+      }
+    },
+    {
+      "feature": "model",
+      "action": "switch",
+      "timestamp": 1770468536683,
+      "metadata": {
+        "from": "Kimi K2.5",
+        "to": "Claude Opus 4.5 (latest)"
+      }
+    },
+    {
+      "feature": "model",
+      "action": "switch",
+      "timestamp": 1770468539051,
+      "metadata": {
+        "from": "Claude Opus 4.5 (latest)",
+        "to": "MiniMax M2.1"
+      }
+    },
+    {
+      "feature": "model",
+      "action": "switch",
+      "timestamp": 1770468541074,
+      "metadata": {
+        "from": "MiniMax M2.1",
+        "to": "Kimi K2.5"
+      }
     }
   ]
 }
