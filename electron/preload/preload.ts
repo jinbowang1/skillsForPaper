@@ -160,6 +160,15 @@ const api = {
   requestMicrophonePermission: () => ipcRenderer.invoke("health:requestMicrophone"),
   getMicrophoneStatus: () => ipcRenderer.invoke("health:getMicrophoneStatus"),
 
+  // ── Chat History ──
+  saveChatHistory: (messages: any[], model: string) =>
+    ipcRenderer.invoke("chat:saveHistory", { messages, model }),
+  loadChatHistory: () => ipcRenderer.invoke("chat:loadHistory"),
+  clearChatHistory: () => ipcRenderer.invoke("chat:clearHistory"),
+
+  // ── Session Management ──
+  newSession: () => ipcRenderer.invoke("session:new"),
+
   onDecisionRequest: (callback: DecisionRequestCallback) => {
     const handler = (_event: Electron.IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on("decision:request", handler);

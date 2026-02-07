@@ -8,6 +8,7 @@ import ToastContainer from "./components/ToastContainer";
 import { useAgentEvents } from "./hooks/useAgentEvents";
 import { useBookshelf } from "./hooks/useBookshelf";
 import { useTaskProgress } from "./hooks/useTaskProgress";
+import { useChatPersistence } from "./hooks/useChatPersistence";
 import { useUserStore } from "./stores/user-store";
 
 interface UpdateInfo {
@@ -50,6 +51,7 @@ export default function App() {
   useAgentEvents();
   useBookshelf();
   useTaskProgress();
+  useChatPersistence();
 
   // Fetch user info and avatar from memory on mount
   useEffect(() => {

@@ -183,6 +183,33 @@
   vertical-align: middle;
 }
 
+.new-chat-btn {
+  -webkit-app-region: no-drag;
+  position: absolute;
+  right: calc(var(--space-5) + 120px);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--gray3);
+  border-radius: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all var(--duration-fast);
+}
+.new-chat-btn:hover {
+  border-color: var(--gray1);
+  color: var(--text-secondary);
+}
+.new-chat-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+:root[data-platform="win32"] .new-chat-btn {
+  right: calc(138px + var(--space-3) + 120px);
+}
+
 /* ============================================
    Messages Area
    ============================================ */

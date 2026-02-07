@@ -13,6 +13,7 @@ import { initUsageTracker, stopUsageTracker } from "./usage-tracker.js";
 import { initCrashReporter } from "./crash-reporter.js";
 import { initFeatureAnalytics } from "./feature-analytics.js";
 import { setupBundledToolsEnv, getBundledToolsInfo } from "./bundled-tools.js";
+import { initChatHistory, flushChatHistory } from "./chat-history.js";
 
 // Load .env early so all modules can read env vars
 dotenv.config({ path: ENV_PATH });
@@ -132,6 +133,9 @@ app.whenReady().then(async () => {
   // Feature analytics (track feature usage)
   initFeatureAnalytics();
 
+  // Chat history persistence
+  initChatHistory();
+
   // First run: show setup wizard instead of initializing session
   if (isFirstRun()) {
     win.webContents.once("did-finish-load", () => {
@@ -149,6 +153,7 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => {
+  flushChatHistory();
   stopUsageTracker();
   bookshelfWatcher?.stop();
   taskParser?.stop();

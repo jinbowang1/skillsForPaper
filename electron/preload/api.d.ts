@@ -186,6 +186,14 @@ export interface ElectronAPI {
   requestMicrophonePermission: () => Promise<boolean>;
   getMicrophoneStatus: () => Promise<"granted" | "denied" | "not-determined" | "restricted" | "unknown">;
 
+  // Chat History
+  saveChatHistory: (messages: any[], model: string) => Promise<void>;
+  loadChatHistory: () => Promise<{ messages: any[]; model: string } | null>;
+  clearChatHistory: () => Promise<void>;
+
+  // Session Management
+  newSession: () => Promise<boolean>;
+
   // Event listeners (return unsubscribe function)
   onAgentEvent: (callback: (event: any) => void) => () => void;
   onStateChange: (callback: (state: { isStreaming: boolean; state: string }) => void) => () => void;

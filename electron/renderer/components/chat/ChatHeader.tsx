@@ -57,6 +57,29 @@ export default function ChatHeader() {
     return () => document.removeEventListener("mousedown", handler);
   }, [isOpen, isLoadingModels]);
 
+  const clearMessages = useSessionStore((state) => state.clearMessages);
+
+  const handleNewChat = useCallback(async () => {
+    const confirmed = window.confirm(
+      "确定要开始新对话吗？\n\n" +
+      "当前对话记录将被清空，历史对话可以在下次启动时恢复。"
+    );
+    if (!confirmed) return;
+
+    try {
+      // Clear UI messages
+      clearMessages();
+      // Clear persisted history
+      await window.api.clearChatHistory();
+      // Start new LLM session
+      await window.api.newSession();
+      addToast("已开始新对话");
+    } catch (err) {
+      addToast("开始新对话失败");
+      console.error("[ChatHeader] Failed to start new chat:", err);
+    }
+  }, [clearMessages, addToast]);
+
   const handleSelect = useCallback(
     async (m: ModelInfo) => {
       if (m.needsVpn) {
@@ -129,6 +152,14 @@ export default function ChatHeader() {
           </div>
         )}
       </div>
+      <button
+        className="new-chat-btn"
+        onClick={handleNewChat}
+        disabled={isStreaming}
+        title="开始新对话"
+      >
+        新建对话
+      </button>
       <WindowControls />
     </div>
   );

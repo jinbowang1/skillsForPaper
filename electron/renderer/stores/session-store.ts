@@ -75,6 +75,7 @@ interface SessionState {
   setModelSupportsImages: (supports: boolean) => void;
   markDecisionAnswered: (toolCallId: string, selectedIndex: number, customAnswer?: string) => void;
   setPendingDecision: (decision: PendingDecision | null) => void;
+  clearMessages: () => void;
 }
 
 let msgIdCounter = 0;
@@ -159,4 +160,6 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   }),
 
   setPendingDecision: (decision) => set({ pendingDecision: decision }),
+
+  clearMessages: () => set({ messages: [] }),
 }));

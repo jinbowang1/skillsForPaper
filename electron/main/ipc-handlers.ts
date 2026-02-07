@@ -20,6 +20,11 @@ import {
   requestMicrophonePermission,
   getMicrophonePermission,
 } from "./health-check.js";
+import {
+  saveChatHistory,
+  loadChatHistory,
+  clearChatHistory,
+} from "./chat-history.js";
 
 async function parseMemoryFile(): Promise<{
   name: string;
@@ -365,6 +370,27 @@ export function registerIpcHandlers(
 
   ipcMain.handle("health:getMicrophoneStatus", async () => {
     return getMicrophonePermission();
+  });
+
+  // ── Chat history channels ──
+  ipcMain.handle("chat:saveHistory", async (_event, { messages, model }) => {
+    saveChatHistory(messages, model);
+  });
+
+  ipcMain.handle("chat:loadHistory", async () => {
+    return loadChatHistory();
+  });
+
+  ipcMain.handle("chat:clearHistory", async () => {
+    clearChatHistory();
+  });
+
+  // ── Session management ──
+  ipcMain.handle("session:new", async () => {
+    if (!sessionBridge.isReady()) {
+      throw new Error("会话尚未初始化，请稍等片刻再试");
+    }
+    return sessionBridge.newSession();
   });
 
   window.on("maximize", () => {

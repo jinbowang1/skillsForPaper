@@ -171,7 +171,7 @@ export class SessionBridge {
     // Settings & session
     const settingsManager = SettingsManager.create(cwd, agentDir);
     settingsManager.setQuietStartup(true);
-    const sessionManager = SessionManager.create(cwd);
+    const sessionManager = SessionManager.continueRecent(cwd);
 
     // Resource loader (pass piAgent to avoid static require of ESM-only package)
     const resourceLoader = createResourceLoader(cwd, agentDir, piAgent);
@@ -538,5 +538,21 @@ export class SessionBridge {
    */
   isReady(): boolean {
     return this.session !== null;
+  }
+
+  /**
+   * Start a new session, clearing the conversation history.
+   */
+  async newSession(): Promise<boolean> {
+    if (!this.session) throw new Error("Session not initialized");
+    this.logger.info("[session] Starting new session...");
+    try {
+      const result = await this.session.newSession();
+      this.logger.info(`[session] New session created: ${result}`);
+      return result;
+    } catch (err) {
+      this.logger.error("[session] Failed to create new session:", err);
+      throw err;
+    }
   }
 }
