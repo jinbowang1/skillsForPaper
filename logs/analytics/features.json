@@ -1,0 +1,14 @@
+{
+  "userId": "unknown",
+  "startDate": "2026-02-07",
+  "events": [
+    {
+      "feature": "chat",
+      "action": "send_message",
+      "timestamp": 1770452599242,
+      "metadata": {
+        "textLength": 2
+      }
+    }
+  ]
+}
