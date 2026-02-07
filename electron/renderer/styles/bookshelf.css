@@ -129,11 +129,6 @@
   background: var(--overlay-faint);
 }
 
-.desk-category-icon {
-  font-size: 12px;
-  line-height: 1;
-}
-
 .desk-category-label {
   font-size: 12px;
   font-weight: 600;
@@ -176,6 +171,14 @@
   color: var(--accent);
   border-color: var(--accent);
   background: rgba(10, 132, 255, 0.05);
+}
+
+.desk-empty-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding: 8px 10px;
+  text-align: center;
+  font-style: italic;
 }
 
 /* ============================================

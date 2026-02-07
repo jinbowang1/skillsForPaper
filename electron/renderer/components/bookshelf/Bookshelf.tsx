@@ -69,39 +69,36 @@ export default function Bookshelf() {
         {hasAnything ? (
           <>
             <DeskSection
-              icon="⏱️"
               label="最近"
               items={recent}
               defaultExpanded
               maxVisible={MAX_RECENT}
             />
             <DeskSection
-              icon="📝"
               label="论文"
               items={paper}
               defaultExpanded
               maxVisible={MAX_VISIBLE}
             />
             <DeskSection
-              icon="🔬"
               label="实验"
               items={experiment}
               defaultExpanded={experiment.length <= MAX_VISIBLE}
               maxVisible={MAX_VISIBLE}
             />
             <DeskSection
-              icon="📚"
               label="资料"
               items={reference}
               defaultExpanded={reference.length <= MAX_VISIBLE}
               maxVisible={MAX_VISIBLE}
             />
             <DeskSection
-              icon="📋"
               label="草稿"
               items={draft}
               defaultExpanded={false}
               maxVisible={MAX_VISIBLE}
+              alwaysShow
+              emptyText="未分类的文件会出现在这里"
             />
           </>
         ) : (
@@ -126,22 +123,24 @@ export default function Bookshelf() {
 }
 
 function DeskSection({
-  icon,
   label,
   items,
   defaultExpanded = true,
   maxVisible = 5,
+  alwaysShow = false,
+  emptyText,
 }: {
-  icon: string;
   label: string;
   items: BookshelfItem[];
   defaultExpanded?: boolean;
   maxVisible?: number;
+  alwaysShow?: boolean;
+  emptyText?: string;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [showAll, setShowAll] = useState(false);
 
-  if (items.length === 0) return null;
+  if (items.length === 0 && !alwaysShow) return null;
 
   const visibleItems = showAll ? items : items.slice(0, maxVisible);
   const hasMore = items.length > maxVisible;
@@ -152,7 +151,6 @@ function DeskSection({
         className="desk-category-header"
         onClick={() => setExpanded(!expanded)}
       >
-        <span className="desk-category-icon">{icon}</span>
         <span className="desk-category-label">{label}</span>
         <span className="desk-category-count">{items.length}</span>
         <span className="desk-category-chevron">
@@ -162,24 +160,30 @@ function DeskSection({
 
       {expanded && (
         <div className="desk-stack">
-          {visibleItems.map((item) => (
-            <DeskCard key={item.path} item={item} />
-          ))}
-          {hasMore && !showAll && (
-            <button
-              className="desk-show-more"
-              onClick={() => setShowAll(true)}
-            >
-              +{items.length - maxVisible} 个文件
-            </button>
-          )}
-          {hasMore && showAll && (
-            <button
-              className="desk-show-more"
-              onClick={() => setShowAll(false)}
-            >
-              收起
-            </button>
+          {items.length === 0 ? (
+            <div className="desk-empty-hint">{emptyText || "暂无文件"}</div>
+          ) : (
+            <>
+              {visibleItems.map((item) => (
+                <DeskCard key={item.path} item={item} />
+              ))}
+              {hasMore && !showAll && (
+                <button
+                  className="desk-show-more"
+                  onClick={() => setShowAll(true)}
+                >
+                  +{items.length - maxVisible} 个文件
+                </button>
+              )}
+              {hasMore && showAll && (
+                <button
+                  className="desk-show-more"
+                  onClick={() => setShowAll(false)}
+                >
+                  收起
+                </button>
+              )}
+            </>
           )}
         </div>
       )}
