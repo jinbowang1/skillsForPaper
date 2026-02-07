@@ -60,13 +60,36 @@ export default function App() {
     useUserStore.getState().fetchAvatar();
   }, []);
 
-  // Fetch current model from session on mount
+  // Fetch current model from session on mount (with retry for slow startup)
   useEffect(() => {
-    window.api.getState().then((state) => {
-      if (state?.model && state.model !== "unknown") {
-        useSessionStore.getState().setModel(state.model);
-      }
-    }).catch(() => {});
+    let attempts = 0;
+    const maxAttempts = 5;
+    const retryDelay = 1000;
+
+    const fetchModel = () => {
+      window.api.getState().then((state) => {
+        if (state?.model && state.model !== "unknown") {
+          useSessionStore.getState().setModel(state.model);
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          setTimeout(fetchModel, retryDelay);
+        } else {
+          // Fallback: try to get first model from list
+          window.api.getModels().then((models) => {
+            if (models.length > 0) {
+              useSessionStore.getState().setModel(models[0].name);
+            }
+          }).catch(() => {});
+        }
+      }).catch(() => {
+        if (attempts < maxAttempts) {
+          attempts++;
+          setTimeout(fetchModel, retryDelay);
+        }
+      });
+    };
+
+    fetchModel();
   }, []);
 
   if (setupRequired) {

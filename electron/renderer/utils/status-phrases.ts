@@ -102,6 +102,58 @@ export const IDLE_PHRASES = [
   "整装待发",       // all geared up
 ];
 
+/** Time-based idle phrases — adds flavor based on time of day */
+const TIME_BASED_IDLE: Record<string, string[]> = {
+  morning: [    // 6:00 - 12:00
+    "晨光熹微",       // dawn light
+    "闻鸡起舞",       // rising with the rooster
+    "朝露未晞",       // morning dew not yet dry
+  ],
+  afternoon: [  // 12:00 - 18:00
+    "午后小憩",       // afternoon rest
+    "日正当中",       // sun at its peak
+    "茶歇时分",       // tea break time
+  ],
+  evening: [    // 18:00 - 22:00
+    "华灯初上",       // lights coming on
+    "日暮西山",       // sunset on western hills
+    "月上柳梢",       // moon rising over willows
+  ],
+  night: [      // 22:00 - 6:00
+    "挑灯夜读",       // reading by lamplight (辛弃疾)
+    "秉烛夜游",       // touring by candlelight (李白)
+    "万籁俱寂",       // all is silent
+    "夜深人静",       // deep night, all quiet
+  ],
+};
+
+/** Time-based thinking phrases */
+const TIME_BASED_THINKING: Record<string, string[]> = {
+  morning: [
+    "晨起悟道中…",     // morning enlightenment
+  ],
+  afternoon: [
+    "午后冥想中…",     // afternoon meditation
+  ],
+  evening: [
+    "黄昏思索中…",     // dusk contemplation
+  ],
+  night: [
+    "挑灯苦读中…",     // burning midnight oil
+    "秉烛研究中…",     // researching by candlelight
+    "夜半推敲中…",     // midnight deliberation
+  ],
+};
+
+/** Get current time period */
+function getTimePeriod(): "morning" | "afternoon" | "evening" | "night" {
+  const hour = new Date().getHours();
+  if (hour >= 6 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 18) return "afternoon";
+  if (hour >= 18 && hour < 22) return "evening";
+  return "night";
+}
+
 /** Pick a random element, avoiding the previous one */
 export function pickRandom<T>(list: T[], exclude?: T): T {
   if (list.length <= 1) return list[0];
@@ -110,4 +162,28 @@ export function pickRandom<T>(list: T[], exclude?: T): T {
     pick = list[Math.floor(Math.random() * list.length)];
   } while (pick === exclude);
   return pick;
+}
+
+/** Pick an idle phrase, with 20% chance of time-based phrase */
+export function pickIdlePhrase(exclude?: string): string {
+  if (Math.random() < 0.2) {
+    const period = getTimePeriod();
+    const timePhrases = TIME_BASED_IDLE[period];
+    if (timePhrases.length > 0) {
+      return pickRandom(timePhrases, exclude);
+    }
+  }
+  return pickRandom(IDLE_PHRASES, exclude);
+}
+
+/** Pick a thinking phrase, with 15% chance of time-based phrase */
+export function pickThinkingPhrase(exclude?: string): string {
+  if (Math.random() < 0.15) {
+    const period = getTimePeriod();
+    const timePhrases = TIME_BASED_THINKING[period];
+    if (timePhrases.length > 0) {
+      return pickRandom(timePhrases, exclude);
+    }
+  }
+  return pickRandom(THINKING_PHRASES, exclude);
 }

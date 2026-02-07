@@ -82,6 +82,7 @@ const EXPERIMENT_EXTS = new Set([
 // 论文类扩展名
 const PAPER_EXTS = new Set([
   ".tex", ".md", ".docx", ".doc", ".pdf",       // 文档
+  ".txt", ".rtf",                               // 纯文本/富文本
   ".bib", ".cls", ".sty",                       // LaTeX 相关
   ".pptx", ".ppt",                              // 演示文稿
 ]);
@@ -191,7 +192,11 @@ export class BookshelfWatcher {
     }
   }
 
-  /** Recursively scan up to MAX_DEPTH levels */
+  /**
+   * Recursively scan up to MAX_DEPTH levels.
+   * MAX_DEPTH=2 means: output/ (0) -> project/ (1) -> subfolder/ (2)
+   * This covers typical research project structures without scanning too deep.
+   */
   private scanDir(dir: string, out: BookshelfItem[], depth: number) {
     const MAX_DEPTH = 2;
     if (depth > MAX_DEPTH) return;

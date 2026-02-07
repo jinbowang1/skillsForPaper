@@ -5,7 +5,7 @@ import {
   type ContentBlock,
 } from "../stores/session-store";
 import { parseAgentEvent } from "../utils/message-parser";
-import { THINKING_PHRASES, IDLE_PHRASES, pickRandom } from "../utils/status-phrases";
+import { pickIdlePhrase, pickThinkingPhrase } from "../utils/status-phrases";
 
 /** Map tool names to friendly Chinese labels */
 function getToolDisplayName(toolName: string): string {
@@ -166,7 +166,7 @@ export function useAgentEvents() {
 
       if (state.state === "error") {
         setAgentState("idle");
-        setStatusPhrase(pickRandom(IDLE_PHRASES));
+        setStatusPhrase(pickIdlePhrase());
         setCurrentTool(null);
         // Clear stuck streaming on assistant messages
         const msgs = useSessionStore.getState().messages;
@@ -186,10 +186,10 @@ export function useAgentEvents() {
         // Update status phrase on state transition
         if (state.isStreaming && !wasStreaming) {
           // Started streaming: pick a thinking phrase
-          setStatusPhrase(pickRandom(THINKING_PHRASES));
+          setStatusPhrase(pickThinkingPhrase());
         } else if (!state.isStreaming && wasStreaming) {
           // Stopped streaming: pick an idle phrase, clear tool
-          setStatusPhrase(pickRandom(IDLE_PHRASES));
+          setStatusPhrase(pickIdlePhrase());
           setCurrentTool(null);
         }
       }
