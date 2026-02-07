@@ -58,6 +58,19 @@ export interface PendingDecision {
   question: string;
 }
 
+/** Current tool execution info */
+export interface CurrentTool {
+  name: string;
+  startTime: number;
+}
+
+/** Task progress info */
+export interface TaskProgress {
+  current: number;
+  total: number;
+  title: string;
+}
+
 interface SessionState {
   messages: ChatMessage[];
   isStreaming: boolean;
@@ -65,6 +78,11 @@ interface SessionState {
   currentModel: string;
   currentModelSupportsImages: boolean;
   pendingDecision: PendingDecision | null;
+
+  // Unified status display
+  statusPhrase: string;
+  currentTool: CurrentTool | null;
+  taskProgress: TaskProgress | null;
 
   addMessage: (msg: ChatMessage) => void;
   updateLastAssistantMessage: (updater: (blocks: ContentBlock[]) => ContentBlock[]) => void;
@@ -76,6 +94,11 @@ interface SessionState {
   markDecisionAnswered: (toolCallId: string, selectedIndex: number, customAnswer?: string) => void;
   setPendingDecision: (decision: PendingDecision | null) => void;
   clearMessages: () => void;
+
+  // Status actions
+  setStatusPhrase: (phrase: string) => void;
+  setCurrentTool: (tool: CurrentTool | null) => void;
+  setTaskProgress: (progress: TaskProgress | null) => void;
 }
 
 let msgIdCounter = 0;
@@ -90,6 +113,9 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   currentModel: "Claude Opus 4.5",
   currentModelSupportsImages: true,
   pendingDecision: null,
+  statusPhrase: "静候差遣",
+  currentTool: null,
+  taskProgress: null,
 
   addMessage: (msg) => set((state) => ({
     messages: [...state.messages, msg],
@@ -162,4 +188,9 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   setPendingDecision: (decision) => set({ pendingDecision: decision }),
 
   clearMessages: () => set({ messages: [] }),
+
+  // Status actions
+  setStatusPhrase: (statusPhrase) => set({ statusPhrase }),
+  setCurrentTool: (currentTool) => set({ currentTool }),
+  setTaskProgress: (taskProgress) => set({ taskProgress }),
 }));

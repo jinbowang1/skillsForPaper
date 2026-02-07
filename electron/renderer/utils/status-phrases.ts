@@ -38,6 +38,22 @@ export const THINKING_PHRASES = [
   "掐指算中…",     // counting on fingers (fortune-teller)
   "解题中…",       // solving the puzzle
   "理毛中…",       // grooming (cat moment)
+
+  // 新增：有趣的状态
+  "捋胡须中…",     // stroking beard (老学者)
+  "翻箱倒柜中…",   // rummaging (找资料)
+  "灵光乍现中…",   // flash of inspiration
+  "修炼中…",       // cultivating
+  "炼丹中…",       // refining elixir (道士)
+  "施法中…",       // casting spell (法师)
+  "掘地三尺中…",   // digging deep
+  "上下求索中…",   // searching high and low
+  "脑洞大开中…",   // brainstorming wildly
+  "憋大招中…",     // charging ultimate skill
+  "闭关中…",       // in seclusion
+  "念咒中…",       // chanting
+  "画符中…",       // drawing talismans
+  "开光中…",       // consecrating
 ];
 
 /** Shown when AI is idle / online — calm, witty, present */
@@ -70,6 +86,20 @@ export const IDLE_PHRASES = [
 
   // 猫
   "晒太阳中",       // sunbathing (cat moment)
+
+  // 新增：更多有趣的状态
+  "摊开四脚",       // sprawled out (cat躺平)
+  "发呆放空",       // spacing out
+  "望穿秋水",       // longing for you
+  "打个盹儿",       // taking a nap
+  "伸个懒腰",       // stretching
+  "蹲守中",         // on standby
+  "随时待命",       // ready anytime
+  "养精蓄锐",       // conserving energy
+  "偷得浮生半日闲", // stealing leisure (李涉)
+  "闭目养神",       // resting with eyes closed
+  "神清气爽",       // refreshed and alert
+  "整装待发",       // all geared up
 ];
 
 /** Pick a random element, avoiding the previous one */

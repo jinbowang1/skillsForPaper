@@ -5,6 +5,22 @@ import {
   type ContentBlock,
 } from "../stores/session-store";
 import { parseAgentEvent } from "../utils/message-parser";
+import { THINKING_PHRASES, IDLE_PHRASES, pickRandom } from "../utils/status-phrases";
+
+/** Map tool names to friendly Chinese labels */
+function getToolDisplayName(toolName: string): string {
+  const n = toolName.toLowerCase();
+  if (n === "bash") return "执行命令";
+  if (n === "python" || n === "computer") return "运行 Python";
+  if (n === "read") return "读取文件";
+  if (n === "write") return "写入文件";
+  if (n === "edit") return "编辑文件";
+  if (n === "glob") return "搜索文件";
+  if (n === "grep") return "搜索内容";
+  if (n === "web_search") return "搜索网页";
+  if (n === "web_fetch") return "获取网页";
+  return toolName;
+}
 
 export function useAgentEvents() {
   const {
@@ -15,10 +31,38 @@ export function useAgentEvents() {
     setAgentState,
     setModel,
     setModelSupportsImages,
+    setStatusPhrase,
+    setCurrentTool,
+    setTaskProgress,
   } = useSessionStore();
 
   useEffect(() => {
     const unsubEvent = window.api.onAgentEvent((event: any) => {
+      // Debug: log all event types
+      if (event.type) {
+        console.log(`[AgentEvent] ${event.type}`, event.toolName || "");
+      }
+
+      // Handle tool execution events for progress display
+      if (event.type === "tool_execution_start") {
+        const toolName = event.toolName || "";
+        console.log(`[AgentEvent] Tool started: ${toolName}`);
+        if (toolName !== "ask_user") {
+          setCurrentTool({
+            name: getToolDisplayName(toolName),
+            startTime: Date.now(),
+          });
+        }
+      } else if (event.type === "tool_execution_end") {
+        console.log(`[AgentEvent] Tool ended: ${event.toolName || ""}`);
+        setCurrentTool(null);
+      }
+
+      // Handle task progress from steps blocks
+      if (event.type === "message_update" && event.assistantMessageEvent?.type === "content_block_delta") {
+        // Check for steps in the content
+      }
+
       const parsed = parseAgentEvent(event);
       if (!parsed) return;
 
@@ -117,9 +161,13 @@ export function useAgentEvents() {
     });
 
     const unsubState = window.api.onStateChange((state: any) => {
+      const wasStreaming = useSessionStore.getState().isStreaming;
       setStreaming(state.isStreaming);
+
       if (state.state === "error") {
         setAgentState("idle");
+        setStatusPhrase(pickRandom(IDLE_PHRASES));
+        setCurrentTool(null);
         // Clear stuck streaming on assistant messages
         const msgs = useSessionStore.getState().messages;
         for (let i = msgs.length - 1; i >= 0; i--) {
@@ -134,7 +182,18 @@ export function useAgentEvents() {
         }
       } else {
         setAgentState(state.isStreaming ? "working" : "idle");
+
+        // Update status phrase on state transition
+        if (state.isStreaming && !wasStreaming) {
+          // Started streaming: pick a thinking phrase
+          setStatusPhrase(pickRandom(THINKING_PHRASES));
+        } else if (!state.isStreaming && wasStreaming) {
+          // Stopped streaming: pick an idle phrase, clear tool
+          setStatusPhrase(pickRandom(IDLE_PHRASES));
+          setCurrentTool(null);
+        }
       }
+
       if (state.model) {
         setModel(state.model);
       }

@@ -4,11 +4,6 @@ import { useUserStore } from "../../stores/user-store";
 import { useToastStore } from "../../stores/toast-store";
 import DashixiongAvatar from "../DashixiongAvatar";
 import WindowControls from "./WindowControls";
-import {
-  THINKING_PHRASES,
-  IDLE_PHRASES,
-  pickRandom,
-} from "../../utils/status-phrases";
 
 interface ModelInfo {
   id: string;
@@ -16,22 +11,10 @@ interface ModelInfo {
   needsVpn?: boolean;
 }
 
-/** Pick ONE random phrase per streaming state change (no rotation) */
-function useStatusPhrase(isStreaming: boolean): string {
-  const [phrase, setPhrase] = useState(() => pickRandom(IDLE_PHRASES));
-
-  useEffect(() => {
-    setPhrase(pickRandom(isStreaming ? THINKING_PHRASES : IDLE_PHRASES));
-  }, [isStreaming]);
-
-  return phrase;
-}
-
 export default function ChatHeader() {
-  const { isStreaming, currentModel, setModel } = useSessionStore();
+  const { isStreaming, currentModel, setModel, statusPhrase } = useSessionStore();
   const { aiName } = useUserStore();
   const addToast = useToastStore((s) => s.addToast);
-  const statusText = useStatusPhrase(isStreaming);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [isOpen, setOpen] = useState(false);
   const [isSwitching, setSwitching] = useState(false);
@@ -119,8 +102,8 @@ export default function ChatHeader() {
         <div>
           <div className="chat-header-name">{aiName}</div>
           <div className="chat-header-status">
-            <span className="online-dot" />
-            {statusText}
+            <span className={`status-dot ${isStreaming ? "thinking" : "idle"}`} />
+            {statusPhrase}
           </div>
         </div>
       </div>
