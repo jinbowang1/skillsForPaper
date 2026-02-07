@@ -1,6 +1,7 @@
 import { BrowserWindow } from "electron";
 import dotenv from "dotenv";
-import { AGENT_CWD, OUTPUT_DIR, ENV_PATH } from "./paths.js";
+import { AGENT_CWD, ENV_PATH } from "./paths.js";
+import { getOutputDir } from "./settings.js";
 import { logger } from "./app-logger.js";
 import { createResourceLoader } from "./app-resource-loader.js";
 import { installGlobalBridge, setWindow as setDecisionWindow } from "./decision-bridge.js";
@@ -318,7 +319,7 @@ export class SessionBridge {
         if (toolName === "write" || toolName === "edit") {
           const args = event.args || {};
           const filePath = args.file_path || args.path || "";
-          if (filePath && filePath.startsWith(OUTPUT_DIR)) {
+          if (filePath && filePath.startsWith(getOutputDir())) {
             this.bookshelfWatcher.setActiveFile(filePath);
           }
         }

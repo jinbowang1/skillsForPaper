@@ -1,9 +1,11 @@
 import { BrowserWindow } from "electron";
 import path from "path";
 import { readFileSync, existsSync, watchFile, unwatchFile } from "fs";
-import { OUTPUT_DIR } from "./paths.js";
+import { getOutputDir } from "./settings.js";
 
-const TASK_FILE = path.join(OUTPUT_DIR, "TASK.md");
+function getTaskFile(): string {
+  return path.join(getOutputDir(), "TASK.md");
+}
 
 export interface TaskStep {
   label: string;
@@ -28,8 +30,8 @@ export class TaskParser {
   start() {
     this.parse();
 
-    if (existsSync(TASK_FILE)) {
-      watchFile(TASK_FILE, { interval: 1000 }, () => {
+    if (existsSync(getTaskFile())) {
+      watchFile(getTaskFile(), { interval: 1000 }, () => {
         this.parse();
         this.notifyRenderer();
       });
@@ -38,8 +40,8 @@ export class TaskParser {
 
     // Periodically check if file appeared
     const checkInterval = setInterval(() => {
-      if (!this.watching && existsSync(TASK_FILE)) {
-        watchFile(TASK_FILE, { interval: 1000 }, () => {
+      if (!this.watching && existsSync(getTaskFile())) {
+        watchFile(getTaskFile(), { interval: 1000 }, () => {
           this.parse();
           this.notifyRenderer();
         });
@@ -55,7 +57,7 @@ export class TaskParser {
 
   stop() {
     if (this.watching) {
-      unwatchFile(TASK_FILE);
+      unwatchFile(getTaskFile());
       this.watching = false;
     }
     const interval = (this as any)._checkInterval;
@@ -63,13 +65,13 @@ export class TaskParser {
   }
 
   private parse() {
-    if (!existsSync(TASK_FILE)) {
+    if (!existsSync(getTaskFile())) {
       this.state = null;
       return;
     }
 
     try {
-      const content = readFileSync(TASK_FILE, "utf-8");
+      const content = readFileSync(getTaskFile(), "utf-8");
 
       // Extract title
       const titleMatch = content.match(/^#\s+当前任务：(.+)$/m);

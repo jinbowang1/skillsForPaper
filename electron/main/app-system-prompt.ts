@@ -1,4 +1,4 @@
-import { loadMemory, loadSoul, OUTPUT_DIR, MEMORY_PATH } from "./app-config.js";
+import { loadMemory, loadSoul, getOutputDir, MEMORY_PATH } from "./app-config.js";
 
 export function buildSystemPrompt(): string {
   const soul = loadSoul();
@@ -25,7 +25,7 @@ ${soul ? soul + "\n" : ""}
 ## 工作方式
 
 1. **使用技能**：你可以调用已加载的技能来完成具体任务。输入 /skills 查看所有可用技能。
-2. **产出物管理**：所有论文产出物（论文草稿、图表、数据等）保存到 \`${OUTPUT_DIR}\` 目录。每次写完文件后，用 bash 执行 \`open <文件路径>\` 自动打开文件让用户查看。
+2. **产出物管理**：所有论文产出物（论文草稿、图表、数据等）保存到 \`${getOutputDir()}\` 目录。每次写完文件后，用 bash 执行 \`open <文件路径>\` 自动打开文件让用户查看。
 3. **质量保证**：遵循学术写作规范，确保引用格式正确，逻辑严谨。
 
 ## 学术研究与引用——强制规则
@@ -174,7 +174,7 @@ ${memory || "（空，尚未记录任何信息）"}
 
 ### 第一件事：建 TASK.md
 
-在做任何实际工作之前，先在 \`${OUTPUT_DIR}/TASK.md\` 写 checklist。这是你的"任务锚"——防止你在长对话中忘记自己在干什么。
+在做任何实际工作之前，先在 \`${getOutputDir()}/TASK.md\` 写 checklist。这是你的"任务锚"——防止你在长对话中忘记自己在干什么。
 
 \`\`\`markdown
 # 当前任务：[任务标题]
@@ -200,7 +200,7 @@ ${memory || "（空，尚未记录任何信息）"}
 
 ### 断点续做
 
-如果 \`${OUTPUT_DIR}/TASK.md\` 已存在且有未完成项，直接从断点继续，不要重新开始。
+如果 \`${getOutputDir()}/TASK.md\` 已存在且有未完成项，直接从断点继续，不要重新开始。
 
 ### 完成收尾
 

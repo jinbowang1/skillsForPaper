@@ -194,6 +194,12 @@ export interface ElectronAPI {
   // Session Management
   newSession: () => Promise<boolean>;
 
+  // Settings
+  getOutputDir: () => Promise<{ current: string; default: string }>;
+  selectOutputDir: () => Promise<string | null>;
+  resetOutputDir: () => Promise<string>;
+  revealOutputDir: () => Promise<void>;
+
   // Event listeners (return unsubscribe function)
   onAgentEvent: (callback: (event: any) => void) => () => void;
   onStateChange: (callback: (state: { isStreaming: boolean; state: string }) => void) => () => void;

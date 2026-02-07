@@ -550,6 +550,72 @@
   cursor: not-allowed;
 }
 
+.profile-section-divider {
+  height: 1px;
+  background: var(--separator-light);
+  margin: var(--space-4) 0;
+}
+
+.profile-output-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.profile-output-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.profile-output-path {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  word-break: break-all;
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+
+.profile-output-path:hover {
+  background: var(--overlay-strong);
+  color: var(--text-secondary);
+}
+
+.profile-output-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.profile-output-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.profile-output-btn:hover {
+  background: var(--overlay-strong);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.profile-output-btn.secondary {
+  background: transparent;
+}
+
 /* ── Guide Panel ── */
 .guide-section {
   display: flex;

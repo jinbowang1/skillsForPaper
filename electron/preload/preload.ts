@@ -169,6 +169,12 @@ const api = {
   // ── Session Management ──
   newSession: () => ipcRenderer.invoke("session:new"),
 
+  // ── Settings ──
+  getOutputDir: () => ipcRenderer.invoke("settings:getOutputDir"),
+  selectOutputDir: () => ipcRenderer.invoke("settings:selectOutputDir"),
+  resetOutputDir: () => ipcRenderer.invoke("settings:resetOutputDir"),
+  revealOutputDir: () => ipcRenderer.invoke("settings:revealOutputDir"),
+
   onDecisionRequest: (callback: DecisionRequestCallback) => {
     const handler = (_event: Electron.IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on("decision:request", handler);

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, Camera } from "lucide-react";
+import { X, Camera, FolderOpen, RotateCcw } from "lucide-react";
 import { useUIStore } from "../../stores/ui-store";
 import { useUserStore } from "../../stores/user-store";
 import { useToastStore } from "../../stores/toast-store";
@@ -20,9 +20,11 @@ export default function ProfilePanel() {
   });
   const [localAvatar, setLocalAvatar] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [outputDir, setOutputDir] = useState<{ current: string; default: string } | null>(null);
 
   useEffect(() => {
     fetchAvatar();
+    window.api.getOutputDir().then(setOutputDir).catch(() => {});
   }, []);
 
   const displayAvatar = localAvatar || avatarUrl;
@@ -52,6 +54,34 @@ export default function ProfilePanel() {
   const handleChange = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
+
+  const handleSelectOutputDir = async () => {
+    try {
+      const newPath = await window.api.selectOutputDir();
+      if (newPath) {
+        setOutputDir({ current: newPath, default: outputDir?.default || newPath });
+        addToast("已更改保存位置", "success");
+      }
+    } catch {
+      addToast("更改保存位置失败");
+    }
+  };
+
+  const handleResetOutputDir = async () => {
+    try {
+      const defaultPath = await window.api.resetOutputDir();
+      setOutputDir({ current: defaultPath, default: defaultPath });
+      addToast("已恢复默认位置", "success");
+    } catch {
+      addToast("恢复默认位置失败");
+    }
+  };
+
+  const handleRevealOutputDir = () => {
+    window.api.revealOutputDir();
+  };
+
+  const isCustomOutputDir = outputDir && outputDir.current !== outputDir.default;
 
   const handleSave = async () => {
     setSaving(true);
@@ -118,6 +148,37 @@ export default function ProfilePanel() {
               />
             </div>
           ))}
+        </div>
+
+        <div className="profile-section-divider" />
+
+        <div className="profile-output-section">
+          <div className="profile-output-label">产出物保存位置</div>
+          <div
+            className="profile-output-path"
+            onClick={handleRevealOutputDir}
+            title="点击打开文件夹"
+          >
+            {outputDir?.current || "加载中..."}
+          </div>
+          <div className="profile-output-actions">
+            <button
+              className="profile-output-btn"
+              onClick={handleSelectOutputDir}
+            >
+              <FolderOpen size={14} />
+              更改位置
+            </button>
+            {isCustomOutputDir && (
+              <button
+                className="profile-output-btn secondary"
+                onClick={handleResetOutputDir}
+              >
+                <RotateCcw size={14} />
+                恢复默认
+              </button>
+            )}
+          </div>
         </div>
 
         <button

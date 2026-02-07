@@ -5,12 +5,12 @@ import {
   ENV_PATH,
   BUNDLED_ENV_PATH,
   MEMORY_DIR,
-  OUTPUT_DIR,
   LOGS_DIR,
   EXTENSIONS_DIR,
   BUNDLED_EXTENSIONS_DIR,
   RESOURCES_DIR,
 } from "./paths.js";
+import { getOutputDir } from "./settings.js";
 
 /** True when packaged AND the user has not yet created a .env file */
 export function isFirstRun(): boolean {
@@ -23,7 +23,7 @@ export function isFirstRun(): boolean {
  */
 export function bootstrapUserData(): void {
   // Create writable directories
-  for (const dir of [MEMORY_DIR, OUTPUT_DIR, LOGS_DIR, EXTENSIONS_DIR]) {
+  for (const dir of [MEMORY_DIR, getOutputDir(), LOGS_DIR, EXTENSIONS_DIR]) {
     mkdirSync(dir, { recursive: true });
   }
 

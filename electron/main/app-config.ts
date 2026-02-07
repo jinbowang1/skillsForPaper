@@ -3,11 +3,12 @@ import {
   SKILLS_DIR,
   MEMORY_PATH,
   SOUL_PATH,
-  OUTPUT_DIR,
   LOGS_DIR,
 } from "./paths.js";
+import { getOutputDir } from "./settings.js";
 
-export { OUTPUT_DIR, MEMORY_PATH, LOGS_DIR };
+export { MEMORY_PATH, LOGS_DIR };
+export { getOutputDir };
 
 /** Load skill directories — always includes the bundled SKILLS_DIR */
 export function loadSkillPaths(): string[] {

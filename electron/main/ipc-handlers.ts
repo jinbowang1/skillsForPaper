@@ -1,4 +1,4 @@
-import { ipcMain, shell, BrowserWindow } from "electron";
+import { ipcMain, shell, BrowserWindow, dialog } from "electron";
 import { readFile, writeFile, copyFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
@@ -25,6 +25,11 @@ import {
   loadChatHistory,
   clearChatHistory,
 } from "./chat-history.js";
+import {
+  getOutputDir,
+  getDefaultOutputDir,
+  setOutputDir,
+} from "./settings.js";
 
 async function parseMemoryFile(): Promise<{
   name: string;
@@ -391,6 +396,49 @@ export function registerIpcHandlers(
       throw new Error("会话尚未初始化，请稍等片刻再试");
     }
     return sessionBridge.newSession();
+  });
+
+  // ── Settings channels ──
+  ipcMain.handle("settings:getOutputDir", async () => {
+    return {
+      current: getOutputDir(),
+      default: getDefaultOutputDir(),
+    };
+  });
+
+  ipcMain.handle("settings:selectOutputDir", async () => {
+    const result = await dialog.showOpenDialog(window, {
+      title: "选择产出物保存位置",
+      defaultPath: getOutputDir(),
+      properties: ["openDirectory", "createDirectory"],
+    });
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return null;
+    }
+
+    const selectedPath = result.filePaths[0];
+    setOutputDir(selectedPath);
+
+    // Restart bookshelf watcher to monitor new directory
+    bookshelfWatcher.stop();
+    bookshelfWatcher.start();
+
+    return selectedPath;
+  });
+
+  ipcMain.handle("settings:resetOutputDir", async () => {
+    setOutputDir(getDefaultOutputDir());
+
+    // Restart bookshelf watcher to monitor default directory
+    bookshelfWatcher.stop();
+    bookshelfWatcher.start();
+
+    return getDefaultOutputDir();
+  });
+
+  ipcMain.handle("settings:revealOutputDir", async () => {
+    shell.openPath(getOutputDir());
   });
 
   window.on("maximize", () => {

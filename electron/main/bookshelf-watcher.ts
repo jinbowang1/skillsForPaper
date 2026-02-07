@@ -2,7 +2,7 @@ import { BrowserWindow } from "electron";
 import path from "path";
 import { readdirSync, statSync, existsSync } from "fs";
 import { watch, type FSWatcher } from "chokidar";
-import { OUTPUT_DIR } from "./paths.js";
+import { getOutputDir } from "./settings.js";
 
 export interface BookshelfItem {
   name: string;
@@ -84,11 +84,12 @@ export class BookshelfWatcher {
   }
 
   start() {
-    if (!existsSync(OUTPUT_DIR)) return;
+    const outputDir = getOutputDir();
+    if (!existsSync(outputDir)) return;
 
     this.scan();
 
-    this.watcher = watch(OUTPUT_DIR, {
+    this.watcher = watch(outputDir, {
       ignoreInitial: true,
       depth: 2,
       ignored: /(^|[\/\\])\..|TASK\.md$/,
@@ -119,14 +120,15 @@ export class BookshelfWatcher {
   }
 
   private scan() {
-    if (!existsSync(OUTPUT_DIR)) {
+    const outputDir = getOutputDir();
+    if (!existsSync(outputDir)) {
       this.items = [];
       return;
     }
 
     try {
       const result: BookshelfItem[] = [];
-      this.scanDir(OUTPUT_DIR, result, 0);
+      this.scanDir(outputDir, result, 0);
       this.items = result;
       // Apply active state
       for (const item of this.items) {
