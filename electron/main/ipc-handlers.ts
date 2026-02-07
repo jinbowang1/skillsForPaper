@@ -15,6 +15,11 @@ import { getUsageStats, sendReportNow, checkUsageLimit } from "./usage-tracker.j
 import { getCrashReports, getRecentCrashCount } from "./crash-reporter.js";
 import { getAnalyticsSummary, trackFeature } from "./feature-analytics.js";
 import { exportLogs, exportLogsAndReveal } from "./log-exporter.js";
+import {
+  performHealthCheck,
+  requestMicrophonePermission,
+  getMicrophonePermission,
+} from "./health-check.js";
 
 async function parseMemoryFile(): Promise<{
   name: string;
@@ -83,7 +88,7 @@ export function registerIpcHandlers(
   });
 
   ipcMain.handle("session:abort", async () => {
-    sessionBridge.abort();
+    await sessionBridge.abort();
   });
 
   ipcMain.handle("session:getState", async () => {
@@ -347,6 +352,19 @@ export function registerIpcHandlers(
 
   ipcMain.handle("logs:exportAndReveal", async () => {
     return exportLogsAndReveal();
+  });
+
+  // ── Health check channels ──
+  ipcMain.handle("health:check", async () => {
+    return performHealthCheck();
+  });
+
+  ipcMain.handle("health:requestMicrophone", async () => {
+    return requestMicrophonePermission();
+  });
+
+  ipcMain.handle("health:getMicrophoneStatus", async () => {
+    return getMicrophonePermission();
   });
 
   window.on("maximize", () => {

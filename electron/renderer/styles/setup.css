@@ -128,3 +128,135 @@
   font-size: 11px;
   color: var(--text-tertiary);
 }
+
+/* ============================================
+   Permission Check — Onboarding health check
+   ============================================ */
+.permission-check-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6) 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.permission-check-loading .spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.permission-check-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+}
+
+.permission-check-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  font-size: 13px;
+}
+
+.permission-check-item .permission-icon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.permission-check-item .permission-label {
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 90px;
+}
+
+.permission-check-item .permission-hint {
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.permission-check-item .status-icon {
+  flex-shrink: 0;
+}
+
+.permission-check-item .status-icon.ok {
+  color: var(--green);
+}
+
+.permission-check-item .status-icon.error {
+  color: var(--red);
+}
+
+.permission-check-item .status-icon.warning {
+  color: var(--yellow);
+}
+
+.permission-check-item .status-icon.optional {
+  color: var(--text-tertiary);
+}
+
+.permission-check-item.status-ok .permission-icon {
+  color: var(--green);
+}
+
+.permission-check-item.status-error .permission-icon {
+  color: var(--red);
+}
+
+.permission-check-item.status-warning .permission-icon {
+  color: var(--yellow);
+}
+
+.permission-grant-btn {
+  padding: var(--space-1) var(--space-3);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.permission-grant-btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.permission-grant-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.permission-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  margin-top: var(--space-2);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.permission-summary.ok {
+  background: rgba(52, 199, 89, 0.15);
+  color: var(--green);
+}
+
+.permission-summary.warning {
+  background: rgba(255, 204, 0, 0.15);
+  color: var(--yellow);
+}

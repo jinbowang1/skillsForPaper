@@ -7,13 +7,35 @@ import * as fs from "fs";
 import * as path from "path";
 import { execSync } from "child_process";
 
+// Determine which tools to bundle based on target platform
+function getExtraResources(): string[] {
+  const base = [
+    "../skills",
+    "../memory",
+    "../.pi/extensions",
+    "./.env.bundled",
+  ];
+
+  // Check for cross-compilation target, fallback to current platform
+  const targetPlatform = process.env.npm_config_platform || process.platform;
+
+  if (targetPlatform === "win32") {
+    base.push("./tools/win32");
+  } else if (targetPlatform === "darwin") {
+    base.push("./tools/darwin");
+  }
+  // Linux: no bundled tools for now (users install via package manager)
+
+  return base;
+}
+
 const config: ForgeConfig = {
   packagerConfig: {
     name: "大师兄",
     executableName: "dashixiong",
     asar: false,
     icon: "./assets/icon",
-    extraResource: ["../skills", "../memory", "../.pi/extensions", "./.env.bundled", "./tools/sox-win32"],
+    extraResource: getExtraResources(),
     osxSign: {
       identity: "Developer ID Application: jinbo wang (7P3NKWKF4K)",
       optionsForFile: () => ({

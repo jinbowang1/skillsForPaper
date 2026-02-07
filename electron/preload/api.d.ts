@@ -91,6 +91,23 @@ export interface ExportResult {
   error?: string;
 }
 
+export interface HealthCheckResult {
+  permissions: {
+    microphone: "granted" | "denied" | "not-determined" | "restricted" | "unknown";
+    disk: "ok" | "error";
+  };
+  tools: {
+    python: boolean;
+    bash: boolean;
+    sox: boolean;
+  };
+  network: {
+    connected: boolean;
+    error?: string;
+  };
+  allGood: boolean;
+}
+
 export interface ElectronAPI {
   // Platform
   platform: string;
@@ -163,6 +180,11 @@ export interface ElectronAPI {
   // Update
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void;
   openUpdateUrl: (url: string) => Promise<void>;
+
+  // Health Check
+  healthCheck: () => Promise<HealthCheckResult>;
+  requestMicrophonePermission: () => Promise<boolean>;
+  getMicrophoneStatus: () => Promise<"granted" | "denied" | "not-determined" | "restricted" | "unknown">;
 
   // Event listeners (return unsubscribe function)
   onAgentEvent: (callback: (event: any) => void) => () => void;

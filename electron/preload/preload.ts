@@ -155,6 +155,11 @@ const api = {
 
   openUpdateUrl: (url: string) => ipcRenderer.invoke("update:openUrl", { url }),
 
+  // ── Health Check ──
+  healthCheck: () => ipcRenderer.invoke("health:check"),
+  requestMicrophonePermission: () => ipcRenderer.invoke("health:requestMicrophone"),
+  getMicrophoneStatus: () => ipcRenderer.invoke("health:getMicrophoneStatus"),
+
   onDecisionRequest: (callback: DecisionRequestCallback) => {
     const handler = (_event: Electron.IpcRendererEvent, data: any) => callback(data);
     ipcRenderer.on("decision:request", handler);

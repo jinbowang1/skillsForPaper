@@ -389,12 +389,18 @@ export class SessionBridge {
     // Clear all tool timers first
     this.clearAllToolTimers();
     try {
-      await this.session.abort();
+      // Add timeout to prevent abort from hanging forever
+      const abortPromise = this.session.abort();
+      const timeoutPromise = new Promise<void>((_, reject) =>
+        setTimeout(() => reject(new Error("Abort timed out")), 5000)
+      );
+      await Promise.race([abortPromise, timeoutPromise]);
       this.logger.info("[abort] Session abort completed");
     } catch (err) {
       this.logger.error("[abort] Error:", err);
     }
-    // Force reset streaming state in case agent_end event doesn't fire
+    // Force reset streaming state regardless of abort success/failure
+    // This ensures the UI always becomes responsive again
     if (this.isStreaming) {
       this.isStreaming = false;
       if (this.window && !this.window.isDestroyed()) {

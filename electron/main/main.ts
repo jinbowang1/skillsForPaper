@@ -12,9 +12,16 @@ import { initAutoUpdater } from "./auto-updater.js";
 import { initUsageTracker, stopUsageTracker } from "./usage-tracker.js";
 import { initCrashReporter } from "./crash-reporter.js";
 import { initFeatureAnalytics } from "./feature-analytics.js";
+import { setupBundledToolsEnv, getBundledToolsInfo } from "./bundled-tools.js";
 
 // Load .env early so all modules can read env vars
 dotenv.config({ path: ENV_PATH });
+
+// Setup bundled tools PATH (bash, python, sox) for packaged app
+if (IS_PACKAGED) {
+  setupBundledToolsEnv();
+  console.log("[main] Bundled tools setup:\n" + getBundledToolsInfo());
+}
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;

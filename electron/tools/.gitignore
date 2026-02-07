@@ -1,0 +1,9 @@
+# Downloaded tools (large binaries, download during build)
+win32/git/*
+win32/python/*
+win32/sox/*
+darwin/python/*
+
+# Keep the directory structure
+!.gitkeep
+!*/.gitkeep

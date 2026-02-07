@@ -7,6 +7,7 @@ import * as fs from "fs";
 import WebSocket from "ws";
 import type { Readable } from "stream";
 import { RESOURCES_DIR } from "./paths.js";
+import { getBundledSoxPath } from "./bundled-tools.js";
 
 // ── ASR Protocol Types (inline to avoid cross-project imports) ──
 
@@ -50,8 +51,14 @@ export class VoiceHandler {
 
   private getSoxDir(): string | null {
     if (process.platform !== "win32") return null;
-    const dir = path.join(RESOURCES_DIR, "sox-win32");
-    return fs.existsSync(dir) ? dir : null;
+    // First try bundled sox from bundled-tools
+    const bundledSox = getBundledSoxPath();
+    if (bundledSox && fs.existsSync(path.join(bundledSox, "sox.exe"))) {
+      return bundledSox;
+    }
+    // Fallback to old location for backwards compatibility
+    const oldDir = path.join(RESOURCES_DIR, "sox-win32");
+    return fs.existsSync(oldDir) ? oldDir : null;
   }
 
   isAvailable(): boolean {

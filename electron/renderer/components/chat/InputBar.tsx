@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { Mic, MicOff, ArrowUp, Square, X, ImagePlus } from "lucide-react";
+import { Mic, MicOff, ArrowUp, Square, X, ImagePlus, Loader2 } from "lucide-react";
 import { useSessionStore } from "../../stores/session-store";
 import { useUserStore } from "../../stores/user-store";
 import { useToastStore } from "../../stores/toast-store";
@@ -32,6 +32,7 @@ export default function InputBar() {
   const [interimText, setInterimText] = useState("");
   const [voiceReady, setVoiceReady] = useState(false);
   const [statusPhrase, setStatusPhrase] = useState(() => pickRandom(THINKING_PHRASES));
+  const [isAborting, setIsAborting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isComposingRef = useRef(false);
@@ -50,6 +51,8 @@ export default function InputBar() {
     if (isStreaming) {
       setStatusPhrase(pickRandom(THINKING_PHRASES, statusPhrase));
     }
+    // Note: Don't reset isAborting here - let handleAbort's finally block handle it
+    // with a delay so users can see the yellow "stopping" state
   }, [isStreaming]);
 
   // Clear staged images when switching to a text-only model
@@ -279,12 +282,20 @@ export default function InputBar() {
   }, [text, images, isStreaming, isVoiceRecording, sendMessage, pendingDecision, markDecisionAnswered, setPendingDecision]);
 
   const handleAbort = useCallback(async () => {
+    if (isAborting) return; // Prevent double-click
+    setIsAborting(true);
+    console.log("[InputBar] Abort button clicked, calling abort...");
     try {
       await window.api.abort();
+      console.log("[InputBar] Abort completed successfully");
     } catch (err) {
-      console.error("Abort failed:", err);
+      console.error("[InputBar] Abort failed:", err);
+      addToast("停止操作失败，请重试");
+    } finally {
+      // Reset aborting state after a short delay to allow UI to update
+      setTimeout(() => setIsAborting(false), 500);
     }
-  }, []);
+  }, [isAborting, addToast]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -427,14 +438,15 @@ export default function InputBar() {
               {isVoiceRecording ? <MicOff size={16} /> : <Mic size={16} />}
             </button>
           )}
-          {isStreaming && !pendingDecision ? (
+          {(isStreaming || isAborting) && !pendingDecision ? (
             <button
               className="circle-btn send"
               onClick={handleAbort}
-              title="停止"
-              style={{ background: "var(--red)" }}
+              disabled={isAborting}
+              title={isAborting ? "正在停止..." : "停止"}
+              style={{ background: isAborting ? "var(--yellow)" : "var(--red)" }}
             >
-              <Square size={14} />
+              {isAborting ? <Loader2 size={14} className="spin" /> : <Square size={14} />}
             </button>
           ) : (
             <button
