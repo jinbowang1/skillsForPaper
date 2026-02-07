@@ -1,4 +1,4 @@
-import { app, BrowserWindow, nativeTheme } from "electron";
+import { app, BrowserWindow, nativeTheme, shell } from "electron";
 import path from "path";
 import dotenv from "dotenv";
 import { ENV_PATH, IS_PACKAGED } from "./paths.js";
@@ -84,6 +84,37 @@ function createWindow() {
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.webContents.openDevTools({ mode: "detach" });
   }
+
+  // Handle external links: open in system browser instead of in-app
+  // This handles window.open() and target="_blank" links
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // Allow devtools URLs in development
+    if (url.startsWith("devtools://")) {
+      return { action: "allow" };
+    }
+    // Open external URLs in system browser
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      shell.openExternal(url);
+    }
+    return { action: "deny" };
+  });
+
+  // Handle navigation: prevent in-app navigation to external URLs
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    // Allow navigation to dev server in development
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL && url.startsWith(MAIN_WINDOW_VITE_DEV_SERVER_URL)) {
+      return;
+    }
+    // Allow file:// URLs (for production builds)
+    if (url.startsWith("file://")) {
+      return;
+    }
+    // Block external navigation and open in system browser
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
 
   mainWindow.on("closed", () => {
     mainWindow = null;
