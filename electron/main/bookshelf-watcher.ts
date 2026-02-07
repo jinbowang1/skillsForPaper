@@ -42,6 +42,20 @@ const IGNORED_NAME_PATTERNS = [
   /^\./,            // Hidden files
 ];
 
+// Directories to skip entirely
+const IGNORED_DIRS = new Set([
+  "node_modules",
+  ".git",
+  ".svn",
+  "__pycache__",
+  ".venv",
+  "venv",
+  ".idea",
+  ".vscode",
+  "dist",
+  "build",
+]);
+
 // ── 分类规则 ──
 
 // 资料类关键词（优先级最高）
@@ -182,6 +196,7 @@ export class BookshelfWatcher {
       try {
         const stat = statSync(fullPath);
         if (stat.isDirectory()) {
+          if (IGNORED_DIRS.has(name)) continue;
           this.scanDir(fullPath, out, depth + 1);
           continue;
         }

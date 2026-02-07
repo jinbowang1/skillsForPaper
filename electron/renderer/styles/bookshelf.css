@@ -18,6 +18,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-direction: row-reverse; /* macOS: title on right */
   padding: 0 var(--space-5);
   -webkit-app-region: drag;
   flex-shrink: 0;
@@ -824,7 +825,7 @@
    Windows-specific adjustments
    ============================================ */
 :root[data-platform="win32"] .desk-titlebar {
-  justify-content: center;
+  flex-direction: row; /* Windows: title on left */
 }
 
 :root[data-platform="win32"] .desk-footer {
