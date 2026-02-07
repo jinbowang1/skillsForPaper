@@ -18,11 +18,18 @@ export interface BookshelfItem {
 
 // LaTeX / build intermediates to ignore
 const IGNORED_EXTS = new Set([
+  // LaTeX build intermediates
   ".aux", ".log", ".blg", ".out", ".toc", ".bbl",
   ".synctex.gz", ".fls", ".fdb_latexmk", ".nav",
   ".snm", ".vrb", ".xdv",
+  // Temporary files
   ".bak", ".tmp", ".temp", ".swp",
+  // Compiled files
   ".pyc", ".pyo", ".class", ".o", ".obj",
+  // Lock files
+  ".lock", ".lockb",
+  // OS generated
+  ".DS_Store",
 ]);
 
 const IGNORED_FILES = new Set([

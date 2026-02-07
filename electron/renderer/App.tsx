@@ -63,7 +63,7 @@ export default function App() {
   // Fetch current model from session on mount
   useEffect(() => {
     window.api.getState().then((state) => {
-      if (state?.model) {
+      if (state?.model && state.model !== "unknown") {
         useSessionStore.getState().setModel(state.model);
       }
     }).catch(() => {});
