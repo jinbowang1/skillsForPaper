@@ -1,11 +1,10 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { Mic, MicOff, ArrowUp, Square, X, ImagePlus, Loader2 } from "lucide-react";
+import { Mic, MicOff, ArrowUp, Square, X, ImagePlus, Loader2, Terminal, Sparkles } from "lucide-react";
 import { useSessionStore } from "../../stores/session-store";
 import { useUserStore } from "../../stores/user-store";
 import { useToastStore } from "../../stores/toast-store";
 import { useSendMessage, type ImageAttachment } from "../../hooks/useSendMessage";
 import { parseFallbackSuggestions } from "../../utils/parseSuggestions";
-import { THINKING_PHRASES, pickRandom } from "../../utils/status-phrases";
 
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20 MB
@@ -31,8 +30,8 @@ export default function InputBar() {
   const [isVoiceRecording, setVoiceRecording] = useState(false);
   const [interimText, setInterimText] = useState("");
   const [voiceReady, setVoiceReady] = useState(false);
-  const [statusPhrase, setStatusPhrase] = useState(() => pickRandom(THINKING_PHRASES));
   const [isAborting, setIsAborting] = useState(false);
+  const [toolElapsed, setToolElapsed] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isComposingRef = useRef(false);
@@ -42,18 +41,23 @@ export default function InputBar() {
   const setPendingDecision = useSessionStore((s) => s.setPendingDecision);
   const markDecisionAnswered = useSessionStore((s) => s.markDecisionAnswered);
   const currentModelSupportsImages = useSessionStore((s) => s.currentModelSupportsImages);
+  const statusPhrase = useSessionStore((s) => s.statusPhrase);
+  const currentTool = useSessionStore((s) => s.currentTool);
   const { aiName } = useUserStore();
   const addToast = useToastStore((s) => s.addToast);
   const sendMessage = useSendMessage();
 
-  // Pick a new status phrase when streaming starts
+  // Update tool elapsed time every second
   useEffect(() => {
-    if (isStreaming) {
-      setStatusPhrase(pickRandom(THINKING_PHRASES, statusPhrase));
+    if (!currentTool) {
+      setToolElapsed(0);
+      return;
     }
-    // Note: Don't reset isAborting here - let handleAbort's finally block handle it
-    // with a delay so users can see the yellow "stopping" state
-  }, [isStreaming]);
+    const interval = setInterval(() => {
+      setToolElapsed(Math.floor((Date.now() - currentTool.startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [currentTool]);
 
   // Clear staged images when switching to a text-only model
   useEffect(() => {
@@ -355,6 +359,27 @@ export default function InputBar() {
             <X size={12} />
           </button>
         </div>
+      )}
+      {/* Progress bar area - shows when streaming */}
+      {isStreaming && !pendingDecision && (
+        currentTool ? (
+          // Tool execution mode: show tool name + elapsed time
+          <div className="progress-bar-area tool-mode">
+            <Terminal size={12} className="progress-icon" />
+            <span className="progress-text shimmer">
+              正在{currentTool.name}
+            </span>
+            <span className="progress-time">
+              ({toolElapsed}秒)
+            </span>
+          </div>
+        ) : (
+          // Text generation mode: shimmer effect
+          <div className="progress-bar-area generating-mode">
+            <Sparkles size={12} className="progress-icon" />
+            <span className="progress-text shimmer">正在生成中...</span>
+          </div>
+        )
       )}
       {/* Image preview strip */}
       {images.length > 0 && (
