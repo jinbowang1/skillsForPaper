@@ -62,7 +62,8 @@ export default function ChatHeader() {
   const handleNewChat = useCallback(async () => {
     const confirmed = window.confirm(
       "确定要开始新对话吗？\n\n" +
-      "当前对话记录将被清空，历史对话可以在下次启动时恢复。"
+      "• 当前对话记录将被清空\n" +
+      "• 你的个人信息和记忆不会丢失"
     );
     if (!confirmed) return;
 
