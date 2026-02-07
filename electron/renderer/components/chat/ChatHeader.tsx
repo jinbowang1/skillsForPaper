@@ -122,7 +122,7 @@ export default function ChatHeader() {
             onClick={() => !isSwitching && !isStreaming && setOpen((o) => !o)}
             disabled={isSwitching || isStreaming}
           >
-            {isSwitching ? "切换中..." : currentModel} {!isSwitching && <>&#9662;</>}
+            {isSwitching ? "切换中..." : (currentModel || "加载中...")} {!isSwitching && <>&#9662;</>}
           </button>
           {isOpen && (
             <div className="model-dropdown">

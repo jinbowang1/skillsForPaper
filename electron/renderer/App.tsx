@@ -10,6 +10,7 @@ import { useBookshelf } from "./hooks/useBookshelf";
 import { useTaskProgress } from "./hooks/useTaskProgress";
 import { useChatPersistence } from "./hooks/useChatPersistence";
 import { useUserStore } from "./stores/user-store";
+import { useSessionStore } from "./stores/session-store";
 
 interface UpdateInfo {
   version: string;
@@ -57,6 +58,15 @@ export default function App() {
   useEffect(() => {
     useUserStore.getState().fetchUserInfo();
     useUserStore.getState().fetchAvatar();
+  }, []);
+
+  // Fetch current model from session on mount
+  useEffect(() => {
+    window.api.getState().then((state) => {
+      if (state?.model) {
+        useSessionStore.getState().setModel(state.model);
+      }
+    }).catch(() => {});
   }, []);
 
   if (setupRequired) {
