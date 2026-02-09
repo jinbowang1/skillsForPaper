@@ -124,6 +124,14 @@
         "from": "MiniMax M2.1",
         "to": "Kimi K2.5"
       }
+    },
+    {
+      "feature": "chat",
+      "action": "send_message",
+      "timestamp": 1770637191753,
+      "metadata": {
+        "textLength": 71
+      }
     }
   ]
 }
