@@ -158,6 +158,14 @@
       "metadata": {
         "textLength": 84
       }
+    },
+    {
+      "feature": "chat",
+      "action": "send_message",
+      "timestamp": 1770637677018,
+      "metadata": {
+        "textLength": 33
+      }
     }
   ]
 }
