@@ -1,6 +1,6 @@
 ---
 name: pdf
-description: Comprehensive PDF manipulation toolkit for extracting text and tables, creating new PDFs, merging/splitting documents, and handling forms. When Claude needs to fill in a PDF form or programmatically process, generate, or analyze PDF documents at scale.
+description: Comprehensive PDF manipulation toolkit for extracting text and tables, creating new PDFs, merging/splitting documents, handling forms, Markdown/LaTeX to PDF conversion, Chinese font support, and academic templates. When Claude needs to fill in a PDF form or programmatically process, generate, or analyze PDF documents at scale.
 license: Proprietary. LICENSE.txt has complete terms
 ---
 
@@ -9,6 +9,24 @@ license: Proprietary. LICENSE.txt has complete terms
 ## Overview
 
 This guide covers essential PDF processing operations using Python libraries and command-line tools. For advanced features, JavaScript libraries, and detailed examples, see reference.md. If you need to fill out a PDF form, read forms.md and follow its instructions.
+
+### Additional Documentation
+
+| Document | Description |
+|----------|-------------|
+| [markdown-to-pdf.md](markdown-to-pdf.md) | Markdown to PDF conversion with Pandoc, WeasyPrint, Typst |
+| [chinese-fonts.md](chinese-fonts.md) | Chinese font configuration for PDF generation |
+| [academic-templates.md](academic-templates.md) | Academic paper, thesis, CV, and presentation templates |
+| [forms.md](forms.md) | PDF form filling guide |
+| [reference.md](reference.md) | Advanced features and JavaScript libraries |
+
+### Scripts
+
+| Script | Description | Usage |
+|--------|-------------|-------|
+| `scripts/md_to_pdf.py` | Markdown to PDF converter | `python md_to_pdf.py input.md -o output.pdf` |
+| `scripts/latex_to_pdf.py` | LaTeX to PDF compiler | `python latex_to_pdf.py paper.tex --bibtex` |
+| `scripts/citation_demo.py` | Citation management demo | `python citation_demo.py refs.bib --style apa` |
 
 ## Quick Start
 
@@ -292,3 +310,8 @@ with open("encrypted.pdf", "wb") as output:
 - For JavaScript libraries (pdf-lib), see reference.md
 - If you need to fill out a PDF form, follow the instructions in forms.md
 - For troubleshooting guides, see reference.md
+- **Markdown to PDF**: See markdown-to-pdf.md for Pandoc, WeasyPrint, and Typst workflows
+- **LaTeX to PDF**: Use scripts/latex_to_pdf.py for compiling LaTeX documents
+- **Chinese Documents**: See chinese-fonts.md for font configuration in ReportLab, WeasyPrint, Pandoc
+- **Academic Writing**: See academic-templates.md for paper, thesis, CV, and slide templates
+- **Citation Management**: Use scripts/citation_demo.py for BibTeX parsing and CSL formatting
