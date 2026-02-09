@@ -132,6 +132,32 @@
       "metadata": {
         "textLength": 71
       }
+    },
+    {
+      "feature": "bookshelf",
+      "action": "open_file",
+      "timestamp": 1770637418470,
+      "metadata": {
+        "ext": ".md",
+        "category": "paper"
+      }
+    },
+    {
+      "feature": "bookshelf",
+      "action": "open_file",
+      "timestamp": 1770637418496,
+      "metadata": {
+        "ext": ".md",
+        "category": "paper"
+      }
+    },
+    {
+      "feature": "chat",
+      "action": "send_message",
+      "timestamp": 1770637510240,
+      "metadata": {
+        "textLength": 84
+      }
     }
   ]
 }
