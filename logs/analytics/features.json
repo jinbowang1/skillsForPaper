@@ -222,6 +222,14 @@
       "metadata": {
         "textLength": 35
       }
+    },
+    {
+      "feature": "chat",
+      "action": "send_message",
+      "timestamp": 1770643085760,
+      "metadata": {
+        "textLength": 20
+      }
     }
   ]
 }
