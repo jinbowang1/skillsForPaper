@@ -264,6 +264,9 @@ export interface ElectronAPI {
   serverGetInviteCode: () => Promise<{ code: string; link: string } | null>;
   serverCheckConnection: () => Promise<boolean>;
   serverReportUsage: (usage: UsageRecord) => Promise<boolean>;
+
+  // External Links
+  openExternal: (url: string) => Promise<boolean>;
 }
 
 declare global {

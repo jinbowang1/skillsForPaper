@@ -210,6 +210,9 @@ const api = {
     requestId?: string;
     latencyMs?: number;
   }) => ipcRenderer.invoke("server:reportUsage", usage),
+
+  // ── External Links ──
+  openExternal: (url: string) => ipcRenderer.invoke("shell:openExternal", { url }),
 };
 
 contextBridge.exposeInMainWorld("api", api);

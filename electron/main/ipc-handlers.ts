@@ -480,6 +480,16 @@ export function registerIpcHandlers(
     return serverApi.reportUsage(usage);
   });
 
+  // ── External Links ──
+  ipcMain.handle("shell:openExternal", async (_event, { url }) => {
+    // 安全检查：只允许 http/https 链接
+    if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+      await shell.openExternal(url);
+      return true;
+    }
+    return false;
+  });
+
   window.on("maximize", () => {
     window.webContents.send("window:maximized-change", true);
   });

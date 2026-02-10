@@ -1019,6 +1019,56 @@
   opacity: 0.8;
 }
 
+.account-upgrade-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 16px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--duration-fast), transform var(--duration-fast);
+}
+
+.account-upgrade-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.account-upgrade-btn:active {
+  transform: translateY(0);
+}
+
+.account-manage-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 12px;
+  background: var(--overlay-faint);
+  color: var(--text-secondary);
+  border: 1px solid var(--overlay-strong);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.account-manage-btn:hover {
+  background: var(--overlay-strong);
+  color: var(--text-primary);
+}
+
 .account-reward-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

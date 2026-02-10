@@ -133,13 +133,22 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
           </div>
 
           {subscription?.trial.isInTrial ? (
-            <div className="account-trial-badge">
-              <Clock size={14} />
-              <span>试用期</span>
-              <span className="account-trial-date">
-                至 {new Date(subscription.trial.endAt!).toLocaleDateString()}
-              </span>
-            </div>
+            <>
+              <div className="account-trial-badge">
+                <Clock size={14} />
+                <span>试用期</span>
+                <span className="account-trial-date">
+                  至 {new Date(subscription.trial.endAt!).toLocaleDateString()}
+                </span>
+              </div>
+              <button
+                className="account-upgrade-btn"
+                onClick={() => window.api.openExternal("https://dashixiong.com/pricing")}
+              >
+                <Crown size={14} />
+                升级订阅
+              </button>
+            </>
           ) : subscription?.subscription ? (
             <div className="account-subscription-info">
               <div className="account-info-row">
@@ -172,20 +181,23 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
                   }}
                 />
               </div>
+              <button
+                className="account-manage-btn"
+                onClick={() => window.api.openExternal("https://dashixiong.com/account")}
+              >
+                管理订阅 <ExternalLink size={12} />
+              </button>
             </div>
           ) : (
             <div className="account-no-subscription">
               <span>暂无有效订阅</span>
-              <a
-                href="#"
-                className="account-subscribe-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  // TODO: 打开订阅页面
-                }}
+              <button
+                className="account-upgrade-btn"
+                onClick={() => window.api.openExternal("https://dashixiong.com/pricing")}
               >
-                立即订阅 <ExternalLink size={12} />
-              </a>
+                <Crown size={14} />
+                立即订阅
+              </button>
             </div>
           )}
         </div>
