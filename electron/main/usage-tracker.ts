@@ -14,6 +14,7 @@ import path from "path";
 import https from "https";
 import { LOGS_DIR, MEMORY_DIR } from "./paths.js";
 import { logger } from "./app-logger.js";
+import { serverApi } from "./server-api.js";
 
 // ── Types ──
 
@@ -114,6 +115,11 @@ export function trackEvent(event: any) {
   logger.info(
     `[usage] ${record.provider}/${record.model} in=${record.inputTokens} out=${record.outputTokens} cost=$${record.cost.toFixed(4)}`
   );
+
+  // 上报到大师兄服务端（异步，不阻塞）
+  reportToServer(record).catch((err) => {
+    logger.debug("[usage] Server report failed:", err);
+  });
 }
 
 /** Flush and report current day's data. Call on app quit. */
@@ -423,4 +429,36 @@ function dayStr(offset: number): string {
   const d = new Date();
   d.setDate(d.getDate() + offset);
   return d.toISOString().slice(0, 10);
+}
+
+// ── Server Reporting (大师兄服务端) ──
+
+/**
+ * 上报使用记录到大师兄服务端
+ * 仅在用户已登录时上报
+ */
+async function reportToServer(record: UsageRecord): Promise<void> {
+  // 检查是否已登录
+  if (!serverApi.isLoggedIn()) {
+    return;
+  }
+
+  try {
+    const success = await serverApi.reportUsage({
+      model: record.model,
+      provider: record.provider,
+      inputTokens: record.inputTokens,
+      outputTokens: record.outputTokens,
+      totalTokens: record.inputTokens + record.outputTokens,
+      cost: record.cost,
+      latencyMs: undefined,
+    });
+
+    if (success) {
+      logger.debug("[usage] Reported to server successfully");
+    }
+  } catch (err) {
+    // 静默失败，不影响主流程
+    logger.debug("[usage] Failed to report to server:", err);
+  }
 }

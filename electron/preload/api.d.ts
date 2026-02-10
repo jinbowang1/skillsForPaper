@@ -91,6 +91,53 @@ export interface ExportResult {
   error?: string;
 }
 
+// 服务端用户信息
+export interface ServerUser {
+  id: string;
+  email: string;
+  nickname: string;
+  avatar?: string;
+  isVerified: boolean;
+}
+
+// 订阅信息
+export interface SubscriptionInfo {
+  trial: {
+    isInTrial: boolean;
+    canTrial: boolean;
+    startAt?: string;
+    endAt?: string;
+  };
+  subscription: {
+    id: string;
+    planCode: string;
+    planName: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+    monthlyTokens: number;
+    usedTokens: number;
+    tokenResetAt: string;
+  } | null;
+  inviteReward: {
+    total: number;
+    used: number;
+    available: number;
+  };
+}
+
+// 使用统计
+export interface UsageRecord {
+  model: string;
+  provider: string;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  cost: number;
+  requestId?: string;
+  latencyMs?: number;
+}
+
 export interface HealthCheckResult {
   permissions: {
     microphone: "granted" | "denied" | "not-determined" | "restricted" | "unknown";
@@ -206,6 +253,17 @@ export interface ElectronAPI {
   onBookshelfUpdate: (callback: (items: BookshelfItem[]) => void) => () => void;
   onTaskUpdate: (callback: (task: TaskState) => void) => () => void;
   onDecisionRequest: (callback: (req: DecisionRequest) => void) => () => void;
+
+  // Server API (大师兄服务端)
+  serverLogin: (email: string, password: string) => Promise<{ success: boolean; user?: ServerUser; error?: string }>;
+  serverRegister: (email: string, password: string, nickname?: string, inviteCode?: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  serverLogout: () => Promise<{ ok: boolean }>;
+  serverIsLoggedIn: () => Promise<boolean>;
+  serverGetCurrentUser: () => Promise<ServerUser | null>;
+  serverGetSubscription: () => Promise<SubscriptionInfo | null>;
+  serverGetInviteCode: () => Promise<{ code: string; link: string } | null>;
+  serverCheckConnection: () => Promise<boolean>;
+  serverReportUsage: (usage: UsageRecord) => Promise<boolean>;
 }
 
 declare global {

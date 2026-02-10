@@ -29,7 +29,7 @@ if (window.api?.platform) {
   document.documentElement.setAttribute("data-platform", window.api.platform);
 }
 
-type PanelType = "profile" | "guide" | "faq";
+type PanelType = "profile" | "guide" | "faq" | "account" | "settings";
 
 interface UIState {
   sidebarCollapsed: boolean;

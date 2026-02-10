@@ -7,6 +7,8 @@ import UserPanel from "./UserPanel";
 import ProfilePanel from "./ProfilePanel";
 import GuidePanel from "./GuidePanel";
 import FaqPanel from "./FaqPanel";
+import AccountPanel from "../AccountPanel";
+import SettingsPanel from "./SettingsPanel";
 import type { BookshelfItem } from "../../../preload/api";
 
 const MAX_RECENT = 5;
@@ -118,6 +120,12 @@ export default function Bookshelf() {
       {activePanel === "profile" && <ProfilePanel />}
       {activePanel === "guide" && <GuidePanel />}
       {activePanel === "faq" && <FaqPanel />}
+      {activePanel === "account" && (
+        <div className="sidebar-panel">
+          <AccountPanel onClose={() => useUIStore.getState().closePanel()} />
+        </div>
+      )}
+      {activePanel === "settings" && <SettingsPanel />}
     </aside>
   );
 }

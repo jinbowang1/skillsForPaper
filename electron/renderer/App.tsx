@@ -11,6 +11,7 @@ import { useTaskProgress } from "./hooks/useTaskProgress";
 import { useChatPersistence } from "./hooks/useChatPersistence";
 import { useUserStore } from "./stores/user-store";
 import { useSessionStore } from "./stores/session-store";
+import { useAuthStore } from "./stores/auth-store";
 
 interface UpdateInfo {
   version: string;
@@ -58,6 +59,11 @@ export default function App() {
   useEffect(() => {
     useUserStore.getState().fetchUserInfo();
     useUserStore.getState().fetchAvatar();
+  }, []);
+
+  // Check auth status on mount (大师兄服务端)
+  useEffect(() => {
+    useAuthStore.getState().checkAuth();
   }, []);
 
   // Fetch current model from session on mount (with retry for slow startup)

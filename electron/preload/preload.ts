@@ -180,6 +180,36 @@ const api = {
     ipcRenderer.on("decision:request", handler);
     return () => ipcRenderer.removeListener("decision:request", handler);
   },
+
+  // ── Server API (大师兄服务端) ──
+  serverLogin: (email: string, password: string) =>
+    ipcRenderer.invoke("server:login", { email, password }),
+
+  serverRegister: (email: string, password: string, nickname?: string, inviteCode?: string) =>
+    ipcRenderer.invoke("server:register", { email, password, nickname, inviteCode }),
+
+  serverLogout: () => ipcRenderer.invoke("server:logout"),
+
+  serverIsLoggedIn: () => ipcRenderer.invoke("server:isLoggedIn"),
+
+  serverGetCurrentUser: () => ipcRenderer.invoke("server:getCurrentUser"),
+
+  serverGetSubscription: () => ipcRenderer.invoke("server:getSubscription"),
+
+  serverGetInviteCode: () => ipcRenderer.invoke("server:getInviteCode"),
+
+  serverCheckConnection: () => ipcRenderer.invoke("server:checkConnection"),
+
+  serverReportUsage: (usage: {
+    model: string;
+    provider: string;
+    inputTokens: number;
+    outputTokens: number;
+    totalTokens: number;
+    cost: number;
+    requestId?: string;
+    latencyMs?: number;
+  }) => ipcRenderer.invoke("server:reportUsage", usage),
 };
 
 contextBridge.exposeInMainWorld("api", api);

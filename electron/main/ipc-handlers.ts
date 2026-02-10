@@ -30,6 +30,7 @@ import {
   getDefaultOutputDir,
   setOutputDir,
 } from "./settings.js";
+import { serverApi } from "./server-api.js";
 
 async function parseMemoryFile(): Promise<{
   name: string;
@@ -439,6 +440,44 @@ export function registerIpcHandlers(
 
   ipcMain.handle("settings:revealOutputDir", async () => {
     shell.openPath(getOutputDir());
+  });
+
+  // ── Server API channels (大师兄服务端) ──
+  ipcMain.handle("server:login", async (_event, { email, password }) => {
+    return serverApi.login(email, password);
+  });
+
+  ipcMain.handle("server:register", async (_event, { email, password, nickname, inviteCode }) => {
+    return serverApi.register(email, password, nickname, inviteCode);
+  });
+
+  ipcMain.handle("server:logout", async () => {
+    await serverApi.logout();
+    return { ok: true };
+  });
+
+  ipcMain.handle("server:isLoggedIn", async () => {
+    return serverApi.isLoggedIn();
+  });
+
+  ipcMain.handle("server:getCurrentUser", async () => {
+    return serverApi.getCachedUser();
+  });
+
+  ipcMain.handle("server:getSubscription", async () => {
+    return serverApi.getSubscription();
+  });
+
+  ipcMain.handle("server:getInviteCode", async () => {
+    return serverApi.getInviteCode();
+  });
+
+  ipcMain.handle("server:checkConnection", async () => {
+    return serverApi.checkConnection();
+  });
+
+  ipcMain.handle("server:reportUsage", async (_event, usage) => {
+    return serverApi.reportUsage(usage);
   });
 
   window.on("maximize", () => {
