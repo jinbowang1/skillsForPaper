@@ -9,7 +9,7 @@ import * as path from "path";
 import { logger } from "./app-logger.js";
 
 // 服务端地址
-const API_BASE = process.env.DASHIXIONG_API_URL || "http://localhost:3000";
+const API_BASE = process.env.DASHIXIONG_API_URL || "http://47.112.208.7:3000";
 
 // Token 存储路径
 const USER_DATA_DIR = app.getPath("userData");
