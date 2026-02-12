@@ -200,6 +200,8 @@ const api = {
 
   serverCheckConnection: () => ipcRenderer.invoke("server:checkConnection"),
 
+  serverGetBalance: () => ipcRenderer.invoke("server:getBalance"),
+
   serverReportUsage: (usage: {
     model: string;
     provider: string;

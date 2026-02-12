@@ -38,6 +38,12 @@ interface SubscriptionInfo {
   };
 }
 
+interface QuotaInfo {
+  freeTokens: number;
+  totalQuota: number;
+  quotaType: 'daily' | 'monthly';
+}
+
 interface AuthState {
   // 登录状态
   isLoggedIn: boolean;
@@ -46,6 +52,9 @@ interface AuthState {
 
   // 订阅状态
   subscription: SubscriptionInfo | null;
+
+  // 额度信息
+  quotaInfo: QuotaInfo | null;
 
   // 邀请码
   inviteCode: string | null;
@@ -69,6 +78,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true,
   user: null,
   subscription: null,
+  quotaInfo: null,
   inviteCode: null,
   inviteLink: null,
   serverConnected: false,
@@ -95,17 +105,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const subscription = await window.api.serverGetSubscription();
         set({ subscription });
 
+        // 获取额度信息
+        const balance = await window.api.serverGetBalance();
+        if (balance) {
+          set({ quotaInfo: { freeTokens: balance.freeTokens, totalQuota: balance.totalQuota, quotaType: balance.quotaType } });
+        }
+
         // 获取邀请码
         const inviteData = await window.api.serverGetInviteCode();
         if (inviteData) {
           set({ inviteCode: inviteData.code, inviteLink: inviteData.link });
         }
       } else {
-        set({ isLoggedIn: false, user: null });
+        set({ isLoggedIn: false, user: null, quotaInfo: null });
       }
     } catch (error) {
       console.error("Check auth error:", error);
-      set({ isLoggedIn: false, user: null });
+      set({ isLoggedIn: false, user: null, quotaInfo: null });
     } finally {
       set({ isLoading: false });
     }
@@ -120,6 +136,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // 获取订阅信息
         const subscription = await window.api.serverGetSubscription();
         set({ subscription });
+
+        // 获取额度信息
+        const balance = await window.api.serverGetBalance();
+        if (balance) {
+          set({ quotaInfo: { freeTokens: balance.freeTokens, totalQuota: balance.totalQuota, quotaType: balance.quotaType } });
+        }
 
         // 获取邀请码
         const inviteData = await window.api.serverGetInviteCode();
@@ -159,6 +181,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isLoggedIn: false,
       user: null,
       subscription: null,
+      quotaInfo: null,
       inviteCode: null,
       inviteLink: null,
     });
@@ -169,6 +192,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const subscription = await window.api.serverGetSubscription();
       set({ subscription });
+
+      // 同步刷新额度信息
+      const balance = await window.api.serverGetBalance();
+      if (balance) {
+        set({ quotaInfo: { freeTokens: balance.freeTokens, totalQuota: balance.totalQuota, quotaType: balance.quotaType } });
+      }
     } catch (error) {
       console.error("Refresh subscription error:", error);
     }
@@ -238,4 +267,13 @@ export function formatTokens(tokens: number): string {
     return `${(tokens / 1000).toFixed(0)}K`;
   }
   return tokens.toString();
+}
+
+/**
+ * 计算额度使用百分比
+ */
+export function getQuotaPercent(quotaInfo: QuotaInfo | null): number {
+  if (!quotaInfo || quotaInfo.totalQuota <= 0) return 0;
+  const used = quotaInfo.totalQuota - Math.max(0, quotaInfo.freeTokens);
+  return Math.max(0, Math.min(100, (used / quotaInfo.totalQuota) * 100));
 }

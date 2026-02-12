@@ -476,6 +476,10 @@ export function registerIpcHandlers(
     return serverApi.checkConnection();
   });
 
+  ipcMain.handle("server:getBalance", async () => {
+    return serverApi.getBalance();
+  });
+
   ipcMain.handle("server:reportUsage", async (_event, usage) => {
     return serverApi.reportUsage(usage);
   });

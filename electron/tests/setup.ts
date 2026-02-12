@@ -47,6 +47,18 @@ const mockApi = {
   // Log Export
   exportLogs: vi.fn().mockResolvedValue({ ok: true }),
   exportLogsAndReveal: vi.fn().mockResolvedValue({ ok: true }),
+  // Server API (大师兄服务端)
+  serverLogin: vi.fn().mockResolvedValue({ success: false }),
+  serverRegister: vi.fn().mockResolvedValue({ success: false }),
+  serverLogout: vi.fn().mockResolvedValue({ ok: true }),
+  serverIsLoggedIn: vi.fn().mockResolvedValue(false),
+  serverGetCurrentUser: vi.fn().mockResolvedValue(null),
+  serverGetSubscription: vi.fn().mockResolvedValue(null),
+  serverGetBalance: vi.fn().mockResolvedValue(null),
+  serverGetInviteCode: vi.fn().mockResolvedValue(null),
+  serverCheckConnection: vi.fn().mockResolvedValue(false),
+  serverReportUsage: vi.fn().mockResolvedValue(true),
+  openExternal: vi.fn().mockResolvedValue(true),
 };
 
 Object.defineProperty(window, "api", { value: mockApi, writable: true });

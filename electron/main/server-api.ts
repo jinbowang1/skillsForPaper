@@ -287,6 +287,26 @@ export async function getSubscription(): Promise<SubscriptionInfo | null> {
 }
 
 /**
+ * 获取账户余额（用于额度检查）
+ */
+export async function getBalance(): Promise<{
+  balance: number;
+  freeTokens: number;
+  totalQuota: number;
+  quotaType: 'daily' | 'monthly';
+} | null> {
+  if (!isLoggedIn()) return null;
+  const result = await request<{
+    balance: number;
+    freeTokens: number;
+    totalQuota: number;
+    quotaType: 'daily' | 'monthly';
+  }>("/api/billing/balance");
+  if (result.success && result.data) return result.data;
+  return null;
+}
+
+/**
  * 获取邀请码
  */
 export async function getInviteCode(): Promise<{ code: string; link: string } | null> {
@@ -365,6 +385,7 @@ export const serverApi = {
   getToken,
   getCachedUser,
   getSubscription,
+  getBalance,
   getInviteCode,
   reportUsage,
   reportUsageBatch,

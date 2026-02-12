@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { useAuthStore, hasActiveSubscription, getRemainingTokens, formatTokens } from "../stores/auth-store";
+import { useAuthStore, hasActiveSubscription, getRemainingTokens, formatTokens, getQuotaPercent } from "../stores/auth-store";
 import {
   User,
   LogOut,
@@ -25,6 +25,7 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
     isLoading,
     user,
     subscription,
+    quotaInfo,
     inviteCode,
     checkAuth,
     logout,
@@ -201,6 +202,42 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
             </div>
           )}
         </div>
+
+        {/* 额度用量 */}
+        {quotaInfo && (
+          <div className="account-section">
+            <div className="account-section-title">额度用量</div>
+            {(() => {
+              const percent = getQuotaPercent(quotaInfo);
+              const used = Math.max(0, quotaInfo.totalQuota - Math.max(0, quotaInfo.freeTokens));
+              const hasBonus = quotaInfo.quotaType === 'monthly' && quotaInfo.freeTokens > quotaInfo.totalQuota;
+              return (
+                <>
+                  <div className="account-quota-label">
+                    <span>{quotaInfo.quotaType === 'daily' ? '每日免费额度' : '月度额度 + 每日赠送'}</span>
+                    <span>已用 {formatTokens(used)} / {formatTokens(quotaInfo.totalQuota)}</span>
+                  </div>
+                  <div className="account-quota-bar">
+                    <div
+                      className={`account-quota-fill ${percent >= 100 ? 'exhausted' : percent >= 80 ? 'warning' : ''}`}
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                  {hasBonus && (
+                    <div className="account-quota-hint" style={{ color: 'var(--green)' }}>
+                      额外可用 {formatTokens(quotaInfo.freeTokens - quotaInfo.totalQuota)}（每日赠送累计）
+                    </div>
+                  )}
+                  {percent >= 100 && (
+                    <div className="account-quota-hint">
+                      {quotaInfo.quotaType === 'daily' ? '明日凌晨自动刷新' : '下个月自动刷新'}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        )}
 
         {/* 邀请奖励 */}
         {subscription && (

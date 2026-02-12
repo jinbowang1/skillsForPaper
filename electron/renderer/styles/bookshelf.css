@@ -1392,6 +1392,47 @@
 }
 
 /* ============================================
+   Quota Usage Bar
+   ============================================ */
+.account-quota-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.account-quota-bar {
+  height: 8px;
+  background: var(--overlay-strong);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 6px 0;
+}
+
+.account-quota-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--blue));
+  transition: width 0.3s ease;
+}
+
+.account-quota-fill.warning {
+  background: linear-gradient(90deg, var(--yellow), var(--orange));
+}
+
+.account-quota-fill.exhausted {
+  background: linear-gradient(90deg, var(--orange), var(--red));
+}
+
+.account-quota-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* ============================================
    Windows-specific adjustments
    ============================================ */
 :root[data-platform="win32"] .desk-titlebar {

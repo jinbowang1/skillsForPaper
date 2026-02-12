@@ -7,6 +7,7 @@ import { createResourceLoader } from "./app-resource-loader.js";
 import { installGlobalBridge, setWindow as setDecisionWindow } from "./decision-bridge.js";
 import type { BookshelfWatcher } from "./bookshelf-watcher.js";
 import { trackEvent } from "./usage-tracker.js";
+import { isLoggedIn, getBalance } from "./server-api.js";
 
 // Tool execution timeout in milliseconds (5 minutes)
 const TOOL_TIMEOUT_MS = 5 * 60 * 1000;
@@ -109,9 +110,9 @@ export class SessionBridge {
     }
 
     // Register DashScope (Qwen3)
-    // DashScope's OpenAI-compatible API does not support several OpenAI-specific
-    // params (store, stream_options, max_completion_tokens, developer role).
-    // The compat object tells the SDK to skip those and use Qwen-native thinking.
+    // DashScope's OpenAI-compatible API does not support store, max_completion_tokens,
+    // or developer role. stream_options IS supported for token usage tracking.
+    // The compat object tells the SDK to skip unsupported params and use Qwen-native thinking.
     // Pricing (≤32K tier): ¥2.5/M input, ¥10/M output → ~$0.34/$1.38 (Jan 2026)
     const dashscopeKey = process.env.DASHSCOPE_API_KEY;
     if (dashscopeKey) {
@@ -132,7 +133,6 @@ export class SessionBridge {
             compat: {
               supportsStore: false,
               supportsDeveloperRole: false,
-              supportsUsageInStreaming: false,
               thinkingFormat: "qwen",
             },
           },
@@ -162,7 +162,6 @@ export class SessionBridge {
             compat: {
               supportsStore: false,
               supportsDeveloperRole: false,
-              supportsUsageInStreaming: false,
             },
           },
         ],
@@ -332,8 +331,23 @@ export class SessionBridge {
     this.window.webContents.send("agent:event", event);
   }
 
+  private async checkQuota(): Promise<void> {
+    if (!isLoggedIn()) return; // 未登录不阻断
+    try {
+      const balance = await getBalance();
+      if (balance && balance.freeTokens <= 0) {
+        throw new Error("QUOTA_EXCEEDED");
+      }
+    } catch (err: any) {
+      if (err.message === "QUOTA_EXCEEDED") throw err;
+      // 服务端不可达时不阻断使用
+      this.logger.warn("[quota] Failed to check balance, allowing request", err);
+    }
+  }
+
   async prompt(text: string, images?: Array<{ data: string; mimeType: string }>) {
     if (!this.session) throw new Error("Session not initialized");
+    await this.checkQuota();
     this.logger.info(`[prompt] Sending to model: ${this.session.model?.provider}/${this.session.model?.id} (${this.session.model?.name})`);
     try {
       if (images && images.length > 0) {
@@ -357,6 +371,7 @@ export class SessionBridge {
 
   async steer(text: string) {
     if (!this.session) throw new Error("Session not initialized");
+    await this.checkQuota();
     try {
       await this.session.followUp(text);
     } catch (err) {

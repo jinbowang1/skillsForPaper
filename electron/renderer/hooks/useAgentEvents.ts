@@ -4,6 +4,7 @@ import {
   generateMsgId,
   type ContentBlock,
 } from "../stores/session-store";
+import { useAuthStore } from "../stores/auth-store";
 import { parseAgentEvent } from "../utils/message-parser";
 import { pickIdlePhrase, pickThinkingPhrase } from "../utils/status-phrases";
 
@@ -191,6 +192,10 @@ export function useAgentEvents() {
           // Stopped streaming: pick an idle phrase, clear tool
           setStatusPhrase(pickIdlePhrase());
           setCurrentTool(null);
+          // Refresh quota after message completes (delayed to let server process usage report)
+          setTimeout(() => {
+            useAuthStore.getState().refreshSubscription().catch(() => {});
+          }, 2000);
         }
       }
 
