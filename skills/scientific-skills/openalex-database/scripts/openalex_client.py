@@ -70,7 +70,12 @@ class OpenAlexClient:
         for attempt in range(max_retries):
             try:
                 self._rate_limit()
-                response = requests.get(url, params=params, timeout=30)
+                headers = {
+                    'Accept': 'application/json',
+                    'Accept-Encoding': 'gzip, deflate',
+                    'User-Agent': 'Mozilla/5.0 (compatible; OpenAlexClient/1.0)'
+                }
+                response = requests.get(url, params=params, headers=headers, timeout=30)
 
                 if response.status_code == 200:
                     return response.json()

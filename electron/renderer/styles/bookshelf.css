@@ -1108,21 +1108,34 @@
   margin-bottom: 6px;
 }
 
-.account-invite-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .account-invite-code {
-  flex: 1;
-  padding: 8px 10px;
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
   background: var(--bg-primary);
   border: 1px solid var(--overlay-strong);
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--text-primary);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.account-invite-code:hover {
+  border-color: var(--accent);
+  background: var(--overlay-light);
+}
+
+.account-invite-code:active {
+  transform: scale(0.98);
+}
+
+.account-invite-code.copied {
+  border-color: var(--green);
+  color: var(--green);
 }
 
 .account-invite-hint {
@@ -1412,17 +1425,19 @@
 
 .account-quota-fill {
   height: 100%;
+  min-width: 6px;
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--accent), var(--blue));
+  background: linear-gradient(90deg, var(--accent), #5ac8fa);
   transition: width 0.3s ease;
 }
 
 .account-quota-fill.warning {
-  background: linear-gradient(90deg, var(--yellow), var(--orange));
+  background: linear-gradient(90deg, var(--orange), var(--yellow));
 }
 
 .account-quota-fill.exhausted {
-  background: linear-gradient(90deg, var(--orange), var(--red));
+  background: linear-gradient(90deg, var(--red), var(--orange));
+  min-width: 0;
 }
 
 .account-quota-hint {

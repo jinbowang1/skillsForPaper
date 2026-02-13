@@ -6,6 +6,8 @@ const mockApi = {
   prompt: vi.fn().mockResolvedValue(undefined),
   steer: vi.fn().mockResolvedValue(undefined),
   abort: vi.fn().mockResolvedValue(undefined),
+  newSession: vi.fn().mockResolvedValue(undefined),
+  clearChatHistory: vi.fn().mockResolvedValue(undefined),
   getState: vi.fn().mockResolvedValue({ isStreaming: false, model: "test" }),
   getModels: vi.fn().mockResolvedValue([{ id: "test", name: "Test Model" }]),
   setModel: vi.fn().mockResolvedValue({ model: "test" }),

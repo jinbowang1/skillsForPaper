@@ -20,131 +20,53 @@ beforeEach(() => {
     loaded: false,
   });
   vi.clearAllMocks();
-  vi.mocked(window.api.getModels).mockResolvedValue([
-    { id: "MiniMax-M2.1", name: "MiniMax M2.1", needsVpn: false },
-    { id: "claude-opus-4-5", name: "Claude Opus 4.5", needsVpn: true },
-  ]);
-  vi.mocked(window.api.setModel).mockResolvedValue({ model: "Claude Opus 4.5" });
-  vi.mocked(window.api.trackFeature).mockResolvedValue(undefined);
 });
 
 describe("ChatHeader", () => {
-  it("renders AI name and model selector", () => {
+  it("renders AI name", () => {
     render(<ChatHeader />);
     expect(screen.getByText("大师兄")).toBeInTheDocument();
-    expect(screen.getByText(/MiniMax M2.1/)).toBeInTheDocument();
   });
 
-  it("model selector button is enabled when not streaming", () => {
+  it("renders new chat button", () => {
     render(<ChatHeader />);
-    const modelBtn = screen.getByText(/MiniMax M2.1/);
-    expect(modelBtn).not.toBeDisabled();
+    expect(screen.getByText("新建对话")).toBeInTheDocument();
   });
 
-  it("model selector button is disabled when streaming", () => {
+  it("new chat button is disabled when streaming", () => {
     useSessionStore.setState({ isStreaming: true });
     render(<ChatHeader />);
-    const modelBtn = screen.getByText(/MiniMax M2.1/);
-    expect(modelBtn).toBeDisabled();
+    expect(screen.getByText("新建对话")).toBeDisabled();
   });
 
-  it("does not open dropdown when streaming", async () => {
-    useSessionStore.setState({ isStreaming: true });
+  it("new chat button is enabled when not streaming", () => {
     render(<ChatHeader />);
-    const modelBtn = screen.getByText(/MiniMax M2.1/);
-    fireEvent.click(modelBtn);
-
-    // Dropdown should not appear
-    await waitFor(() => {
-      expect(screen.queryByText("Claude Opus 4.5")).not.toBeInTheDocument();
-    });
+    expect(screen.getByText("新建对话")).not.toBeDisabled();
   });
 
-  it("opens dropdown when not streaming", async () => {
+  it("does not show model selector", () => {
     render(<ChatHeader />);
-    const modelBtn = screen.getByText(/MiniMax M2.1/);
-    fireEvent.click(modelBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText("Claude Opus 4.5")).toBeInTheDocument();
-    });
+    expect(screen.queryByText(/MiniMax M2.1/)).not.toBeInTheDocument();
   });
 
-  it("calls setModel when selecting a model", async () => {
-    // Mock window.confirm for VPN warning
+  it("calls newSession on new chat confirm", async () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
-
     render(<ChatHeader />);
-    const modelBtn = screen.getByText(/MiniMax M2.1/);
-    fireEvent.click(modelBtn);
+    fireEvent.click(screen.getByText("新建对话"));
 
     await waitFor(() => {
-      expect(screen.getByText("Claude Opus 4.5")).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByText("Claude Opus 4.5"));
-
-    await waitFor(() => {
-      expect(window.api.setModel).toHaveBeenCalledWith("claude-opus-4-5");
+      expect(window.api.clearChatHistory).toHaveBeenCalled();
+      expect(window.api.newSession).toHaveBeenCalled();
     });
   });
 
-  it("shows VPN tag for models that need VPN", async () => {
+  it("does not call newSession when confirm is cancelled", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
     render(<ChatHeader />);
-    const modelBtn = screen.getByText(/MiniMax M2.1/);
-    fireEvent.click(modelBtn);
+    fireEvent.click(screen.getByText("新建对话"));
 
     await waitFor(() => {
-      expect(screen.getByText("需VPN")).toBeInTheDocument();
+      expect(window.api.newSession).not.toHaveBeenCalled();
     });
-  });
-
-  it("shows loading state when models are being fetched", async () => {
-    // Make getModels slow
-    vi.mocked(window.api.getModels).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve([
-        { id: "test", name: "Test Model" },
-      ]), 100))
-    );
-
-    render(<ChatHeader />);
-    const modelBtn = screen.getByText(/MiniMax M2.1/);
-    fireEvent.click(modelBtn);
-
-    // Should show loading
-    expect(screen.getByText("加载中...")).toBeInTheDocument();
-
-    // Wait for models to load
-    await waitFor(() => {
-      expect(screen.getByText("Test Model")).toBeInTheDocument();
-    });
-  });
-
-  it("shows empty state when no models available", async () => {
-    vi.mocked(window.api.getModels).mockResolvedValue([]);
-
-    render(<ChatHeader />);
-    const modelBtn = screen.getByText(/MiniMax M2.1/);
-    fireEvent.click(modelBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText("暂无可用模型")).toBeInTheDocument();
-    });
-  });
-
-  it("closes dropdown when clicking outside", async () => {
-    render(<ChatHeader />);
-    const modelBtn = screen.getByText(/MiniMax M2.1/);
-    fireEvent.click(modelBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText("Claude Opus 4.5")).toBeInTheDocument();
-    });
-
-    // Click outside
-    fireEvent.mouseDown(document.body);
-
-    // Dropdown should be closed
-    expect(screen.queryByText("Claude Opus 4.5")).not.toBeInTheDocument();
   });
 });

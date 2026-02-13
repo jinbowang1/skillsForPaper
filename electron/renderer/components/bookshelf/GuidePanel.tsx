@@ -26,7 +26,6 @@ export default function GuidePanel() {
           <ol>
             <li><strong>发起对话</strong> — 在右侧输入框描述你的需求，比如"帮我写论文的引言部分"</li>
             <li><strong>上传图片</strong> — 点击图片按钮或直接粘贴截图，让大师兄分析实验结果</li>
-            <li><strong>切换模型</strong> — 右上角可选择不同 AI 模型（MiniMax 免 VPN，Claude 需 VPN）</li>
             <li><strong>查看产出</strong> — 大师兄生成的文件会出现在左侧"书桌"中，点击可打开</li>
           </ol>
         </div>

@@ -10,8 +10,6 @@ import {
   LogOut,
   Crown,
   Gift,
-  Copy,
-  Check,
   RefreshCw,
   Clock,
   ExternalLink,
@@ -38,6 +36,15 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
   useEffect(() => {
     checkAuth();
   }, []);
+
+  // 面板可见时定时刷新额度，保证进度条实时更新
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const timer = setInterval(() => {
+      refreshSubscription();
+    }, 15_000);
+    return () => clearInterval(timer);
+  }, [isLoggedIn]);
 
   const handleCopyInviteCode = async () => {
     if (inviteCode) {
@@ -208,19 +215,20 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
           <div className="account-section">
             <div className="account-section-title">额度用量</div>
             {(() => {
-              const percent = getQuotaPercent(quotaInfo);
-              const used = Math.max(0, quotaInfo.totalQuota - Math.max(0, quotaInfo.freeTokens));
+              const remaining = Math.max(0, quotaInfo.freeTokens);
+              const total = Math.max(1, quotaInfo.totalQuota);
+              const remainPercent = Math.min(100, (remaining / total) * 100);
               const hasBonus = quotaInfo.quotaType === 'monthly' && quotaInfo.freeTokens > quotaInfo.totalQuota;
               return (
                 <>
                   <div className="account-quota-label">
-                    <span>{quotaInfo.quotaType === 'daily' ? '每日免费额度' : '月度额度 + 每日赠送'}</span>
-                    <span>已用 {formatTokens(used)} / {formatTokens(quotaInfo.totalQuota)}</span>
+                    <span>{quotaInfo.quotaType === 'daily' ? '每日免费额度' : '月度额度'}</span>
+                    <span>剩余 {formatTokens(remaining)} / {formatTokens(total)}</span>
                   </div>
                   <div className="account-quota-bar">
                     <div
-                      className={`account-quota-fill ${percent >= 100 ? 'exhausted' : percent >= 80 ? 'warning' : ''}`}
-                      style={{ width: `${percent}%` }}
+                      className={`account-quota-fill ${remainPercent <= 0 ? 'exhausted' : remainPercent <= 20 ? 'warning' : ''}`}
+                      style={{ width: `${remainPercent}%` }}
                     />
                   </div>
                   {hasBonus && (
@@ -228,7 +236,7 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
                       额外可用 {formatTokens(quotaInfo.freeTokens - quotaInfo.totalQuota)}（每日赠送累计）
                     </div>
                   )}
-                  {percent >= 100 && (
+                  {remainPercent <= 0 && (
                     <div className="account-quota-hint">
                       {quotaInfo.quotaType === 'daily' ? '明日凌晨自动刷新' : '下个月自动刷新'}
                     </div>
@@ -274,24 +282,15 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
             {inviteCode && (
               <div className="account-invite-section">
                 <div className="account-invite-label">你的邀请码</div>
-                <div className="account-invite-row">
-                  <code className="account-invite-code">
-                    {inviteCode}
-                  </code>
-                  <button
-                    onClick={handleCopyInviteCode}
-                    className="icon-btn"
-                    title="复制邀请码"
-                  >
-                    {copied ? (
-                      <Check size={16} style={{ color: "var(--green)" }} />
-                    ) : (
-                      <Copy size={16} />
-                    )}
-                  </button>
-                </div>
+                <code
+                  className={`account-invite-code ${copied ? 'copied' : ''}`}
+                  onClick={handleCopyInviteCode}
+                  title="点击复制"
+                >
+                  {copied ? '已复制 ✓' : inviteCode}
+                </code>
                 <p className="account-invite-hint">
-                  邀请好友注册可获得 3 天试用期，好友订阅后你可获得 ¥1 奖励（上限 ¥30）
+                  每邀请一位好友订阅，立得 ¥1 奖励金，最高可赚 ¥199！
                 </p>
               </div>
             )}
