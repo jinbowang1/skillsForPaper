@@ -151,7 +151,7 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
               </div>
               <button
                 className="account-upgrade-btn"
-                onClick={() => window.api.openExternal("https://www.dashixiong.icu/pricing.html")}
+                onClick={() => window.api.openExternal("http://47.112.208.7:3001/promo")}
               >
                 <Crown size={14} />
                 升级订阅
@@ -191,7 +191,7 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
               </div>
               <button
                 className="account-manage-btn"
-                onClick={() => window.api.openExternal("https://www.dashixiong.icu/pricing.html")}
+                onClick={() => window.api.openExternal("http://47.112.208.7:3001/promo")}
               >
                 管理订阅 <ExternalLink size={12} />
               </button>
@@ -201,7 +201,7 @@ export function AccountPanel({ onClose }: { onClose?: () => void }) {
               <span>暂无有效订阅</span>
               <button
                 className="account-upgrade-btn"
-                onClick={() => window.api.openExternal("https://www.dashixiong.icu/pricing.html")}
+                onClick={() => window.api.openExternal("http://47.112.208.7:3001/promo")}
               >
                 <Crown size={14} />
                 立即订阅
