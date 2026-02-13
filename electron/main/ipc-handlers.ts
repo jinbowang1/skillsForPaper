@@ -31,6 +31,7 @@ import {
   setOutputDir,
 } from "./settings.js";
 import { serverApi } from "./server-api.js";
+import { injectKeys, cacheKeys, clearKeys } from "./key-manager.js";
 
 async function parseMemoryFile(): Promise<{
   name: string;
@@ -444,7 +445,22 @@ export function registerIpcHandlers(
 
   // ── Server API channels (大师兄服务端) ──
   ipcMain.handle("server:login", async (_event, { email, password }) => {
-    return serverApi.login(email, password);
+    const result = await serverApi.login(email, password);
+    if (result.success) {
+      // 登录成功后获取 API keys 并重新初始化会话
+      try {
+        const keys = await serverApi.getApiKeys();
+        if (keys) {
+          injectKeys(keys);
+          cacheKeys(keys);
+          // 重新初始化会话以使用新的 API keys
+          await sessionBridge.initialize();
+        }
+      } catch (err) {
+        console.error("[ipc] Failed to fetch API keys after login:", err);
+      }
+    }
+    return result;
   });
 
   ipcMain.handle("server:register", async (_event, { email, password, nickname, inviteCode }) => {
@@ -453,6 +469,7 @@ export function registerIpcHandlers(
 
   ipcMain.handle("server:logout", async () => {
     await serverApi.logout();
+    clearKeys();
     return { ok: true };
   });
 

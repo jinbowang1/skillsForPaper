@@ -7,7 +7,8 @@ import { createResourceLoader } from "./app-resource-loader.js";
 import { installGlobalBridge, setWindow as setDecisionWindow } from "./decision-bridge.js";
 import type { BookshelfWatcher } from "./bookshelf-watcher.js";
 import { trackEvent } from "./usage-tracker.js";
-import { isLoggedIn, getBalance } from "./server-api.js";
+import { isLoggedIn, getBalance, getApiKeys } from "./server-api.js";
+import { injectKeys, cacheKeys, loadCachedKeys } from "./key-manager.js";
 
 // Tool execution timeout in milliseconds (5 minutes)
 const TOOL_TIMEOUT_MS = 5 * 60 * 1000;
@@ -33,8 +34,38 @@ export class SessionBridge {
   }
 
   async initialize() {
-    // Load .env
+    // Load .env (non-key config: DAILY_LIMIT_CNY, USAGE_WEBHOOK_URL, proxy, etc.)
     dotenv.config({ path: ENV_PATH, override: true });
+
+    // Load API keys: server → encrypted cache → .env fallback
+    if (isLoggedIn()) {
+      try {
+        const serverKeys = await getApiKeys();
+        if (serverKeys) {
+          injectKeys(serverKeys);
+          cacheKeys(serverKeys);
+          this.logger.info("[init] API keys loaded from server");
+        } else {
+          // Server unreachable or returned null — try encrypted cache
+          const cachedKeys = loadCachedKeys();
+          if (cachedKeys) {
+            injectKeys(cachedKeys);
+            this.logger.info("[init] API keys loaded from encrypted cache (offline fallback)");
+          } else {
+            this.logger.warn("[init] No API keys available from server or cache, falling back to .env");
+          }
+        }
+      } catch (err) {
+        this.logger.warn("[init] Failed to fetch API keys from server, trying cache:", err);
+        const cachedKeys = loadCachedKeys();
+        if (cachedKeys) {
+          injectKeys(cachedKeys);
+          this.logger.info("[init] API keys loaded from encrypted cache (error fallback)");
+        }
+      }
+    } else {
+      this.logger.info("[init] User not logged in, using keys from .env (if any)");
+    }
 
     // Set up HTTP proxy BEFORE loading the SDK.
     // The SDK's stream.js does this asynchronously via import("undici").then(...)

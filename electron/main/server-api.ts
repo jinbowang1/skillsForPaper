@@ -354,6 +354,33 @@ export async function reportUsageBatch(usages: UsageRecord[]): Promise<boolean> 
 }
 
 /**
+ * 获取 API Keys（登录用户专用）
+ * 服务端根据用户订阅状态返回可用的 API keys
+ */
+export async function getApiKeys(): Promise<{
+  ANTHROPIC_API_KEY?: string;
+  MINIMAX_API_KEY?: string;
+  DASHSCOPE_API_KEY?: string;
+  MOONSHOT_API_KEY?: string;
+} | null> {
+  if (!isLoggedIn()) return null;
+
+  const result = await request<{
+    ANTHROPIC_API_KEY?: string;
+    MINIMAX_API_KEY?: string;
+    DASHSCOPE_API_KEY?: string;
+    MOONSHOT_API_KEY?: string;
+  }>("/api/keys");
+
+  if (result.success && result.data) {
+    return result.data;
+  }
+
+  logger.warn("[server-api] Failed to fetch API keys:", result.error);
+  return null;
+}
+
+/**
  * 检查服务端连接
  */
 export async function checkConnection(): Promise<boolean> {
@@ -387,6 +414,7 @@ export const serverApi = {
   getSubscription,
   getBalance,
   getInviteCode,
+  getApiKeys,
   reportUsage,
   reportUsageBatch,
   checkConnection,
